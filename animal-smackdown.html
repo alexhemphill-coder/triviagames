@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal Smackdown — Battle of the Wild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:ital,wght@0,400;0,700;0,800;0,900;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --jungle-deep:#0d2818; --jungle-dark:#143620; --jungle-mid:#1d4d2b;
+    --jungle-leaf:#2e7d32; --jungle-bright:#43a047; --lime:#9ccc65;
+    --gold:#f0c14b; --amber:#e8a33d; --bark:#5d4037; --bark-dark:#3e2723;
+    --cream:#f5f0e1; --cream-dim:#d8cfb8; --sun:#fff8e1;
+    --p1:#26c6da; --p1-dark:#0097a7; --p2:#ff7043; --p2-dark:#e64a19;
+    --shadow:rgba(0,0,0,0.45);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Nunito',-apple-system,sans-serif;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(67,160,71,0.25), transparent 55%),
+      radial-gradient(ellipse at 85% 15%, rgba(156,204,101,0.18), transparent 50%),
+      linear-gradient(160deg, var(--jungle-deep), var(--jungle-dark) 45%, var(--jungle-deep));
+    background-attachment:fixed;
+    color:var(--cream); min-height:100vh; line-height:1.6;
+    overflow-x:hidden;
+  }
+  /* faint leaf texture overlay */
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.06;
+    background-image:
+      radial-gradient(circle at 12% 25%, var(--lime) 0 2px, transparent 2px),
+      radial-gradient(circle at 78% 60%, var(--lime) 0 2px, transparent 2px),
+      radial-gradient(circle at 45% 85%, var(--lime) 0 2px, transparent 2px);
+    background-size:120px 120px, 160px 160px, 200px 200px;
+  }
+  .wrap{position:relative; z-index:1; max-width:900px; margin:0 auto; padding:1.2rem;}
+  .screen{display:none;} .screen.active{display:block; animation:fadein .4s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+  /* TITLE */
+  .title-block{text-align:center; padding:1.5rem 1rem 0.5rem; position:relative;}
+  .vines{font-size:1.6rem; letter-spacing:0.3rem; color:var(--jungle-bright); opacity:0.8;}
+  .game-title{
+    font-family:'Bungee',cursive; font-size:clamp(2.4rem,9vw,4.5rem); line-height:0.95;
+    color:var(--gold); text-shadow:3px 3px 0 var(--bark-dark), 6px 6px 0 rgba(0,0,0,0.3);
+    letter-spacing:1px; margin:0.3rem 0;
+  }
+  .game-sub{font-family:'Nunito';font-style:italic; color:var(--lime); font-size:clamp(0.95rem,2.5vw,1.2rem); font-weight:600;}
+
+  .setup-section{
+    background:linear-gradient(150deg, rgba(29,77,43,0.6), rgba(20,54,32,0.75));
+    border:2px solid rgba(156,204,101,0.3); border-radius:18px;
+    padding:1.3rem; margin:1.2rem 0; box-shadow:0 8px 28px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  h2{font-family:'Bungee';font-size:1.15rem; margin-bottom:0.3rem; letter-spacing:0.5px;}
+  .p1c{color:var(--p1);} .p2c{color:var(--p2);}
+  .setup-hint{font-size:0.9rem; color:var(--cream-dim); margin-bottom:0.9rem;}
+
+  .fighter-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(135px,1fr)); gap:0.7rem;}
+  .fighter-card{
+    background:linear-gradient(160deg, var(--jungle-mid), var(--jungle-dark));
+    border:2px solid rgba(156,204,101,0.25); border-radius:14px; padding:0.8rem 0.6rem;
+    text-align:center; cursor:pointer; transition:all .18s ease; position:relative; overflow:hidden;
+  }
+  .fighter-card:hover{transform:translateY(-3px); border-color:var(--gold); box-shadow:0 6px 18px var(--shadow);}
+  .fighter-card .emoji{font-size:2.2rem; display:block; margin-bottom:0.2rem;}
+  .fighter-card .fname{font-weight:800; font-size:0.92rem; line-height:1.15; margin-bottom:0.15rem;}
+  .fighter-card .fdom{font-size:0.72rem; color:var(--lime); font-weight:700; text-transform:uppercase; letter-spacing:0.4px;}
+  .fighter-card .story-link{
+    display:inline-block; margin-top:0.5rem; font-size:0.74rem; font-weight:800; color:var(--gold);
+    border:1px solid var(--gold); border-radius:20px; padding:0.18rem 0.6rem; transition:all .15s;
+  }
+  .fighter-card .story-link:hover{background:var(--gold); color:var(--bark-dark);}
+  .fighter-card.sel-p1{border-color:var(--p1); box-shadow:0 0 0 3px rgba(38,198,218,0.4), 0 6px 18px var(--shadow);}
+  .fighter-card.sel-p2{border-color:var(--p2); box-shadow:0 0 0 3px rgba(255,112,67,0.4), 0 6px 18px var(--shadow);}
+  .fighter-card.locked{opacity:0.35; pointer-events:none; filter:grayscale(0.6);}
+  .pick-badge{position:absolute; top:6px; right:6px; font-size:0.62rem; font-weight:900; padding:2px 7px; border-radius:10px; text-transform:uppercase;}
+  .badge-p1{background:var(--p1); color:#04282d;} .badge-p2{background:var(--p2); color:#3d1500;}
+
+  .tier-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0.7rem;}
+  .tier-btn{
+    background:linear-gradient(160deg, var(--jungle-mid), var(--jungle-dark));
+    border:2px solid rgba(156,204,101,0.25); border-radius:14px; padding:0.85rem; cursor:pointer;
+    text-align:center; transition:all .18s; color:var(--cream); font-family:'Nunito';
+  }
+  .tier-btn:hover{transform:translateY(-2px); border-color:var(--lime);}
+  .tier-btn .tier-name{font-family:'Bungee'; font-size:0.95rem; display:block;}
+  .tier-btn .tier-age{font-size:0.78rem; color:var(--lime); font-weight:700; margin-top:2px;}
+  .tier-btn.sel-p1{border-color:var(--p1); box-shadow:0 0 0 3px rgba(38,198,218,0.4);}
+  .tier-btn.sel-p2{border-color:var(--p2); box-shadow:0 0 0 3px rgba(255,112,67,0.4);}
+
+  .rules-box{background:rgba(13,40,24,0.6); border-left:4px solid var(--gold); border-radius:8px; padding:0.9rem 1rem; font-size:0.92rem; color:var(--cream-dim);}
+  .rules-box b{color:var(--cream);} .rules-box .up{color:var(--gold); font-weight:800;}
+
+  .btn-go{
+    display:block; width:100%; margin:1.4rem 0 0.5rem; padding:1rem;
+    font-family:'Bungee'; font-size:1.3rem; letter-spacing:1px; color:var(--bark-dark);
+    background:linear-gradient(120deg, var(--gold), var(--amber)); border:none; border-radius:16px;
+    cursor:pointer; box-shadow:0 6px 0 #b8860b, 0 10px 22px var(--shadow); transition:all .12s;
+  }
+  .btn-go:hover{transform:translateY(2px); box-shadow:0 4px 0 #b8860b, 0 6px 14px var(--shadow);}
+  .btn-go:disabled{opacity:0.45; cursor:not-allowed; filter:grayscale(0.5); box-shadow:0 6px 0 #555;}
+
+  /* MODAL */
+  .modal-bg{display:none; position:fixed; inset:0; z-index:50; background:rgba(5,18,10,0.82); backdrop-filter:blur(4px); padding:1rem; overflow-y:auto;}
+  .modal-bg.show{display:flex; align-items:flex-start; justify-content:center; animation:fadein .25s;}
+  .modal{
+    background:linear-gradient(170deg, #1a4527, #0f2c1a);
+    border:3px solid var(--gold); border-radius:20px; max-width:680px; width:100%; margin:2rem auto;
+    padding:2rem 1.8rem; box-shadow:0 18px 50px rgba(0,0,0,0.6); position:relative;
+  }
+  .modal-close{position:absolute; top:12px; right:14px; font-size:1.6rem; color:var(--gold); cursor:pointer; background:none; border:none; font-weight:900; line-height:1;}
+  .story-emoji{font-size:3rem; text-align:center; display:block;}
+  .story-name{font-family:'Bungee'; font-size:1.7rem; color:var(--gold); text-align:center; margin-top:0.3rem;}
+  .story-epithet{text-align:center; font-style:italic; color:var(--lime); font-weight:700; margin-bottom:0.6rem;}
+  .story-tags{display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; margin-bottom:1.2rem;}
+  .story-tag{font-size:0.72rem; font-weight:800; background:rgba(156,204,101,0.18); color:var(--lime); border:1px solid rgba(156,204,101,0.4); border-radius:20px; padding:0.2rem 0.7rem;}
+  .story-divider{text-align:center; color:var(--gold); font-size:1.1rem; letter-spacing:0.4rem; margin:0.6rem 0 1rem;}
+  .story-body p{margin-bottom:0.9rem; color:var(--cream); font-size:1rem;}
+  .story-body p:first-of-type::first-letter{font-family:'Bungee'; font-size:2.6rem; float:left; line-height:0.8; padding:0.1rem 0.5rem 0 0; color:var(--gold);}
+  .story-diagram{margin:1.2rem auto 0.4rem; text-align:center; background:rgba(13,40,24,0.5); border-radius:14px; padding:1rem;}
+  .story-diagram svg{width:100%; max-width:340px; height:auto;}
+  .diagram-caption{font-style:italic; font-size:0.82rem; color:var(--cream-dim); margin-top:0.5rem;}
+
+  /* BATTLE */
+  .arena{display:flex; gap:0.7rem; margin:1rem 0;}
+  .fighter-hud{flex:1; background:linear-gradient(160deg, rgba(29,77,43,0.7), rgba(20,54,32,0.85)); border-radius:16px; padding:0.9rem; border:2px solid rgba(156,204,101,0.25); transition:all .25s;}
+  .fighter-hud.active-p1{border-color:var(--p1); box-shadow:0 0 0 3px rgba(38,198,218,0.45);}
+  .fighter-hud.active-p2{border-color:var(--p2); box-shadow:0 0 0 3px rgba(255,112,67,0.45);}
+  .hud-top{display:flex; align-items:center; gap:0.5rem;}
+  .hud-emoji{font-size:2rem;} .hud-info{flex:1; min-width:0;}
+  .hud-player{font-size:0.7rem; font-weight:900; text-transform:uppercase; letter-spacing:0.5px;}
+  .hud-player.p1{color:var(--p1);} .hud-player.p2{color:var(--p2);}
+  .hud-name{font-weight:800; font-size:0.95rem; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .hud-tier{font-size:0.68rem; color:var(--cream-dim); font-weight:700;}
+  .hpbar{height:18px; background:rgba(0,0,0,0.4); border-radius:10px; margin-top:0.5rem; overflow:hidden; border:1px solid rgba(0,0,0,0.3);}
+  .hpfill{height:100%; border-radius:10px; transition:width .5s cubic-bezier(.2,.8,.2,1); display:flex; align-items:center; justify-content:flex-end;}
+  .hpfill.p1{background:linear-gradient(90deg,var(--p1-dark),var(--p1));}
+  .hpfill.p2{background:linear-gradient(90deg,var(--p2-dark),var(--p2));}
+  .hptext{text-align:right; font-size:0.78rem; font-weight:800; margin-top:0.15rem;}
+
+  .turn-banner{text-align:center; font-family:'Bungee'; font-size:1.1rem; padding:0.6rem; border-radius:12px; margin:0.5rem 0 1rem; letter-spacing:0.5px;}
+  .turn-banner.p1{background:rgba(38,198,218,0.18); color:var(--p1); border:1px solid rgba(38,198,218,0.4);}
+  .turn-banner.p2{background:rgba(255,112,67,0.18); color:var(--p2); border:1px solid rgba(255,112,67,0.4);}
+
+  .choice-row{display:flex; gap:0.6rem; margin-bottom:1rem; flex-wrap:wrap;}
+  .choice-btn{flex:1; min-width:130px; padding:0.85rem; border-radius:14px; cursor:pointer; border:2px solid; background:rgba(13,40,24,0.5); color:var(--cream); font-family:'Nunito'; font-weight:800; transition:all .15s; text-align:center;}
+  .choice-btn .ch-title{font-size:1rem; display:block;}
+  .choice-btn .ch-sub{font-size:0.72rem; font-weight:700; opacity:0.85; display:block; margin-top:2px;}
+  .choice-home{border-color:var(--lime); color:var(--lime);}
+  .choice-home:hover{background:rgba(156,204,101,0.18); transform:translateY(-2px);}
+  .choice-up{border-color:var(--gold); color:var(--gold);}
+  .choice-up:hover{background:rgba(240,193,75,0.18); transform:translateY(-2px);}
+
+  .qcard{background:linear-gradient(165deg, rgba(245,240,225,0.97), rgba(216,207,184,0.95)); color:var(--bark-dark); border-radius:18px; padding:1.4rem; box-shadow:0 10px 30px var(--shadow); border:2px solid var(--gold);}
+  .qcat{display:inline-block; font-size:0.72rem; font-weight:900; text-transform:uppercase; letter-spacing:0.6px; background:var(--jungle-leaf); color:var(--sun); padding:0.2rem 0.7rem; border-radius:20px; margin-bottom:0.7rem;}
+  .qcat.up{background:var(--amber); color:var(--bark-dark);}
+  .qtext{font-size:1.18rem; font-weight:800; margin-bottom:1rem; line-height:1.35;}
+  .opts{display:grid; gap:0.55rem;}
+  .opt-btn{text-align:left; padding:0.8rem 1rem; border-radius:12px; border:2px solid var(--bark); background:rgba(255,255,255,0.6); color:var(--bark-dark); font-family:'Nunito'; font-weight:700; font-size:1rem; cursor:pointer; transition:all .13s; display:flex; align-items:center; gap:0.7rem;}
+  .opt-btn .opt-letter{font-family:'Bungee'; font-size:0.85rem; background:var(--jungle-leaf); color:var(--sun); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .opt-btn:hover:not(:disabled){border-color:var(--jungle-bright); background:#fff; transform:translateX(3px);}
+  .opt-btn:disabled{cursor:default;}
+  .opt-btn.correct{background:#a5d6a7; border-color:#2e7d32;}
+  .opt-btn.correct .opt-letter{background:#2e7d32;}
+  .opt-btn.wrong{background:#ef9a9a; border-color:#c62828;}
+  .opt-btn.wrong .opt-letter{background:#c62828;}
+
+  .word-row{display:flex; gap:0.5rem; margin-top:0.3rem;}
+  .word-input{flex:1; padding:0.85rem 1rem; border-radius:12px; border:2px solid var(--bark); font-family:'Nunito'; font-weight:700; font-size:1.05rem; color:var(--bark-dark); background:rgba(255,255,255,0.85);}
+  .word-input:focus{outline:none; border-color:var(--jungle-bright);}
+  .word-submit{padding:0.85rem 1.3rem; border-radius:12px; border:none; background:var(--jungle-leaf); color:var(--sun); font-family:'Bungee'; font-size:0.9rem; cursor:pointer;}
+  .word-submit:hover{background:var(--jungle-bright);}
+
+  .feedback{margin-top:1rem; padding:0.9rem 1.1rem; border-radius:12px; font-weight:700; display:none;}
+  .feedback.show{display:block; animation:fadein .3s;}
+  .feedback.hit{background:#a5d6a7; color:#1b5e20;}
+  .feedback.miss{background:#ef9a9a; color:#b71c1c;}
+  .feedback .fb-fact{font-weight:600; font-style:italic; margin-top:0.4rem; font-size:0.92rem; color:var(--bark-dark);}
+  .next-btn{display:none; width:100%; margin-top:1rem; padding:0.9rem; font-family:'Bungee'; font-size:1.05rem; color:var(--bark-dark); background:linear-gradient(120deg,var(--gold),var(--amber)); border:none; border-radius:14px; cursor:pointer; box-shadow:0 5px 0 #b8860b;}
+  .next-btn.show{display:block;}
+  .next-btn:hover{transform:translateY(2px); box-shadow:0 3px 0 #b8860b;}
+
+  /* WINNER */
+  .winner-card{text-align:center; padding:2rem 1.5rem;}
+  .winner-emoji{font-size:5rem; animation:bounce 1s ease infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+  .winner-title{font-family:'Bungee'; font-size:2.2rem; color:var(--gold); margin:0.5rem 0; text-shadow:2px 2px 0 var(--bark-dark);}
+  .winner-sub{font-size:1.1rem; color:var(--lime); font-weight:700; margin-bottom:1.2rem;}
+  .winner-stats{display:flex; justify-content:center; gap:2rem; margin:1.2rem 0;}
+  .wstat{text-align:center;} .wstat .wnum{font-family:'Bungee'; font-size:1.8rem; color:var(--cream);} .wstat .wlbl{font-size:0.78rem; color:var(--cream-dim); text-transform:uppercase; letter-spacing:0.5px;}
+  .winner-actions{display:flex; gap:0.7rem; flex-wrap:wrap; justify-content:center; margin-top:1rem;}
+  .wbtn{padding:0.85rem 1.4rem; border-radius:14px; font-family:'Bungee'; font-size:1rem; cursor:pointer; border:none;}
+  .wbtn-primary{background:linear-gradient(120deg,var(--gold),var(--amber)); color:var(--bark-dark); box-shadow:0 5px 0 #b8860b;}
+  .wbtn-secondary{background:var(--jungle-leaf); color:var(--sun);}
+  .wbtn:hover{transform:translateY(2px);}
+  .err{color:#ff8a65; font-weight:700; font-size:0.85rem; text-align:center; min-height:1.2em; margin-top:0.4rem;}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== SETUP ===== -->
+  <div id="screen-setup" class="screen active">
+    <div class="title-block">
+      <div class="vines">🌿🍃🌴🍃🌿</div>
+      <div class="game-title">Animal<br>Smackdown</div>
+      <div class="game-sub">Two champions of the wild enter. One survives the jungle.</div>
+    </div>
+
+    <div class="setup-section">
+      <h2 class="p1c">🔵 Player 1 — Choose your champion</h2>
+      <p class="setup-hint">Tap a card to pick. Tap "📖 Story" to read about them first.</p>
+      <div class="fighter-grid" id="fgrid-1"></div>
+    </div>
+    <div class="setup-section">
+      <h2 class="p1c">🔵 Player 1 — Choose your level</h2>
+      <p class="setup-hint">You'll answer questions at this level. On your turn you can also "reach up" one level for bonus damage.</p>
+      <div class="tier-grid" id="tgrid-1"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2 class="p2c">🟠 Player 2 — Choose your champion</h2>
+      <p class="setup-hint">Tap a card to pick. Tap "📖 Story" to read about them first.</p>
+      <div class="fighter-grid" id="fgrid-2"></div>
+    </div>
+    <div class="setup-section">
+      <h2 class="p2c">🟠 Player 2 — Choose your level</h2>
+      <p class="setup-hint">Each player can be a different level — perfect for siblings of different ages!</p>
+      <div class="tier-grid" id="tgrid-2"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2>🐾 How it works</h2>
+      <div class="rules-box">
+        Each player plays at their own age level, so siblings of any age can battle fairly. On your turn, answer a question at <b>your level</b> for <b>11 damage</b>, or be brave and <span class="up">⬆️ reach up</span> one level for <b>15 damage</b>. Some questions are multiple choice; others ask you to <b>type an answer</b> (spelling doesn't have to be perfect!). Answer correctly to knock down your opponent — miss, and you deal nothing. First champion to drop the other to <b>0 HP</b> wins!
+      </div>
+    </div>
+
+    <button class="btn-go" id="go-btn" disabled>🌴 Enter the Arena! 🌴</button>
+  </div>
+
+  <!-- ===== BATTLE ===== -->
+  <div id="screen-battle" class="screen">
+    <div class="arena">
+      <div class="fighter-hud" id="hud-1">
+        <div class="hud-top">
+          <span class="hud-emoji" id="hud-emoji-1"></span>
+          <div class="hud-info">
+            <div class="hud-player p1">Player 1</div>
+            <div class="hud-name" id="hud-name-1"></div>
+            <div class="hud-tier" id="hud-tier-1"></div>
+          </div>
+        </div>
+        <div class="hpbar"><div class="hpfill p1" id="hpfill-1"></div></div>
+        <div class="hptext" id="hptext-1"></div>
+      </div>
+      <div class="fighter-hud" id="hud-2">
+        <div class="hud-top">
+          <span class="hud-emoji" id="hud-emoji-2"></span>
+          <div class="hud-info">
+            <div class="hud-player p2">Player 2</div>
+            <div class="hud-name" id="hud-name-2"></div>
+            <div class="hud-tier" id="hud-tier-2"></div>
+          </div>
+        </div>
+        <div class="hpbar"><div class="hpfill p2" id="hpfill-2"></div></div>
+        <div class="hptext" id="hptext-2"></div>
+      </div>
+    </div>
+
+    <div class="turn-banner" id="turn-banner"></div>
+    <div class="choice-row" id="choice-row"></div>
+    <div class="qcard" id="qcard" style="display:none;"></div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- ===== WINNER ===== -->
+  <div id="screen-winner" class="screen">
+    <div class="setup-section winner-card">
+      <div class="winner-emoji" id="winner-emoji"></div>
+      <div class="winner-title" id="winner-title"></div>
+      <div class="winner-sub" id="winner-sub"></div>
+      <div class="winner-stats">
+        <div class="wstat"><div class="wnum" id="stat-turns"></div><div class="wlbl">Turns played</div></div>
+        <div class="wstat"><div class="wnum" id="stat-acc"></div><div class="wlbl">Accuracy</div></div>
+      </div>
+      <div class="winner-actions">
+        <button class="wbtn wbtn-secondary" id="read-winner-story">📖 Read their story</button>
+        <button class="wbtn wbtn-primary" id="btn-rematch">⚔️ Rematch</button>
+        <button class="wbtn wbtn-secondary" id="btn-reset">🔄 New game</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== STORY MODAL ===== -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ===== FIGHTERS =====
+const FIGHTERS = [
+  { id:'goodall',     name:'Jane Goodall',          emoji:'🐒', domain:'Chimpanzees' },
+  { id:'attenborough',name:'David Attenborough',    emoji:'🎙️', domain:'Nature Broadcasting' },
+  { id:'irwin',       name:'Steve Irwin',           emoji:'🐊', domain:'The Crocodile Hunter' },
+  { id:'darwin',      name:'Charles Darwin',        emoji:'🐢', domain:'Evolution' },
+  { id:'fossey',      name:'Dian Fossey',           emoji:'🦍', domain:'Mountain Gorillas' },
+  { id:'cousteau',    name:'Jacques Cousteau',      emoji:'🐠', domain:'Ocean Life' },
+  { id:'grandin',     name:'Temple Grandin',        emoji:'🐄', domain:'Animal Behavior' },
+  { id:'hanna',       name:'Jack Hanna',            emoji:'🦓', domain:'Zookeeper' },
+  { id:'carson',      name:'Rachel Carson',         emoji:'🦅', domain:'Wildlife Conservation' },
+  { id:'wallace',     name:'Alfred Russel Wallace', emoji:'🦋', domain:'Natural Selection' },
+  { id:'akeley',      name:'Carl Akeley',           emoji:'🐘', domain:'Naturalist & Taxidermy' },
+  { id:'linnaeus',    name:'Carl Linnaeus',         emoji:'🌿', domain:'Father of Taxonomy' },
+];
+
+// ===== STORIES =====
+const STORIES = {
+  goodall: {
+    epithet: 'Friend of the Chimpanzees',
+    tags: ['Gombe','Chimpanzee Tools','Conservation'],
+    body: [
+      "As a small girl in England, Jane Goodall once hid for hours in a stuffy henhouse, refusing to come out until she had seen with her own eyes exactly how a hen laid an egg. Her mother, instead of scolding her for vanishing, listened to the excited story that tumbled out afterward. That patience — watch, wait, and let the animal show you — became the engine of Jane's whole life.",
+      "She had no university degree when the famous scientist Louis Leakey chose her to study wild chimpanzees, and some thought that was a mistake. But Leakey wanted a mind unspoiled by the assumptions of the day. In 1960 Jane arrived at Gombe, in what is now Tanzania, and simply sat. For months the chimpanzees fled from her. She kept her distance, stayed gentle, and slowly they accepted the strange pale ape who never threatened them.",
+      "Then came the discovery that shook science. Jane watched a chimp she had named David Greybeard strip the leaves from a twig and poke it into a termite mound to fish the insects out. Animals were not supposed to make tools — that was meant to be what made humans special. When she cabled the news to Leakey, he replied that we must now redefine 'tool,' redefine 'man,' or accept chimpanzees as human.",
+      "She broke another rule too: she gave the chimps names — Flo, Fifi, David Greybeard — instead of cold numbers, and wrote about their personalities, their friendships, their grief. Critics sniffed that this was unscientific. Time proved her right, and the world came to see chimpanzees as the thinking, feeling, deeply social animals they are.",
+      "In later life Jane traded the forest for the road, traveling some three hundred days a year to plead for the wild places vanishing around the planet. Through her Roots & Shoots program she handed the work to the young, insisting that every single person makes a difference every single day — the only question is what kind."
+    ]
+  },
+  attenborough: {
+    epithet: 'The Voice of the Living Planet',
+    tags: ['Documentaries','Blue Planet','Natural History'],
+    body: [
+      "Long before his voice became the most trusted narration on Earth, David Attenborough was a boy in Leicester hunting for fossils in the limestone, certain that the ancient ammonites curled in the rock were the most wonderful things in the world. That hunger to find and show never left him.",
+      "When television was young, he created a program called Zoo Quest that sent him crashing through jungles to film animals almost no one in Britain had ever seen. He was supposed to stay behind the scenes, but when the presenter fell ill, David stepped in front of the camera — and a seventy-year career was born almost by accident.",
+      "Across series like Life on Earth, The Blue Planet, and Planet Earth, he carried audiences to places they could never go: into the canopy with birds of paradise, down to hydrothermal vents on the black ocean floor, eye to eye with a silverback gorilla who chose to sit beside him in the Rwandan mist. He spoke softly, because the animals were the stars and he was only their introduction.",
+      "He has a gift for stillness. Crouched, whispering, he could make millions of viewers feel they were holding their breath beside him. And he kept learning — narrating new wonders into his nineties, his curiosity undimmed.",
+      "In his last decades he turned from pure wonder to warning, telling the world plainly that the wild abundance he had filmed across a lifetime was shrinking, and that we are the generation that must choose whether it survives. He had shown us the living planet so that we would love it enough to save it."
+    ]
+  },
+  irwin: {
+    epithet: 'The Crocodile Hunter',
+    tags: ['Crocodiles','Australia Zoo','Wildlife Warrior'],
+    body: [
+      "Steve Irwin grew up at a small reptile park his parents ran in Queensland, Australia, where his sixth-birthday present was a twelve-foot python. By nine he was leaping into rivers beside his father to help catch crocodiles, learning to read the eyes and the stillness of one of the planet's most ancient predators.",
+      "He took over the family park, renamed it Australia Zoo, and might have stayed a local hero — except a camera crew filmed him wrestling crocodiles to safety, grinning, shouting 'Crikey!', and treating venomous snakes like old friends. The Crocodile Hunter exploded onto televisions worldwide. Audiences had never seen anyone so gloriously, infectiously excited about animals most people feared.",
+      "His secret was that the excitement was completely real. Steve genuinely loved the creatures, even the ones that could kill him, and he wanted you to love them too. Every leap and every 'danger, danger, danger!' carried the same message underneath: these animals are extraordinary, and they are worth protecting.",
+      "He used the fame and the money to buy huge tracts of wilderness for conservation and built the zoo into a hospital that treated tens of thousands of injured wild animals. He argued that people protect what they love, and that he could make them love a crocodile.",
+      "In 2006, filming in the sea, Steve was killed by the barb of a stingray — a heartbreaking accident with an animal he admired. The world mourned, but his family carried the work on, and a generation of 'wildlife warriors' grew up because one man could not stop shouting how amazing the natural world is."
+    ]
+  },
+  darwin: {
+    epithet: 'Father of Evolution',
+    tags: ['Natural Selection','HMS Beagle','Galápagos'],
+    body: [
+      "Charles Darwin was an unpromising student who preferred collecting beetles to studying medicine or the church, the two careers his family pushed on him. His passion for the natural world, though, won him a seat that would change science forever: unpaid naturalist aboard HMS Beagle, a survey ship setting out to map the coasts of South America.",
+      "The voyage lasted nearly five years. Darwin was seasick for much of it, but ashore he was tireless — digging up giant fossil mammals, feeling an earthquake lift the land, and walking through forests teeming with life he had never imagined. Everywhere he looked, he saw variation and asked himself why.",
+      "On the Galápagos Islands he noticed that the mockingbirds and tortoises differed from island to island, as if each had been shaped by its own home. Years later, turning this over, he saw the mechanism: more young are born than can survive, those with helpful traits live to breed, and so species slowly change. He called it natural selection.",
+      "He knew the idea would shock the world, so he gathered evidence for twenty years, breeding pigeons and dissecting barnacles, until a letter from a young naturalist named Wallace — who had arrived at the same idea — forced him to publish. On the Origin of Species appeared in 1859 and sold out in a day.",
+      "Darwin never used the famous phrase 'survival of the fittest' in his first edition, and he was gentle and cautious by nature, dreading the storm his theory raised. But the idea was too powerful to bury. It became the single unifying thread of all biology — the explanation for the staggering, branching tree of life."
+    ]
+  },
+  fossey: {
+    epithet: 'Guardian of the Gorillas',
+    tags: ['Mountain Gorillas','Rwanda','Anti-Poaching'],
+    body: [
+      "Dian Fossey was an American occupational therapist who saved for years to make a single trip to Africa, never dreaming it would consume the rest of her life. In the mountains she met the great silverback gorillas of the misty volcanoes, and she was lost to them forever.",
+      "With encouragement from Louis Leakey — the same scientist who had launched Jane Goodall — she set up a remote camp high in the Virunga Mountains, between Rwanda and Congo, where freezing rain fell almost daily. There she did what few had dared: she approached the gorillas not as a hunter but as a guest, imitating their contented grumbles and their knuckle-walk until the giant, gentle apes accepted her.",
+      "One unforgettable day a young gorilla named Digit reached out and touched her hand. Fossey had crossed a divide between species. Her detailed records shattered the myth of the gorilla as a savage beast and revealed instead shy, devoted, family-loving animals.",
+      "But poachers stalked the same forest, killing gorillas for trophies and trapping them in wire snares. When Digit was slaughtered defending his family, grief turned Fossey into a fierce, uncompromising defender. She patrolled, destroyed traps, and waged open war on the poaching that was driving her gorillas toward extinction.",
+      "In 1985 she was murdered in her cabin, almost certainly by enemies she had made protecting the animals. She was buried in the forest beside Digit and the other gorillas she had loved. Because of the fury of her fight, the mountain gorilla — once thought doomed — still survives in those mountains today."
+    ]
+  },
+  cousteau: {
+    epithet: 'Captain of the Deep',
+    tags: ['Aqua-Lung','Calypso','Ocean Films'],
+    body: [
+      "Jacques Cousteau was a French naval officer whose dream of becoming a pilot ended in a near-fatal car crash. Swimming in the sea to rehabilitate his broken arms, he found a new world — and a new obsession. The ocean's surface, he realized, was a ceiling humans had barely peeked beneath.",
+      "With the engineer Émile Gagnan he co-invented the Aqua-Lung in 1943 — the first reliable scuba gear that let a diver carry breathable air and roam freely underwater. For the first time, people could swim like fish through the blue instead of being chained to an air hose from above. Modern diving was born.",
+      "He bought a former minesweeper, named her Calypso, and turned her into a floating laboratory and film studio. His documentaries, especially the series The Undersea World of Jacques Cousteau, brought coral reefs, sharks, whales, and octopuses into living rooms around the planet in glowing color. Millions fell in love with a world they would never visit.",
+      "Cousteau invented or improved much of the technology of exploration — waterproof cameras, underwater habitats where divers lived for weeks, the small diving saucer that puttered along the seafloor. He was an explorer, inventor, and showman all at once, with his red wool cap instantly recognizable.",
+      "As he aged, he watched the seas he loved grow dirtier and emptier, and he became one of the planet's loudest voices for protecting them. 'People protect what they love,' he said, and he had spent his life making the world fall in love with the ocean."
+    ]
+  },
+  grandin: {
+    epithet: 'The Woman Who Thinks Like Animals',
+    tags: ['Animal Behavior','Autism','Humane Design'],
+    body: [
+      "Temple Grandin did not speak until she was nearly four, and as an autistic child in the 1950s she was bewildered by a world of confusing words and overwhelming noise. But she discovered she thought in pictures — vivid, detailed images instead of language — and this turned out to be an extraordinary gift for understanding animals.",
+      "Visiting her aunt's cattle ranch as a teenager, she noticed that the cattle, like her, were frightened by small things people ignored: a flapping flag, a shadow, a dangling chain, a sudden glint of light. She realized she could see the world the way a cow sees it, because she too was overwhelmed by sensory detail. Where others saw a stubborn animal, she saw a scared one reacting to something real.",
+      "She used this insight to redesign the equipment used to handle livestock, replacing sharp corners and harsh lights with gentle curves that follow the animals' natural instinct to circle back the way they came. Calm animals, she showed, are not only treated more kindly but are easier and safer to handle. Her curved chutes are now used across much of North America.",
+      "Grandin earned a doctorate in animal science and became a professor, proving that her different mind was a strength. She also became one of the world's most famous voices for autism, writing books and giving talks that helped millions understand that there are many ways for a brain to work.",
+      "Her great message is simple and revolutionary: animals have rich inner lives and real feelings, and we owe them a decent life and a painless death. 'Nature is cruel,' she says, 'but we don't have to be.'"
+    ]
+  },
+  hanna: {
+    epithet: 'America\'s Favorite Zookeeper',
+    tags: ['Columbus Zoo','Animal Ambassadors','Television'],
+    body: [
+      "Jack Hanna fell in love with animals on a farm in Tennessee, where as a boy he helped the local veterinarian and decided that a life surrounded by creatures was the only life worth having. He never lost the wide-eyed, grinning enthusiasm of that farm kid.",
+      "In 1978 he became director of the Columbus Zoo in Ohio, which was then run-down and little-known. Hanna threw himself into transforming it, building naturalistic habitats and welcoming the public in, until it grew into one of the most respected zoos in the United States.",
+      "His real magic, though, was on television. With his khaki shirts and bottomless excitement, 'Jungle Jack' became a beloved guest on talk shows, bringing baby cheetahs, penguins, and the occasional escaping animal onto live TV. He made millions of people who would never visit a rainforest feel the thrill of meeting its inhabitants up close.",
+      "He believed that you cannot expect people to protect animals they have never met, so he made himself a bridge — carrying animal ambassadors out to the public and pouring the attention back into conservation programs around the world.",
+      "Behind the showman was a serious champion of wildlife, raising money and awareness for endangered species across decades. Jack Hanna's gift was joy: he reminded everyone that caring about animals could be pure, infectious fun."
+    ]
+  },
+  carson: {
+    epithet: 'The Voice for the Silent Spring',
+    tags: ['Silent Spring','Pesticides','Environmental Movement'],
+    body: [
+      "Rachel Carson grew up beside a river in Pennsylvania, a quiet girl who loved both the natural world and the music of words. She joined the two by becoming a marine biologist who wrote like a poet, and her lyrical books about the sea — especially The Sea Around Us — made her one of the most beloved nature writers in America.",
+      "But it was a darker subject that made her immortal. After the Second World War, powerful new pesticides like DDT were sprayed across the land to kill insects, and Carson began to gather evidence of what else they killed. Songbirds fell silent. Fish floated dead in streams. The poisons moved up the food chain, building up in the bodies of the animals at the top.",
+      "In 1962 she published Silent Spring, named for an imagined future morning when no birds sang because they had all been poisoned. Writing while gravely ill with cancer, she laid out her case with care and beauty, warning that humans were part of nature, not its master, and could not pour poison into the world without poisoning themselves.",
+      "The chemical companies attacked her ferociously, calling her hysterical and unscientific. But the evidence held, and ordinary people listened. Her book is widely credited with launching the modern environmental movement and leading, eventually, to the banning of DDT and the creation of agencies to protect the environment.",
+      "Carson did not live to see most of it; she died less than two years after the book appeared. But the bald eagle and the peregrine falcon, once headed for extinction because of the very poisons she fought, fly over America today in large part because one careful, courageous woman refused to stay silent."
+    ]
+  },
+  wallace: {
+    epithet: 'The Other Discoverer of Evolution',
+    tags: ['Natural Selection','Indonesia','Biogeography'],
+    body: [
+      "Alfred Russel Wallace was a working-class Englishman who could not afford university, so he taught himself science and paid his way by collecting and selling exotic specimens. While richer men theorized in their studies, Wallace was out in the steaming jungles of the Amazon and Southeast Asia, getting bitten, soaked, and feverish in pursuit of beetles, birds, and butterflies.",
+      "He lost years of work and nearly his life when the ship carrying his Amazon collections caught fire and sank, leaving him adrift in a lifeboat for ten days. Undeterred, he set off again, this time for the Malay Archipelago, where over eight years he collected an astonishing one hundred and twenty-five thousand specimens.",
+      "It was there, shaking with malarial fever, that the great idea came to him: species change because the individuals best suited to their conditions survive and breed, while the others perish. He wrote it down and mailed it to a naturalist he admired and trusted — Charles Darwin — never guessing that Darwin had been quietly nursing the very same theory for twenty years.",
+      "Darwin was stunned; the younger man had independently discovered his life's work. Honorably, their friends arranged for the two to present the idea together in 1858, and the credit was shared — though Darwin's great book the next year made his name the one history remembered.",
+      "Wallace made discoveries all his own. He noticed an invisible line through the islands of Indonesia dividing the animals of Asia from those of Australia — the boundary we still call the Wallace Line — and in doing so he founded the science of biogeography, the study of where living things live and why."
+    ]
+  },
+  akeley: {
+    epithet: 'The Father of Modern Taxidermy',
+    tags: ['Dioramas','African Elephants','Conservation'],
+    body: [
+      "Carl Akeley was a farm boy from New York who became fascinated, as a teenager, with the crude, lumpy stuffed animals of his day — and was sure he could do better. He could. He transformed taxidermy from a clumsy craft into an art and a science, learning the muscles and movement of animals so well that his mounted creatures seemed alive.",
+      "He made several dangerous expeditions to Africa to study and collect the great animals up close. On one, an angry leopard sprang on him; with his bare hands and incredible nerve he managed to kill it before it killed him. On another he survived being crushed and tossed by an enraged bull elephant.",
+      "His masterpieces were the great habitat dioramas — animals posed in lifelike family groups against sweeping painted backgrounds of the real landscapes where they lived, with real grasses and rocks in the foreground. He wanted city people who would never see Africa to stand before the glass and feel they were truly there. His African Hall in New York remains breathtaking a century later.",
+      "Akeley was also an inventor, devising a motion-picture camera that could pan smoothly to film wildlife, and new methods for casting sculpture. He was an artist, naturalist, and engineer rolled into one restless man.",
+      "Most importantly, the more he studied the great apes, the more he came to love them — and the more he feared for them. He persuaded the authorities to create one of Africa's first protected areas for the mountain gorilla, the very forests where Dian Fossey would later work. He died on expedition in those mountains and was buried among the gorillas he had fought to save."
+    ]
+  },
+  linnaeus: {
+    epithet: 'The Father of Taxonomy',
+    tags: ['Classification','Binomial Names','Systema Naturae'],
+    body: [
+      "Carl Linnaeus was the son of a Swedish pastor who loved his garden so dearly that little Carl learned the names of plants almost before he could read. The boy's hunger for naming and ordering the living world would, one day, give science the language it still speaks.",
+      "In Linnaeus's time, the natural world was a chaos of confusing names. A single wild rose might be known by a long, clumsy Latin description that differed from book to book and country to country. There was no agreed system, and scholars argued endlessly past one another.",
+      "Linnaeus brought order out of the chaos. He sorted living things into nested groups — kingdom, class, order, genus, species — each fitting inside the next like boxes within boxes. Even more brilliantly, he gave every species a tidy two-word name: the genus and the species, like Homo sapiens for human beings or Panthera leo for the lion. This 'binomial' system was so simple and useful that the whole world adopted it.",
+      "He published his system in a book called Systema Naturae, which grew with each edition as he classified thousands of plants and animals. He sent his students — he called them his 'apostles' — to the far corners of the Earth to bring back new species to slot into the great order, and several died on those daring journeys.",
+      "Linnaeus was famously proud, once writing that 'God created, but Linnaeus organized.' Vain, perhaps — but not wrong. Every time a scientist anywhere writes the two-word name of a living thing, from the smallest bacterium to the blue whale, they are using the system this Swedish gardener's son built for the world."
+    ]
+  },
+};
+
+// SVG diagrams keyed by fighter id. Jungle palette: gold #f0c14b, lime #9ccc65, leaf #43a047, cream #f5f0e1
+const DIAGRAMS = {
+  goodall: {
+    cap:"A chimpanzee fishing for termites — Goodall's discovery that animals make and use tools.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="250" cy="160" rx="60" ry="34" fill="#5d4037"/>
+      <path d="M250 128 Q240 145 250 160 Q260 145 250 128" fill="#8d6e63"/>
+      <circle cx="100" cy="95" r="34" fill="#3e2723"/>
+      <circle cx="100" cy="95" r="22" fill="#6d4c41"/>
+      <circle cx="92" cy="90" r="4" fill="#f5f0e1"/><circle cx="108" cy="90" r="4" fill="#f5f0e1"/>
+      <circle cx="92" cy="90" r="2" fill="#000"/><circle cx="108" cy="90" r="2" fill="#000"/>
+      <path d="M88 104 Q100 112 112 104" stroke="#3e2723" stroke-width="2" fill="none"/>
+      <line x1="128" y1="100" x2="225" y2="150" stroke="#9ccc65" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="130" cy="100" rx="8" ry="5" fill="#6d4c41"/>
+      <text x="170" y="40" font-family="Nunito,sans-serif" font-size="13" fill="#f0c14b" font-weight="700">"a tool!"</text>
+      <path d="M150 48 Q160 60 150 70" stroke="#f0c14b" stroke-width="1.5" fill="none"/>
+    </svg>`
+  },
+  attenborough: {
+    cap:"The living planet — broadcasting the wonder of life on Earth to the world.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="170" cy="100" r="70" fill="#1d4d2b" stroke="#9ccc65" stroke-width="2"/>
+      <path d="M120 70 Q150 60 180 75 Q210 90 220 70 Q200 110 160 105 Q130 100 120 70" fill="#43a047"/>
+      <path d="M130 130 Q170 115 215 130 Q190 150 150 145 Q135 140 130 130" fill="#43a047"/>
+      <circle cx="170" cy="100" r="70" fill="none" stroke="#f0c14b" stroke-width="1.5" stroke-dasharray="3 5"/>
+      <path d="M40 40 L70 40 L70 30 L95 50 L70 70 L70 60 L40 60 Z" fill="#f0c14b"/>
+      <line x1="30" y1="50" x2="40" y2="50" stroke="#f0c14b" stroke-width="3"/>
+      <circle cx="290" cy="60" r="3" fill="#9ccc65"/><circle cx="300" cy="100" r="3" fill="#9ccc65"/>
+      <circle cx="285" cy="140" r="3" fill="#9ccc65"/>
+      <path d="M275 60 Q260 100 270 140" stroke="#9ccc65" stroke-width="1" fill="none" stroke-dasharray="2 3"/>
+    </svg>`
+  },
+  irwin: {
+    cap:"A crocodile's eyes and snout — the ancient predator Irwin taught the world to respect.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 120 Q120 95 200 105 L320 95 L320 120 L200 130 Q120 140 30 130 Z" fill="#2e7d32"/>
+      <path d="M30 120 L30 130 Q120 140 200 130 L320 120 L320 130 L200 145 Q120 155 30 145 Z" fill="#1b5e20"/>
+      <polygon points="60,120 68,108 76,120" fill="#f5f0e1"/>
+      <polygon points="90,122 98,110 106,122" fill="#f5f0e1"/>
+      <polygon points="120,124 128,113 136,124" fill="#f5f0e1"/>
+      <polygon points="150,125 158,115 166,125" fill="#f5f0e1"/>
+      <ellipse cx="250" cy="90" rx="20" ry="16" fill="#2e7d32"/>
+      <ellipse cx="250" cy="88" rx="9" ry="11" fill="#f0c14b"/>
+      <ellipse cx="250" cy="88" rx="3" ry="9" fill="#000"/>
+      <circle cx="300" cy="112" r="3" fill="#1b5e20"/><circle cx="312" cy="116" r="3" fill="#1b5e20"/>
+      <text x="40" y="185" font-family="Nunito,sans-serif" font-size="12" fill="#9ccc65" font-weight="700">"Crikey! What a beauty!"</text>
+    </svg>`
+  },
+  darwin: {
+    cap:"Darwin's finches — same ancestor, different beaks shaped by different foods.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <line x1="170" y1="20" x2="170" y2="60" stroke="#9ccc65" stroke-width="2"/>
+      <line x1="170" y1="60" x2="70" y2="100" stroke="#9ccc65" stroke-width="2"/>
+      <line x1="170" y1="60" x2="170" y2="100" stroke="#9ccc65" stroke-width="2"/>
+      <line x1="170" y1="60" x2="270" y2="100" stroke="#9ccc65" stroke-width="2"/>
+      <text x="150" y="15" font-family="Nunito" font-size="11" fill="#f0c14b" font-weight="700">1 ancestor</text>
+      <!-- finch 1: big seed beak -->
+      <circle cx="70" cy="125" r="18" fill="#5d4037"/><circle cx="64" cy="120" r="2.5" fill="#fff"/>
+      <polygon points="52,125 36,120 36,132 52,131" fill="#f0c14b"/>
+      <text x="40" y="160" font-family="Nunito" font-size="9" fill="#d8cfb8">seed-crusher</text>
+      <!-- finch 2: medium -->
+      <circle cx="170" cy="125" r="18" fill="#5d4037"/><circle cx="164" cy="120" r="2.5" fill="#fff"/>
+      <polygon points="152,124 138,123 144,131 152,130" fill="#f0c14b"/>
+      <text x="142" y="160" font-family="Nunito" font-size="9" fill="#d8cfb8">all-rounder</text>
+      <!-- finch 3: thin probe -->
+      <circle cx="270" cy="125" r="18" fill="#5d4037"/><circle cx="264" cy="120" r="2.5" fill="#fff"/>
+      <polygon points="252,124 234,126 252,129" fill="#f0c14b"/>
+      <text x="240" y="160" font-family="Nunito" font-size="9" fill="#d8cfb8">insect-prober</text>
+    </svg>`
+  },
+  fossey: {
+    cap:"A mountain gorilla — the gentle giant Fossey gave her life to protect.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="170" cy="135" rx="62" ry="55" fill="#2b2b2b"/>
+      <ellipse cx="170" cy="80" rx="46" ry="42" fill="#1a1a1a"/>
+      <path d="M150 55 Q170 40 190 55" fill="#3e3e3e"/>
+      <ellipse cx="170" cy="95" rx="30" ry="28" fill="#5d4037"/>
+      <ellipse cx="156" cy="88" rx="6" ry="7" fill="#3e2723"/><ellipse cx="184" cy="88" rx="6" ry="7" fill="#3e2723"/>
+      <circle cx="156" cy="88" r="3" fill="#000"/><circle cx="184" cy="88" r="3" fill="#000"/>
+      <ellipse cx="170" cy="104" rx="13" ry="8" fill="#3e2723"/>
+      <ellipse cx="164" cy="104" rx="3" ry="4" fill="#000"/><ellipse cx="176" cy="104" rx="3" ry="4" fill="#000"/>
+      <path d="M158 116 Q170 122 182 116" stroke="#3e2723" stroke-width="2" fill="none"/>
+      <path d="M120 150 Q130 145 138 152" stroke="#9ccc65" stroke-width="2" fill="none"/>
+      <text x="60" y="185" font-family="Nunito" font-size="11" fill="#9ccc65" font-weight="700">shy • devoted • family</text>
+    </svg>`
+  },
+  cousteau: {
+    cap:"The Aqua-Lung — Cousteau's invention that let humans roam freely underwater.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="340" height="200" fill="#0097a7" opacity="0.25"/>
+      <circle cx="60" cy="40" r="6" fill="#fff" opacity="0.5"/><circle cx="80" cy="25" r="4" fill="#fff" opacity="0.4"/>
+      <circle cx="68" cy="55" r="3" fill="#fff" opacity="0.4"/>
+      <!-- diver -->
+      <circle cx="170" cy="80" r="22" fill="#26c6da" stroke="#f5f0e1" stroke-width="2"/>
+      <ellipse cx="170" cy="80" rx="13" ry="11" fill="#0d2818" opacity="0.7"/>
+      <rect x="150" y="100" width="40" height="55" rx="14" fill="#143620"/>
+      <!-- tank -->
+      <rect x="192" y="92" width="20" height="48" rx="9" fill="#f0c14b"/>
+      <rect x="196" y="84" width="12" height="12" rx="3" fill="#5d4037"/>
+      <line x1="188" y1="98" x2="178" y2="92" stroke="#5d4037" stroke-width="2.5"/>
+      <line x1="150" y1="120" x2="125" y2="135" stroke="#143620" stroke-width="7" stroke-linecap="round"/>
+      <line x1="190" y1="120" x2="210" y2="138" stroke="#143620" stroke-width="7" stroke-linecap="round"/>
+      <line x1="160" y1="155" x2="150" y2="180" stroke="#143620" stroke-width="7" stroke-linecap="round"/>
+      <line x1="180" y1="155" x2="190" y2="180" stroke="#143620" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="178" cy="60" r="3" fill="#fff" opacity="0.6"/><circle cx="184" cy="48" r="2" fill="#fff" opacity="0.5"/>
+      <path d="M280 100 Q295 95 300 105 Q295 112 285 108 Z" fill="#ff7043"/>
+      <polygon points="280,104 270,98 270,110" fill="#ff7043"/>
+    </svg>`
+  },
+  grandin: {
+    cap:"Grandin's curved cattle chute — gentle curves follow the animals' instinct to circle back.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 170 Q40 60 130 60 Q220 60 220 110 Q220 150 280 150" fill="none" stroke="#9ccc65" stroke-width="14" stroke-linecap="round" opacity="0.4"/>
+      <path d="M55 170 Q55 75 130 75 Q205 75 205 110 Q205 135 280 135" fill="none" stroke="#f0c14b" stroke-width="3" stroke-dasharray="6 5"/>
+      <!-- cow -->
+      <ellipse cx="70" cy="155" rx="22" ry="14" fill="#f5f0e1"/>
+      <rect x="60" y="160" width="4" height="12" fill="#5d4037"/><rect x="78" y="160" width="4" height="12" fill="#5d4037"/>
+      <circle cx="50" cy="148" r="9" fill="#f5f0e1"/>
+      <circle cx="47" cy="146" r="1.6" fill="#000"/>
+      <ellipse cx="80" cy="150" rx="6" ry="4" fill="#8d6e63"/>
+      <text x="150" y="40" font-family="Nunito" font-size="12" fill="#9ccc65" font-weight="700">calm = safe</text>
+      <text x="120" y="195" font-family="Nunito" font-size="11" fill="#d8cfb8">curves prevent fear</text>
+    </svg>`
+  },
+  hanna: {
+    cap:"An animal ambassador — meeting a creature face to face turns curiosity into care.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- person -->
+      <circle cx="90" cy="70" r="20" fill="#f5d6b0"/>
+      <rect x="70" y="90" width="40" height="50" rx="10" fill="#9ccc65"/>
+      <text x="78" y="120" font-family="Nunito" font-size="10" fill="#143620" font-weight="800">ZOO</text>
+      <!-- cheetah cub in arms -->
+      <ellipse cx="150" cy="120" rx="26" ry="16" fill="#f0c14b"/>
+      <circle cx="170" cy="112" r="13" fill="#f0c14b"/>
+      <circle cx="166" cy="109" r="1.8" fill="#000"/><circle cx="174" cy="109" r="1.8" fill="#000"/>
+      <circle cx="160" cy="125" r="2" fill="#5d4037"/><circle cx="172" cy="128" r="2" fill="#5d4037"/>
+      <circle cx="140" cy="116" r="2" fill="#5d4037"/><circle cx="148" cy="127" r="2" fill="#5d4037"/>
+      <line x1="110" y1="115" x2="128" y2="120" stroke="#9ccc65" stroke-width="8" stroke-linecap="round"/>
+      <path d="M210 90 Q230 100 215 120" stroke="#f0c14b" stroke-width="2" fill="none"/>
+      <text x="220" y="80" font-family="Nunito" font-size="11" fill="#f0c14b" font-weight="700">meet → love</text>
+      <text x="220" y="98" font-family="Nunito" font-size="11" fill="#f0c14b" font-weight="700">→ protect</text>
+    </svg>`
+  },
+  carson: {
+    cap:"A food chain carrying poison upward — Carson's warning in Silent Spring.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- arrows up the chain -->
+      <text x="20" y="180" font-family="Nunito" font-size="22">🌾</text>
+      <text x="110" y="150" font-family="Nunito" font-size="24">🦗</text>
+      <text x="200" y="115" font-family="Nunito" font-size="26">🐦</text>
+      <text x="285" y="75" font-family="Nunito" font-size="30">🦅</text>
+      <path d="M55 170 L100 145" stroke="#9ccc65" stroke-width="2.5" marker-end="url(#ar)"/>
+      <path d="M140 138 L190 112" stroke="#9ccc65" stroke-width="2.5" marker-end="url(#ar)"/>
+      <path d="M235 100 L280 72" stroke="#9ccc65" stroke-width="2.5" marker-end="url(#ar)"/>
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9ccc65"/></marker></defs>
+      <circle cx="40" cy="160" r="6" fill="#e64a19" opacity="0.5"/>
+      <circle cx="125" cy="135" r="8" fill="#e64a19" opacity="0.6"/>
+      <circle cx="218" cy="100" r="11" fill="#e64a19" opacity="0.75"/>
+      <circle cx="305" cy="58" r="15" fill="#e64a19" opacity="0.9"/>
+      <text x="60" y="30" font-family="Nunito" font-size="12" fill="#ff7043" font-weight="800">poison builds up the chain ☠</text>
+    </svg>`
+  },
+  wallace: {
+    cap:"The Wallace Line — an invisible boundary dividing Asian from Australian animals.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="340" height="200" fill="#0097a7" opacity="0.18"/>
+      <ellipse cx="70" cy="80" rx="55" ry="30" fill="#43a047"/>
+      <ellipse cx="100" cy="130" rx="35" ry="20" fill="#43a047"/>
+      <ellipse cx="265" cy="90" rx="50" ry="32" fill="#5d4037"/>
+      <ellipse cx="250" cy="140" rx="32" ry="18" fill="#5d4037"/>
+      <line x1="175" y1="20" x2="160" y2="185" stroke="#f0c14b" stroke-width="3" stroke-dasharray="8 6"/>
+      <text x="40" y="55" font-family="Nunito" font-size="22">🐅</text>
+      <text x="85" y="135" font-family="Nunito" font-size="20">🐒</text>
+      <text x="245" y="95" font-family="Nunito" font-size="22">🦘</text>
+      <text x="235" y="148" font-family="Nunito" font-size="20">🦜</text>
+      <text x="30" y="180" font-family="Nunito" font-size="10" fill="#9ccc65" font-weight="700">ASIA</text>
+      <text x="280" y="180" font-family="Nunito" font-size="10" fill="#d8cfb8" font-weight="700">AUSTRALIA</text>
+      <text x="120" y="15" font-family="Nunito" font-size="11" fill="#f0c14b" font-weight="800">Wallace Line</text>
+    </svg>`
+  },
+  akeley: {
+    cap:"A habitat diorama — animals posed lifelike against the landscape where they lived.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="300" height="160" rx="6" fill="#0d2818" stroke="#f0c14b" stroke-width="3"/>
+      <rect x="30" y="30" width="280" height="100" fill="#1d4d2b"/>
+      <!-- painted savanna backdrop -->
+      <circle cx="80" cy="55" r="14" fill="#f0c14b" opacity="0.7"/>
+      <path d="M30 100 Q120 80 200 95 Q260 105 310 90 L310 130 L30 130 Z" fill="#2e7d32"/>
+      <path d="M230 70 L235 50 L240 70 M225 75 L245 75" stroke="#5d4037" stroke-width="2" fill="none"/>
+      <!-- foreground elephant -->
+      <ellipse cx="150" cy="150" rx="40" ry="26" fill="#6d6d6d"/>
+      <circle cx="110" cy="138" r="20" fill="#6d6d6d"/>
+      <path d="M95 145 Q82 158 88 172" stroke="#6d6d6d" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <ellipse cx="120" cy="142" rx="10" ry="14" fill="#5d5d5d"/>
+      <circle cx="104" cy="134" r="2" fill="#000"/>
+      <rect x="135" y="170" width="6" height="14" fill="#5d5d5d"/><rect x="165" y="170" width="6" height="14" fill="#5d5d5d"/>
+      <text x="95" y="195" font-family="Nunito" font-size="10" fill="#d8cfb8" font-weight="700">real grass • painted sky • lifelike pose</text>
+    </svg>`
+  },
+  linnaeus: {
+    cap:"The classification hierarchy — Linnaeus's nested boxes, from Kingdom down to Species.",
+    svg:`<svg viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="15" width="300" height="170" rx="8" fill="none" stroke="#43a047" stroke-width="2"/>
+      <text x="28" y="30" font-family="Nunito" font-size="10" fill="#43a047" font-weight="800">KINGDOM: Animalia</text>
+      <rect x="40" y="40" width="270" height="135" rx="7" fill="none" stroke="#66bb6a" stroke-width="2"/>
+      <text x="48" y="55" font-family="Nunito" font-size="10" fill="#66bb6a" font-weight="800">CLASS: Mammalia</text>
+      <rect x="60" y="65" width="230" height="100" rx="6" fill="none" stroke="#9ccc65" stroke-width="2"/>
+      <text x="68" y="80" font-family="Nunito" font-size="10" fill="#9ccc65" font-weight="800">ORDER: Carnivora</text>
+      <rect x="80" y="90" width="190" height="65" rx="5" fill="none" stroke="#e8a33d" stroke-width="2"/>
+      <text x="88" y="105" font-family="Nunito" font-size="10" fill="#e8a33d" font-weight="800">GENUS: Panthera</text>
+      <rect x="100" y="115" width="150" height="30" rx="4" fill="#f0c14b"/>
+      <text x="120" y="135" font-family="Nunito" font-size="13" fill="#3e2723" font-weight="800">SPECIES: leo 🦁</text>
+    </svg>`
+  },
+};
+
+// QUESTION BANK — Tier 1: Ages 5-7
+// type 'mc' = multiple choice (opts + ans index), type 'word' = typed word (accept[])
+const Q_T1 = [
+  {type:'mc', cat:'Animals', q:"What sound does a cow make?", opts:["Moo","Woof","Meow","Quack"], ans:0, fact:"Cows 'moo' to talk to each other — a mother cow and her calf even know each other's special moo!"},
+  {type:'mc', cat:'Animals', q:"Which animal says 'woof'?", opts:["Cat","Dog","Cow","Duck"], ans:1, fact:"Dogs bark to tell us things — hello, danger, or 'let's play!' They are people's oldest animal friends."},
+  {type:'mc', cat:'Animals', q:"What do bees make?", opts:["Milk","Honey","Bread","Cheese"], ans:1, fact:"Bees make honey from flower nectar and store it in a hive to eat during winter."},
+  {type:'mc', cat:'Animals', q:"Which animal has a very long neck?", opts:["Giraffe","Pig","Rabbit","Mouse"], ans:0, fact:"A giraffe's neck is so long it can reach leaves high in the trees that other animals can't get!"},
+  {type:'mc', cat:'Animals', q:"What does a frog like to eat?", opts:["Grass","Insects","Bread","Rocks"], ans:1, fact:"Frogs flick out their long sticky tongues super fast to catch flies and bugs."},
+  {type:'mc', cat:'Animals', q:"Which animal can fly?", opts:["Fish","Bird","Dog","Snake"], ans:1, fact:"Birds have feathers and wings. Feathers are light and strong, perfect for flying!"},
+  {type:'mc', cat:'Animals', q:"Where do fish live?", opts:["In trees","In water","In the sky","Underground"], ans:1, fact:"Fish breathe underwater using gills, which take air right out of the water."},
+  {type:'mc', cat:'Animals', q:"What is a baby dog called?", opts:["Puppy","Kitten","Calf","Chick"], ans:0, fact:"A baby dog is a puppy. Puppies sleep a LOT — sometimes up to 20 hours a day!"},
+  {type:'mc', cat:'Animals', q:"What is a baby cat called?", opts:["Puppy","Kitten","Foal","Cub"], ans:1, fact:"A baby cat is a kitten. Kittens are born with their eyes closed and open them after about a week."},
+  {type:'mc', cat:'Animals', q:"Which animal hops?", opts:["Rabbit","Cow","Fish","Snail"], ans:0, fact:"Rabbits have strong back legs that let them hop quickly away from danger."},
+  {type:'mc', cat:'Animals', q:"What color is a typical polar bear?", opts:["Black","White","Green","Pink"], ans:1, fact:"Polar bears look white to blend in with the snow. Their skin underneath is actually black!"},
+  {type:'mc', cat:'Animals', q:"Which animal lives in a shell it carries?", opts:["Snail","Horse","Wolf","Owl"], ans:0, fact:"A snail carries its house — its shell — on its back wherever it goes."},
+  {type:'mc', cat:'Animals', q:"What does a caterpillar turn into?", opts:["A bird","A butterfly","A fish","A bee"], ans:1, fact:"A caterpillar makes a cocoon and changes into a beautiful butterfly. This is called metamorphosis!"},
+  {type:'mc', cat:'Animals', q:"Which animal is known as 'king of the jungle'?", opts:["Lion","Pig","Duck","Rabbit"], ans:0, fact:"The lion is called the king of the jungle, though lions actually live on grassy plains, not jungles!"},
+  {type:'mc', cat:'Animals', q:"What do most birds build to lay their eggs in?", opts:["A nest","A box","A pond","A cave"], ans:0, fact:"Birds build nests from twigs, grass, and mud to keep their eggs safe and warm."},
+  {type:'mc', cat:'Animals', q:"Which animal has black and white stripes?", opts:["Zebra","Lion","Bear","Frog"], ans:0, fact:"Every zebra has its own pattern of stripes — no two zebras look exactly the same!"},
+  {type:'mc', cat:'Animals', q:"What do we call animals that come out at night?", opts:["Sleepy","Nocturnal","Tiny","Fast"], ans:1, fact:"Nocturnal animals like owls and bats sleep in the day and are awake at night."},
+  {type:'mc', cat:'Animals', q:"Which animal can change its color to hide?", opts:["Chameleon","Horse","Cow","Sheep"], ans:0, fact:"A chameleon can change color to blend in or to show how it's feeling!"},
+  {type:'mc', cat:'Animals', q:"What does a spider make to catch food?", opts:["A nest","A web","A hole","A song"], ans:1, fact:"Spiders spin sticky webs to catch insects. The silk is thin but very strong!"},
+  {type:'mc', cat:'Animals', q:"How many legs does an insect have?", opts:["Four","Six","Eight","Two"], ans:1, fact:"All insects have six legs. If it has eight legs, like a spider, it's not an insect!"},
+  {type:'mc', cat:'Animals', q:"Which of these animals lives in the ocean?", opts:["Dolphin","Horse","Chicken","Goat"], ans:0, fact:"Dolphins live in the ocean but are not fish — they breathe air and come up to the surface!"},
+  {type:'mc', cat:'Animals', q:"What is a group of wolves called?", opts:["A pack","A flock","A school","A swarm"], ans:0, fact:"Wolves live and hunt together in a family group called a pack."},
+  {type:'mc', cat:'Animals', q:"Which animal carries its baby in a pouch?", opts:["Kangaroo","Tiger","Eagle","Shark"], ans:0, fact:"A baby kangaroo, called a joey, is tiny when born and grows safely in its mother's pouch."},
+  {type:'mc', cat:'Animals', q:"What do owls mostly hunt?", opts:["Mice","Grass","Apples","Leaves"], ans:0, fact:"Owls have amazing hearing and silent wings, perfect for hunting mice in the dark."},
+  {type:'mc', cat:'Animals', q:"Which is the biggest land animal?", opts:["Elephant","Horse","Lion","Dog"], ans:0, fact:"The African elephant is the biggest animal that lives on land. Its ears are shaped like Africa!"},
+  {type:'mc', cat:'Animals', q:"What do bears do for the whole winter?", opts:["Swim","Hibernate","Fly","Sing"], ans:1, fact:"Many bears hibernate — a deep winter sleep — to save energy when food is hard to find."},
+  {type:'mc', cat:'Animals', q:"Which animal has a trunk?", opts:["Elephant","Cow","Sheep","Pig"], ans:0, fact:"An elephant uses its trunk like a hand and a nose — to grab food, drink, and even hug!"},
+  {type:'mc', cat:'Animals', q:"What does a chick hatch out of?", opts:["A nut","An egg","A flower","A leaf"], ans:1, fact:"Baby chickens hatch from eggs. The chick uses a tiny tooth on its beak to break out!"},
+  {type:'mc', cat:'Animals', q:"Which animal is the fastest runner on land?", opts:["Cheetah","Turtle","Pig","Duck"], ans:0, fact:"A cheetah can run as fast as a car on the highway — but only for a short time."},
+  {type:'mc', cat:'Animals', q:"What do pandas mostly eat?", opts:["Bamboo","Meat","Fish","Honey"], ans:0, fact:"Giant pandas eat bamboo almost all day long — they have to, because bamboo isn't very filling!"},
+  {type:'mc', cat:'Animals', q:"Which animal can live both in water and on land?", opts:["Frog","Cat","Cow","Eagle"], ans:0, fact:"Frogs are amphibians — they start life in water as tadpoles and later can live on land."},
+  {type:'mc', cat:'Animals', q:"What do we call an animal that eats only plants?", opts:["Herbivore","Carnivore","Robot","Insect"], ans:0, fact:"A herbivore eats only plants. Cows, rabbits, and horses are all herbivores."},
+  {type:'mc', cat:'Animals', q:"Which sea animal has eight arms?", opts:["Octopus","Shark","Whale","Crab"], ans:0, fact:"An octopus has eight arms covered in suckers, and it's very clever at solving puzzles!"},
+  {type:'mc', cat:'Animals', q:"What is a baby sheep called?", opts:["Lamb","Cub","Joey","Kid"], ans:0, fact:"A baby sheep is a lamb. Lambs can stand up and walk just minutes after being born!"},
+  {type:'mc', cat:'Animals', q:"Which bird cannot fly but runs very fast?", opts:["Ostrich","Robin","Eagle","Duck"], ans:0, fact:"The ostrich is the biggest bird and can't fly, but it can run faster than a horse!"},
+  {type:'mc', cat:'Animals', q:"What covers a fish's body to protect it?", opts:["Fur","Scales","Feathers","Wool"], ans:1, fact:"Fish are covered in shiny scales that overlap like tiles on a roof to protect them."},
+  {type:'mc', cat:'Animals', q:"Which animal is famous for being very slow?", opts:["Sloth","Cheetah","Horse","Rabbit"], ans:0, fact:"A sloth moves so slowly that tiny green plants sometimes grow on its fur!"},
+  {type:'mc', cat:'Animals', q:"What do we call a baby cow?", opts:["Calf","Foal","Cub","Chick"], ans:0, fact:"A baby cow is a calf. A calf can walk within an hour of being born."},
+  {type:'mc', cat:'Animals', q:"Which animal has a long tongue to reach ants?", opts:["Anteater","Lion","Horse","Owl"], ans:0, fact:"An anteater's tongue is longer than your arm and flicks in and out to slurp up ants!"},
+  {type:'mc', cat:'Animals', q:"What do tadpoles grow up to become?", opts:["Frogs","Fish","Birds","Snakes"], ans:0, fact:"Tadpoles slowly grow legs, lose their tails, and turn into frogs."},
+  {type:'mc', cat:'Animals', q:"Which animal is known for a great memory and big ears?", opts:["Elephant","Mouse","Sparrow","Goldfish"], ans:0, fact:"Elephants have amazing memories and can recognize friends even after many years apart."},
+  {type:'mc', cat:'Animals', q:"What do ducks have on their feet to help them swim?", opts:["Claws","Webbing","Wheels","Fur"], ans:1, fact:"Ducks have webbed feet that work like paddles to push them through the water."},
+  {type:'mc', cat:'Animals', q:"Which animal lives in a hive?", opts:["Bee","Dog","Horse","Fish"], ans:0, fact:"Thousands of bees live together in a hive, and they all work as a team."},
+  {type:'mc', cat:'Animals', q:"What is the tallest animal in the world?", opts:["Giraffe","Elephant","Horse","Bear"], ans:0, fact:"The giraffe is the tallest animal — a grown-up giraffe is taller than two adults standing on each other!"},
+  {type:'mc', cat:'Animals', q:"Which animal purrs when it is happy?", opts:["Cat","Cow","Duck","Fish"], ans:0, fact:"Cats purr when they feel happy and safe, and sometimes to calm themselves down."},
+  {type:'word', cat:'Animals', q:"What animal has a long neck and lives in Africa, eating leaves from tall trees? (starts with G)", accept:["giraffe","giraffes"], fact:"A giraffe's tongue is dark blue-purple and about as long as your forearm!"},
+  {type:'word', cat:'Animals', q:"What black-and-white animal lives in cold Antarctica and waddles when it walks?", accept:["penguin","penguins"], fact:"Penguins can't fly, but they are wonderful swimmers — they fly through the water instead!"},
+  {type:'word', cat:'Animals', q:"What buzzing insect makes honey?", accept:["bee","bees","honeybee","honeybees","honey bee"], fact:"A bee visits hundreds of flowers a day and helps the flowers make seeds."},
+  {type:'word', cat:'Animals', q:"What big striped cat is orange with black stripes?", accept:["tiger","tigers"], fact:"The tiger is the biggest cat in the world, and like fingerprints, every tiger's stripes are unique."},
+  {type:'word', cat:'Animals', q:"What animal says 'oink' and likes to roll in the mud?", accept:["pig","pigs","hog","hogs"], fact:"Pigs roll in mud to stay cool and to protect their skin from the sun — they're actually very clean!"},
+  {type:'word', cat:'Animals', q:"What sea animal is the biggest of all, even bigger than dinosaurs were?", accept:["blue whale","bluewhale","whale","blue whales","whales"], fact:"The blue whale is the biggest animal ever — its heart alone is as big as a small car!"},
+  {type:'word', cat:'Animals', q:"What pet animal says 'meow'?", accept:["cat","cats","kitten","kittens"], fact:"Cats meow mostly to talk to people — grown-up cats rarely meow at each other!"},
+  {type:'word', cat:'Animals', q:"What animal has a hard shell and moves very slowly on land?", accept:["tortoise","tortoises","turtle","turtles"], fact:"Some tortoises live longer than 100 years — older than your great-grandparents!"},
+  {type:'word', cat:'Animals', q:"What gray animal has a trunk and very big ears?", accept:["elephant","elephants"], fact:"Elephants flap their big ears to stay cool, like fans on a hot day."},
+  {type:'word', cat:'Animals', q:"What animal hops, has a pouch, and lives in Australia?", accept:["kangaroo","kangaroos"], fact:"Kangaroos can't walk backwards! They can only hop forward."},
+];
+
+// QUESTION BANK — Tier 2: Ages 8-10
+const Q_T2 = [
+  {type:'mc', cat:'Mammals', q:"Which animal is the largest that has ever lived on Earth?", opts:["Blue whale","African elephant","Tyrannosaurus","Giraffe"], ans:0, fact:"The blue whale can grow to 30 metres long and weigh as much as 30 elephants combined."},
+  {type:'mc', cat:'Behavior', q:"Why do chameleons change color?", opts:["Only to match leaves","To control temperature and show mood","To grow bigger","To breathe"], ans:1, fact:"Chameleons change color mostly to regulate heat and signal their mood, not just to hide."},
+  {type:'mc', cat:'Birds', q:"What is special about a hummingbird?", opts:["It can't move","It can hover and fly backwards","It has no wings","It lives underwater"], ans:1, fact:"Hummingbirds beat their wings up to 80 times a second and are the only birds that can fly backwards."},
+  {type:'mc', cat:'Classification', q:"Animals with backbones are called what?", opts:["Vertebrates","Insects","Plants","Fungi"], ans:0, fact:"Vertebrates have a backbone. Mammals, birds, fish, reptiles, and amphibians are all vertebrates."},
+  {type:'mc', cat:'Classification', q:"Which group do frogs and toads belong to?", opts:["Amphibians","Reptiles","Mammals","Birds"], ans:0, fact:"Amphibians live part of their life in water and part on land, and have moist skin."},
+  {type:'mc', cat:'Ocean', q:"How does a shark mostly find its prey?", opts:["By smell and sensing electricity","By reading","By singing","By using a map"], ans:0, fact:"Sharks have a super sense of smell and can even detect the tiny electric signals made by other animals' muscles."},
+  {type:'mc', cat:'Behavior', q:"Why do bees do a 'waggle dance'?", opts:["To play","To tell other bees where flowers are","To sleep","To scare enemies"], ans:1, fact:"A honeybee dances in a figure-eight to tell the hive the direction and distance to good flowers."},
+  {type:'mc', cat:'Adaptation', q:"How does a camel survive in the desert?", opts:["It stores fat in its hump for energy","It drinks no water ever","It has gills","It glows"], ans:0, fact:"A camel's hump stores fat, not water. The fat can be turned into energy and water when needed."},
+  {type:'mc', cat:'Reptiles', q:"How do snakes smell the air?", opts:["With their ears","With their flicking tongue","With their tail","They can't smell"], ans:1, fact:"A snake flicks its forked tongue to collect scent particles, then 'tastes' them inside its mouth."},
+  {type:'mc', cat:'Insects', q:"What is the strongest insect for its size?", opts:["Ant","Butterfly","Fly","Ladybug"], ans:0, fact:"Some ants can carry objects 50 times their own body weight — like you lifting a car!"},
+  {type:'mc', cat:'Mammals', q:"Which mammal lays eggs instead of giving birth?", opts:["Platypus","Dog","Cat","Horse"], ans:0, fact:"The platypus is one of the very few mammals that lay eggs. It also has a duck-like bill!"},
+  {type:'mc', cat:'Behavior', q:"What do we call animals active during the day?", opts:["Diurnal","Nocturnal","Aquatic","Extinct"], ans:0, fact:"Diurnal animals are active in the day and sleep at night, like humans, squirrels, and most birds."},
+  {type:'mc', cat:'Ocean', q:"How does an octopus escape from danger?", opts:["It runs on land","It squirts ink and jets away","It freezes solid","It flies"], ans:1, fact:"An octopus squirts a cloud of dark ink to confuse predators, then zooms off by blasting water."},
+  {type:'mc', cat:'Birds', q:"Why do some birds fly south in winter?", opts:["To find food and warmth","To get exercise","To race","They don't"], ans:0, fact:"Migration lets birds escape the cold and follow food. Arctic terns migrate from pole to pole!"},
+  {type:'mc', cat:'Food Chain', q:"An animal that hunts other animals is called a...?", opts:["Predator","Prey","Plant","Producer"], ans:0, fact:"A predator hunts prey. The prey is the animal being hunted. Lions are predators; zebras are their prey."},
+  {type:'mc', cat:'Adaptation', q:"How do polar bears stay warm?", opts:["Thick fur and a layer of fat","They wear coats","They never go outside","They have feathers"], ans:0, fact:"Polar bears have thick fur and a fat layer called blubber that keeps them warm in freezing water."},
+  {type:'mc', cat:'Mammals', q:"What are bats — the only flying what?", opts:["Mammal","Bird","Reptile","Fish"], ans:0, fact:"Bats are the only mammals that can truly fly. Many find their way using sound, called echolocation."},
+  {type:'mc', cat:'Behavior', q:"What is echolocation?", opts:["Finding things using sound echoes","Glowing in the dark","Changing color","Sleeping in winter"], ans:0, fact:"Bats and dolphins make sounds and listen to the echoes to 'see' the world around them."},
+  {type:'mc', cat:'Insects', q:"How many wings does a butterfly have?", opts:["Two","Four","Six","Eight"], ans:1, fact:"Butterflies have four wings covered in tiny scales that give them their bright colors."},
+  {type:'mc', cat:'Classification', q:"Spiders belong to which group?", opts:["Arachnids","Insects","Reptiles","Mammals"], ans:0, fact:"Spiders are arachnids, not insects — they have eight legs and no wings or antennae."},
+  {type:'mc', cat:'Ocean', q:"What is a coral reef made by?", opts:["Tiny animals called polyps","Rocks only","Plants only","Robots"], ans:0, fact:"Coral reefs are built by tiny animals called polyps that form hard skeletons over thousands of years."},
+  {type:'mc', cat:'Adaptation', q:"Why do giraffes have such long necks?", opts:["To reach high leaves","To swim","To dig","To fly"], ans:0, fact:"A long neck lets giraffes eat leaves high up that other animals can't reach — but it has only 7 neck bones, same as you!"},
+  {type:'mc', cat:'Reptiles', q:"How can you tell the age of some tortoises?", opts:["Rings on their shell","Counting teeth","Their color","Their weight"], ans:0, fact:"Like tree rings, the growth rings on a tortoise's shell can hint at its age."},
+  {type:'mc', cat:'Behavior', q:"Why do dogs wag their tails?", opts:["To communicate feelings","To fly","To swim","To dig faster"], ans:0, fact:"Tail wagging is doggy body language — it can mean excitement, friendliness, or even nervousness."},
+  {type:'mc', cat:'Mammals', q:"What do we call a group of lions?", opts:["A pride","A pack","A herd","A school"], ans:0, fact:"A group of lions is a pride. The females do most of the hunting and raise cubs together."},
+  {type:'mc', cat:'Insects', q:"What job do worker bees do?", opts:["Collect nectar and care for the hive","Sleep all day","Lead the army","Lay all the eggs"], ans:0, fact:"Worker bees, all female, gather food, build the hive, and care for the young. The queen lays the eggs."},
+  {type:'mc', cat:'Food Chain', q:"What do we call an animal that eats both plants and meat?", opts:["Omnivore","Herbivore","Carnivore","Producer"], ans:0, fact:"Omnivores eat plants and animals. Bears, pigs, and humans are all omnivores."},
+  {type:'mc', cat:'Ocean', q:"How do fish breathe underwater?", opts:["Using gills","Using lungs","They hold their breath","Through their fins"], ans:0, fact:"Gills pull dissolved oxygen out of the water so fish can breathe without coming to the surface."},
+  {type:'mc', cat:'Birds', q:"What is a baby bird's first food often given by?", opts:["The parent bird","A farmer","A fish","Itself"], ans:0, fact:"Parent birds work hard, making hundreds of trips a day to feed their hungry chicks."},
+  {type:'mc', cat:'Adaptation', q:"Why are flamingos pink?", opts:["From the food they eat","They are born pink","They paint themselves","From the sun"], ans:0, fact:"Flamingos turn pink from pigments in the shrimp and algae they eat. Eat less of it and they fade!"},
+  {type:'mc', cat:'Mammals', q:"Which animal is known as 'man's best friend'?", opts:["Dog","Snake","Spider","Shark"], ans:0, fact:"Dogs were the first animal humans tamed, more than 15,000 years ago, from wolves."},
+  {type:'mc', cat:'Behavior', q:"Why do cats have whiskers?", opts:["To sense their surroundings","For decoration","To taste food","To fly"], ans:0, fact:"Whiskers are super-sensitive touch sensors that help a cat judge gaps and feel its way in the dark."},
+  {type:'mc', cat:'Reptiles', q:"What makes a reptile different from a mammal?", opts:["Scaly skin and cold-blooded","It has fur","It makes milk","It has feathers"], ans:0, fact:"Reptiles have scaly skin and are cold-blooded, meaning they rely on the sun to warm up."},
+  {type:'mc', cat:'Classification', q:"What are the five main groups of vertebrates?", opts:["Mammals, birds, fish, reptiles, amphibians","Only mammals and fish","Insects and spiders","Plants and fungi"], ans:0, fact:"The five vertebrate groups are mammals, birds, fish, reptiles, and amphibians — all have backbones."},
+  {type:'mc', cat:'Ocean', q:"Which sea creature is famous for being very intelligent?", opts:["Octopus","Jellyfish","Clam","Sponge"], ans:0, fact:"Octopuses can open jars, solve mazes, and even use coconut shells as tools and shelters."},
+  {type:'mc', cat:'Insects', q:"What does a ladybug eat that helps gardeners?", opts:["Aphids (plant pests)","Flowers","Soil","Wood"], ans:0, fact:"Ladybugs eat aphids, tiny bugs that harm plants, so gardeners love having ladybugs around."},
+  {type:'mc', cat:'Adaptation', q:"Why do some animals play dead?", opts:["To trick predators into leaving","To sleep","To get warm","To fly"], ans:0, fact:"The opossum 'plays possum' — going limp so a predator loses interest and moves on."},
+  {type:'mc', cat:'Behavior', q:"What is hibernation?", opts:["A deep sleep to survive winter","A type of dance","A way of flying","A kind of nest"], ans:0, fact:"During hibernation an animal's heartbeat and breathing slow way down to save energy when food is scarce."},
+  {type:'word', cat:'Mammals', q:"What is the fastest land animal, able to sprint up to about 110 km/h?", accept:["cheetah","cheetahs"], fact:"A cheetah accelerates faster than most sports cars but can only keep top speed for about 30 seconds."},
+  {type:'word', cat:'Ocean', q:"What sea mammal is very smart, lives in pods, and uses clicks and whistles to talk?", accept:["dolphin","dolphins"], fact:"Dolphins call each other by name — each has its own special signature whistle!"},
+  {type:'word', cat:'Behavior', q:"What is the word for an animal's deep winter sleep? (starts with H)", accept:["hibernation","hibernating","hibernate"], fact:"A hibernating ground squirrel's heart can slow from 200 beats a minute to just a few."},
+  {type:'word', cat:'Classification', q:"Animals without a backbone, like insects and worms, are called what?", accept:["invertebrates","invertebrate"], fact:"About 97% of all animal species are invertebrates — they have no backbone at all."},
+  {type:'word', cat:'Adaptation', q:"What is it called when an animal blends into its surroundings to hide?", accept:["camouflage","camoflage","camoflauge","camouflaged"], fact:"A stick insect uses camouflage so good it looks exactly like a twig, fooling hungry birds."},
+  {type:'word', cat:'Insects', q:"What hard-working insect can lift 50 times its own body weight?", accept:["ant","ants"], fact:"Ants live in huge colonies and work together so well that a colony acts almost like one big creature."},
+  {type:'word', cat:'Birds', q:"What is the only bird that can fly backwards?", accept:["hummingbird","hummingbirds","humming bird"], fact:"A hummingbird's heart beats over 1,000 times a minute when it flies!"},
+  {type:'word', cat:'Reptiles', q:"What large reptile has a hard armored body and lives in rivers and swamps?", accept:["crocodile","crocodiles","croc","alligator","alligators"], fact:"A crocodile's bite is one of the strongest in the animal kingdom, but the muscles to open its jaws are weak."},
+  {type:'word', cat:'Food Chain', q:"What word means an animal that hunts and eats other animals?", accept:["predator","predators"], fact:"Top predators like wolves keep nature balanced by controlling the number of plant-eating animals."},
+  {type:'word', cat:'Ocean', q:"What soft sea animal has tentacles that can sting, and no bones or brain?", accept:["jellyfish","jelly fish","jellyfishes"], fact:"Jellyfish have drifted in the oceans for over 500 million years — longer than dinosaurs existed!"},
+  {type:'word', cat:'Mammals', q:"What black-and-white bear from China eats mostly bamboo?", accept:["panda","pandas","giant panda","giant pandas"], fact:"A giant panda eats for up to 14 hours a day and must munch 12 kg of bamboo to get enough energy."},
+  {type:'word', cat:'Adaptation', q:"What word describes an animal that is awake at night?", accept:["nocturnal"], fact:"Nocturnal owls have huge eyes that gather what little light there is to hunt in near darkness."},
+  {type:'word', cat:'Mammals', q:"What tall African animal is a striped relative of the horse?", accept:["zebra","zebras"], fact:"Scientists think a zebra's stripes may confuse biting flies and make it harder for lions to single one out."},
+];
+
+// QUESTION BANK — Tier 3: Ages 11-13
+const Q_T3 = [
+  {type:'mc', cat:'Classification', q:"In classification, which is the broadest group?", opts:["Kingdom","Genus","Species","Family"], ans:0, fact:"The order is Kingdom, Phylum, Class, Order, Family, Genus, Species — from broadest to most specific."},
+  {type:'mc', cat:'Evolution', q:"What did Darwin propose as the mechanism of evolution?", opts:["Natural selection","Spontaneous creation","Magic","Practice"], ans:0, fact:"Natural selection: individuals with helpful traits survive and reproduce more, passing those traits on."},
+  {type:'mc', cat:'Physiology', q:"What is an animal that controls its body heat internally called?", opts:["Endotherm (warm-blooded)","Ectotherm","Invertebrate","Herbivore"], ans:0, fact:"Endotherms like mammals and birds make their own body heat; ectotherms like reptiles rely on the environment."},
+  {type:'mc', cat:'Ecology', q:"What is an animal's ecological 'niche'?", opts:["Its role and place in an ecosystem","Its nest","Its color","Its age"], ans:0, fact:"A niche is how a species lives — what it eats, where it lives, and how it interacts with others."},
+  {type:'mc', cat:'Behavior', q:"What is symbiosis?", opts:["A close relationship between two species","A type of migration","Sleeping in winter","A bird call"], ans:0, fact:"In symbiosis, species live closely together. Clownfish and sea anemones protect each other this way."},
+  {type:'mc', cat:'Ocean', q:"How do whales, as mammals, breathe?", opts:["They surface to breathe air through a blowhole","With gills","Through their skin","They don't breathe"], ans:0, fact:"Whales are mammals with lungs; they surface to breathe through a blowhole on top of the head."},
+  {type:'mc', cat:'Classification', q:"What does a scientific name like 'Panthera leo' represent?", opts:["Genus and species","Color and size","Country and age","Diet and habitat"], ans:0, fact:"Linnaeus created this two-word system: the first word is the genus, the second the species. Panthera leo is the lion."},
+  {type:'mc', cat:'Adaptation', q:"What is convergent evolution?", opts:["Unrelated species evolving similar traits","Two species becoming one","Going extinct","A type of camouflage"], ans:0, fact:"Sharks and dolphins look alike but aren't related — both evolved streamlined bodies for swimming fast. That's convergence."},
+  {type:'mc', cat:'Physiology', q:"What is the purpose of a frog's moist skin?", opts:["It helps the frog breathe","To look shiny","To swim faster","To scare predators"], ans:0, fact:"Frogs can absorb oxygen directly through their damp skin, which is why they must stay moist."},
+  {type:'mc', cat:'Ecology', q:"What is a 'keystone species'?", opts:["A species many others depend on","The biggest animal","The rarest animal","A type of bird"], ans:0, fact:"Remove a keystone species, like the sea otter, and the whole ecosystem can collapse — otters keep urchins from destroying kelp forests."},
+  {type:'mc', cat:'Behavior', q:"What is metamorphosis?", opts:["A dramatic change in body form during life","A type of migration","Changing color","A mating dance"], ans:0, fact:"Complete metamorphosis goes egg → larva → pupa → adult, as in a butterfly's transformation from caterpillar."},
+  {type:'mc', cat:'Evolution', q:"What are vestigial structures?", opts:["Body parts that have lost their original use","New organs","Strong muscles","Bright colors"], ans:0, fact:"Whales have tiny hip bones left over from land-dwelling ancestors — evidence of their evolutionary history."},
+  {type:'mc', cat:'Ocean', q:"Why is the deep sea home to so many bioluminescent animals?", opts:["Light helps them lure prey, find mates, or hide","It's decorative","The water glows","To stay warm"], ans:0, fact:"In the dark deep sea, making your own light (bioluminescence) is used to attract prey, signal mates, or confuse predators."},
+  {type:'mc', cat:'Physiology', q:"How does a snake eat prey much larger than its head?", opts:["Its jaw bones spread apart","It chews thoroughly","It cuts the prey","It can't"], ans:0, fact:"A snake's lower jaw is loosely connected and stretches wide, letting it swallow prey larger than its own head."},
+  {type:'mc', cat:'Classification', q:"What group of mammals carries young in a pouch?", opts:["Marsupials","Primates","Rodents","Cetaceans"], ans:0, fact:"Marsupials like kangaroos and koalas give birth to tiny young that finish developing in a pouch."},
+  {type:'mc', cat:'Ecology', q:"What happens to energy as it moves up a food chain?", opts:["Most is lost at each level","It increases","It stays the same","It disappears completely"], ans:0, fact:"Only about 10% of energy passes to the next level, which is why there are few top predators and many plants."},
+  {type:'mc', cat:'Behavior', q:"Why do meerkats take turns standing guard?", opts:["To watch for predators while others forage","To exercise","To sunbathe","To find mates"], ans:0, fact:"A meerkat sentinel watches for eagles and snakes, giving different alarm calls for different dangers."},
+  {type:'mc', cat:'Evolution', q:"What is the famous 'Wallace Line'?", opts:["A boundary separating Asian and Australian animals","A bird migration path","A type of fish","A mountain range"], ans:0, fact:"Wallace noticed animals on either side of this invisible line in Indonesia were utterly different, founding biogeography."},
+  {type:'mc', cat:'Physiology', q:"What is unique about a giraffe's heart?", opts:["It's huge and powerful to pump blood up the neck","It's tiny","It beats once a minute","It's on the right side"], ans:0, fact:"A giraffe's heart can weigh 11 kg and generates very high pressure to push blood all the way up to the brain."},
+  {type:'mc', cat:'Ocean', q:"What is plankton?", opts:["Tiny drifting organisms that feed the ocean","A type of large whale","A coral","A seabird"], ans:0, fact:"Plankton are tiny drifting plants and animals at the base of the ocean food web — even blue whales eat them."},
+  {type:'mc', cat:'Classification', q:"To which animal group do humans, apes, and monkeys belong?", opts:["Primates","Rodents","Carnivores","Marsupials"], ans:0, fact:"Primates share traits like forward-facing eyes, grasping hands, and large brains."},
+  {type:'mc', cat:'Behavior', q:"What did Jane Goodall famously discover chimpanzees doing?", opts:["Making and using tools","Building boats","Writing","Cooking"], ans:0, fact:"Goodall saw chimps strip leaves off twigs to fish for termites — proof that humans aren't the only toolmakers."},
+  {type:'mc', cat:'Adaptation', q:"How do desert animals like the fennec fox stay cool?", opts:["Large ears release body heat","They never move","Thick fur","They glow"], ans:0, fact:"The fennec fox's oversized ears radiate heat away from its body and also give it superb hearing."},
+  {type:'mc', cat:'Ecology', q:"What is biodiversity?", opts:["The variety of life in an area","The number of plants only","A single species","The weather"], ans:0, fact:"High biodiversity makes ecosystems more stable and able to recover from disturbances like disease or drought."},
+  {type:'mc', cat:'Physiology', q:"Why do birds have hollow bones?", opts:["To make them light enough to fly","To store food","To make sounds","For decoration"], ans:0, fact:"Hollow bones reduce weight while staying strong, an adaptation that helps birds get airborne."},
+  {type:'mc', cat:'Evolution', q:"What is the closest living relative of the whale?", opts:["The hippopotamus","The shark","The dolphin's ancestor only","The seal"], ans:0, fact:"Whales evolved from land mammals; their closest living relatives are hippos, which share a common ancestor."},
+  {type:'mc', cat:'Behavior', q:"How do honeybees decide on a new home?", opts:["Scout bees 'vote' by dancing","The queen decides alone","Randomly","They never move"], ans:0, fact:"Scout bees dance to advocate for sites; the swarm reaches a group decision — a kind of insect democracy."},
+  {type:'mc', cat:'Ocean', q:"What allows a fish to control its depth in water?", opts:["A gas-filled swim bladder","Its fins only","Its scales","Its eyes"], ans:0, fact:"Many fish adjust gas in their swim bladder to float at a chosen depth without constantly swimming."},
+  {type:'mc', cat:'Classification', q:"What feature defines mammals?", opts:["Hair/fur and milk for young","Feathers","Scales","Gills"], ans:0, fact:"All mammals have some hair or fur and feed their young milk produced by the mother."},
+  {type:'mc', cat:'Ecology', q:"What is an invasive species?", opts:["A non-native species that harms an ecosystem","A very old species","A protected species","A tiny species"], ans:0, fact:"Cane toads introduced to Australia became invasive, poisoning native predators that tried to eat them."},
+  {type:'mc', cat:'Adaptation', q:"How does a chameleon catch insects?", opts:["With a fast, sticky, projectile tongue","With its tail","With its feet","With webs"], ans:0, fact:"A chameleon's tongue can shoot out longer than its own body in a fraction of a second."},
+  {type:'mc', cat:'Behavior', q:"Why do some birds have such colorful feathers?", opts:["To attract mates","To fly faster","To stay warm","To digest food"], ans:0, fact:"Bright plumage, like the peacock's tail, often evolved through sexual selection to attract a mate."},
+  {type:'mc', cat:'Physiology', q:"What is the function of gills in fish?", opts:["Extract oxygen from water","Help them see","Store food","Make sound"], ans:0, fact:"Water flows over the gills, and thin blood vessels there absorb dissolved oxygen into the blood."},
+  {type:'mc', cat:'Evolution', q:"What does 'survival of the fittest' actually mean?", opts:["Best suited to the environment survive to reproduce","The strongest always win","The biggest survive","The fastest survive"], ans:0, fact:"'Fittest' means best adapted to conditions — sometimes that's the smallest or best camouflaged, not the strongest."},
+  {type:'word', cat:'Classification', q:"What is the two-word naming system for species, created by Linnaeus, called? (binomial ___)", accept:["nomenclature","binomial nomenclature","binomialnomenclature"], fact:"Binomial nomenclature gives every species a universal Latin name understood by scientists worldwide."},
+  {type:'word', cat:'Behavior', q:"What is the word for bats and dolphins using sound echoes to navigate and hunt?", accept:["echolocation","echo location"], fact:"A hunting bat can pinpoint a tiny insect in total darkness using echolocation alone."},
+  {type:'word', cat:'Ecology', q:"What do we call all the living and non-living things interacting in an area?", accept:["ecosystem","ecosystems","eco system"], fact:"An ecosystem includes animals, plants, microbes, soil, water, and climate, all connected together."},
+  {type:'word', cat:'Adaptation', q:"What is the ability of some animals to make their own light called?", accept:["bioluminescence","bioluminescent"], fact:"Anglerfish dangle a glowing bioluminescent lure to draw prey straight to their jaws in the dark deep."},
+  {type:'word', cat:'Physiology', q:"What are cold-blooded animals that rely on the environment for heat called? (starts with ecto-)", accept:["ectotherm","ectotherms","ectothermic"], fact:"Ectotherms like lizards bask in the sun to warm up before they can become active."},
+  {type:'word', cat:'Evolution', q:"What naturalist independently discovered natural selection at the same time as Darwin?", accept:["wallace","alfred wallace","alfred russel wallace","alfred russell wallace"], fact:"Wallace's letter from the jungle pushed Darwin to finally publish On the Origin of Species in 1859."},
+  {type:'word', cat:'Behavior', q:"What is the long seasonal journey many animals make, like wildebeest or birds, called?", accept:["migration","migrating","migrate"], fact:"The Arctic tern migrates roughly 70,000 km a year, the longest migration of any animal."},
+  {type:'word', cat:'Classification', q:"What group of mammals, including kangaroos and koalas, raises young in a pouch?", accept:["marsupials","marsupial"], fact:"A newborn kangaroo is the size of a jellybean and crawls into the pouch to keep developing."},
+  {type:'word', cat:'Ecology', q:"What term describes a species in danger of dying out completely?", accept:["endangered","endangered species"], fact:"The mountain gorilla was critically endangered; conservation work by Fossey and others helped it recover slightly."},
+  {type:'word', cat:'Physiology', q:"What organ lets fish absorb oxygen from water?", accept:["gills","gill"], fact:"Fish gills are so efficient they can extract oxygen even though water holds far less of it than air does."},
+  {type:'word', cat:'Behavior', q:"What close relationship benefits both species, like the bee and the flower, is called? (muta___)", accept:["mutualism","mutualistic"], fact:"In mutualism both partners gain: the bee gets nectar, the flower gets pollinated."},
+  {type:'word', cat:'Adaptation', q:"What is an animal copying the look of a dangerous one for protection called? (___icry)", accept:["mimicry","mimic"], fact:"The harmless milk snake mimics the deadly coral snake's bright bands so predators leave it alone."},
+  {type:'word', cat:'Evolution', q:"On which islands did Darwin study finches and tortoises that shaped his theory?", accept:["galapagos","the galapagos","galápagos","galapagos islands"], fact:"Each Galápagos island's finches had differently shaped beaks suited to their food — a clue to natural selection."},
+  {type:'word', cat:'Ocean', q:"What are tiny drifting organisms at the base of the ocean food web called?", accept:["plankton","planktons"], fact:"Plankton produce a huge share of Earth's oxygen — much of every breath you take comes from the sea."},
+  {type:'word', cat:'Classification', q:"What class of animals has feathers, beaks, and lays eggs?", accept:["birds","bird","aves"], fact:"Birds are the only living animals with feathers, and they are the closest living relatives of dinosaurs."},
+];
+
+// QUESTION BANK — Tier 4: Adult / Expert
+const Q_T4 = [
+  {type:'mc', cat:'Taxonomy', q:"What taxonomic rank sits between Order and Genus?", opts:["Family","Phylum","Kingdom","Domain"], ans:0, fact:"The full hierarchy is Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species."},
+  {type:'mc', cat:'Evolution', q:"What term describes structures with a shared evolutionary origin but different functions?", opts:["Homologous structures","Analogous structures","Vestigial organs","Convergent traits"], ans:0, fact:"A human arm, a bat wing, and a whale flipper are homologous — same underlying bone structure, different uses."},
+  {type:'mc', cat:'Physiology', q:"Which respiratory system allows birds to extract oxygen on both inhalation and exhalation?", opts:["A flow-through system with air sacs","Tidal lungs like mammals","Skin breathing","Gills"], ans:0, fact:"Birds' air sacs create one-directional airflow, making their lungs far more efficient — vital for high-altitude flight."},
+  {type:'mc', cat:'Ecology', q:"What is a trophic cascade?", opts:["Effects of a top predator rippling down through an ecosystem","A waterfall of nutrients","Mass migration","Seasonal flooding"], ans:0, fact:"Reintroducing wolves to Yellowstone changed deer behavior, regrew forests, and even altered rivers — a classic trophic cascade."},
+  {type:'mc', cat:'Behavior', q:"What is 'kin selection'?", opts:["Helping relatives to pass on shared genes","Choosing a mate","Picking territory","Avoiding predators"], ans:0, fact:"Kin selection explains why sterile worker bees help the queen — they share genes with the offspring they raise."},
+  {type:'mc', cat:'Genetics', q:"Whose experiments on pea plants founded the study of heredity?", opts:["Gregor Mendel","Charles Darwin","Carl Linnaeus","Louis Pasteur"], ans:0, fact:"Mendel's pea-plant crosses revealed dominant and recessive traits, laying the groundwork for genetics."},
+  {type:'mc', cat:'Physiology', q:"How do desert kangaroo rats survive with almost no drinking water?", opts:["They produce highly concentrated urine and get water from food","They don't drink at all and store none","They drink dew only","They hibernate"], ans:0, fact:"Their kidneys are so efficient they extract metabolic water from dry seeds and barely lose any in urine."},
+  {type:'mc', cat:'Evolution', q:"What is punctuated equilibrium?", opts:["Long stasis broken by rapid bursts of change","Steady gradual change","No change ever","Random extinction"], ans:0, fact:"Proposed by Eldredge and Gould, it suggests species stay stable for long periods, then change rapidly in short bursts."},
+  {type:'mc', cat:'Taxonomy', q:"What are the three domains of life?", opts:["Bacteria, Archaea, Eukarya","Plants, Animals, Fungi","Mammals, Birds, Fish","Land, Sea, Air"], ans:0, fact:"Carl Woese reorganized life into three domains based on genetic differences, especially in ribosomal RNA."},
+  {type:'mc', cat:'Behavior', q:"What is eusociality?", opts:["Highly cooperative groups with division of labor and a breeding caste","Living alone","Migrating in flocks","Hunting in pairs"], ans:0, fact:"Eusocial species like ants, bees, and naked mole-rats have non-breeding workers serving a reproductive queen."},
+  {type:'mc', cat:'Physiology', q:"How do some Antarctic fish avoid freezing in sub-zero water?", opts:["Antifreeze proteins in their blood","Thick blubber","Constant motion","Warm currents"], ans:0, fact:"Antifreeze glycoproteins bind to ice crystals and stop them growing, keeping the fish's blood liquid below 0°C."},
+  {type:'mc', cat:'Ecology', q:"What does the term 'ecological succession' describe?", opts:["Gradual change in a community over time","A single predator's diet","Daily animal movement","A type of camouflage"], ans:0, fact:"After a fire or eruption, pioneer species colonize first, slowly giving way to a stable climax community."},
+  {type:'mc', cat:'Evolution', q:"What is adaptive radiation?", opts:["Rapid diversification of one lineage into many forms","Loss of a body part","Gaining radioactivity","Mass migration"], ans:0, fact:"Darwin's finches radiated from one ancestor into many species, each adapted to a different food source."},
+  {type:'mc', cat:'Genetics', q:"What is the term for an organism's observable characteristics?", opts:["Phenotype","Genotype","Allele","Genome"], ans:0, fact:"The phenotype is the visible result of the genotype (the genes) interacting with the environment."},
+  {type:'mc', cat:'Physiology', q:"How does a cephalopod like the cuttlefish change color so quickly?", opts:["Specialized cells called chromatophores","Pigmented blood","Changing diet","Reflecting moonlight"], ans:0, fact:"Chromatophores are pigment sacs controlled by muscles, letting cuttlefish flash colors in milliseconds — though they're colorblind!"},
+  {type:'mc', cat:'Behavior', q:"What is altruism in animal behavior?", opts:["Behavior that helps others at a cost to oneself","Selfish hoarding","Territorial defense","Random movement"], ans:0, fact:"Vampire bats share blood meals with hungry roost-mates, an example of reciprocal altruism."},
+  {type:'mc', cat:'Taxonomy', q:"What is a 'clade'?", opts:["An ancestor and all its descendants","Any group of similar animals","A single species","A geographic region"], ans:0, fact:"Modern classification (cladistics) groups organisms by shared ancestry into clades, not just by appearance."},
+  {type:'mc', cat:'Ocean', q:"What is the primary cause of coral bleaching?", opts:["Heat stress expelling symbiotic algae","Lack of fish","Too much plankton","Strong currents"], ans:0, fact:"Stressed corals expel the zooxanthellae algae that feed and color them, turning white and often dying."},
+  {type:'mc', cat:'Evolution', q:"What is the biological species concept based on?", opts:["The ability to interbreed and produce fertile offspring","Identical appearance","Same habitat","Same diet"], ans:0, fact:"Two populations are separate species if they can't produce fertile offspring — a horse and donkey make a sterile mule."},
+  {type:'mc', cat:'Physiology', q:"How do migrating birds navigate over thousands of kilometers?", opts:["Magnetic fields, stars, sun, and landmarks","Pure luck","Following roads","Smell alone"], ans:0, fact:"Birds sense Earth's magnetic field, likely using proteins in their eyes, and combine it with celestial cues."},
+  {type:'mc', cat:'Behavior', q:"What is the 'selfish gene' concept popularized by Richard Dawkins?", opts:["Genes act to maximize their own replication","Animals are entirely selfish","Genes can think","Only big animals survive"], ans:0, fact:"The idea reframes evolution from the gene's point of view, explaining cooperation and conflict between organisms."},
+  {type:'mc', cat:'Ecology', q:"What is carrying capacity?", opts:["The max population an environment can sustain","An animal's weight","Migration distance","A predator's range"], ans:0, fact:"When a population exceeds carrying capacity, starvation, disease, or emigration usually bring it back down."},
+  {type:'mc', cat:'Genetics', q:"What molecule carries the genetic instructions in nearly all living things?", opts:["DNA","Protein","Glucose","Calcium"], ans:0, fact:"DNA's double helix, decoded by Watson, Crick, Franklin, and Wilkins, encodes the blueprint for every organism."},
+  {type:'mc', cat:'Evolution', q:"What does 'analogous structures' mean?", opts:["Similar function, independent evolutionary origin","Same origin, different function","Useless leftover parts","Identical DNA"], ans:0, fact:"The wings of insects and birds are analogous — both fly, but they evolved completely separately."},
+  {type:'mc', cat:'Physiology', q:"How does the mammalian diving reflex help seals stay underwater?", opts:["Slows heart rate and redirects blood to vital organs","Increases breathing","Warms the body","Improves vision"], ans:0, fact:"The diving reflex lets Weddell seals stay submerged for over an hour by conserving oxygen for brain and heart."},
+  {type:'mc', cat:'Behavior', q:"What is imprinting, studied by Konrad Lorenz?", opts:["Young animals bonding to the first thing they see","A type of camouflage","Seasonal migration","Tool use"], ans:0, fact:"Lorenz had goslings imprint on him, following him as if he were their mother — a critical early-life learning window."},
+  {type:'mc', cat:'Taxonomy', q:"What does it mean if a group is 'paraphyletic'?", opts:["It excludes some descendants of a common ancestor","It includes two ancestors","It has no ancestor","It is a single species"], ans:0, fact:"'Reptiles' traditionally excluded birds, making the old group paraphyletic — birds are actually living dinosaurs."},
+  {type:'mc', cat:'Ecology', q:"What is a mutualistic relationship?", opts:["Both species benefit","One benefits, one is harmed","One benefits, one unaffected","Both are harmed"], ans:0, fact:"Cleaner wrasse fish eat parasites off larger fish — the cleaner gets food, the host gets cleaned."},
+  {type:'mc', cat:'Evolution', q:"What is sexual dimorphism?", opts:["Physical differences between males and females of a species","Having two sexes at once","Changing sex","Reproducing without a mate"], ans:0, fact:"The peacock's huge tail versus the drab peahen is striking sexual dimorphism driven by mate choice."},
+  {type:'mc', cat:'Physiology', q:"Why can't most mammals see as many colors as some birds?", opts:["Birds often have four cone types; most mammals have two or three","Birds have bigger eyes","Mammals are nocturnal now","Birds fly higher"], ans:0, fact:"Many birds are tetrachromats, seeing ultraviolet light invisible to us — useful for finding food and mates."},
+  {type:'word', cat:'Taxonomy', q:"What 18th-century Swede created the system of binomial nomenclature? (full or last name)", accept:["linnaeus","carl linnaeus","carl von linné","carl linne","von linne","carolus linnaeus"], fact:"Linnaeus classified over 4,000 animals and 7,000 plants, and even classified humans as Homo sapiens."},
+  {type:'word', cat:'Evolution', q:"What is the term for body parts reduced and functionless through evolution, like the human appendix? (___igial)", accept:["vestigial","vestigial structures","vestigial organs"], fact:"Whale pelvic bones and human wisdom teeth are vestigial remnants of our evolutionary past."},
+  {type:'word', cat:'Genetics', q:"What is an alternative form of a gene called?", accept:["allele","alleles"], fact:"For eye color, you inherit one allele from each parent; dominant alleles mask recessive ones."},
+  {type:'word', cat:'Behavior', q:"What is the term for unrelated species evolving similar features, like the eyes of octopuses and humans? (___vergent evolution)", accept:["convergent","convergent evolution","convergence"], fact:"Octopus and vertebrate eyes are a textbook case of convergent evolution — strikingly similar, totally separate origins."},
+  {type:'word', cat:'Ecology', q:"What term describes a species whose impact on its ecosystem is far larger than its abundance suggests? (___stone species)", accept:["keystone","keystone species"], fact:"Sea otters are a keystone species: by eating urchins, they protect entire kelp forests."},
+  {type:'word', cat:'Physiology', q:"What process do bats and dolphins use, emitting sound and interpreting echoes?", accept:["echolocation","biosonar","echo location"], fact:"Some bats can detect an object as fine as a human hair using echolocation."},
+  {type:'word', cat:'Taxonomy', q:"What term describes a group containing an ancestor and ALL its descendants?", accept:["monophyletic","clade","monophyletic group"], fact:"A monophyletic group, or clade, is the only kind of group cladistics considers 'natural'."},
+  {type:'word', cat:'Evolution', q:"What naturalist's 1859 book was titled 'On the Origin of ___'?", accept:["species","the species","on the origin of species"], fact:"Darwin's book sold out its entire first print run on the very first day it was published."},
+  {type:'word', cat:'Genetics', q:"What scientist is called the 'father of genetics' for his pea plant experiments?", accept:["mendel","gregor mendel"], fact:"Mendel was a monk whose work was ignored for decades, then rediscovered around 1900."},
+  {type:'word', cat:'Ocean', q:"What is the symbiotic algae that lives inside coral and gives it color and food called?", accept:["zooxanthellae","zooxanthella"], fact:"When water gets too warm, coral expels its zooxanthellae and bleaches white — often a death sentence."},
+  {type:'word', cat:'Behavior', q:"What did Konrad Lorenz call the rapid early bonding of young animals to a parent figure?", accept:["imprinting","imprint"], fact:"Imprinting happens in a narrow critical period soon after hatching or birth and is hard to reverse."},
+  {type:'word', cat:'Physiology', q:"What protein in red blood cells carries oxygen around the body?", accept:["hemoglobin","haemoglobin"], fact:"Hemoglobin contains iron, which is why blood is red and why diving mammals store extra of it for oxygen."},
+  {type:'word', cat:'Evolution', q:"What invisible line did Wallace identify separating Asian and Australian fauna? (the ___ Line)", accept:["wallace","wallace line"], fact:"West of the Wallace Line you find tigers and monkeys; east of it, kangaroos and cockatoos."},
+  {type:'word', cat:'Taxonomy', q:"What is the most specific rank in Linnaean classification?", accept:["species","specie"], fact:"A species is generally a group whose members can interbreed and produce fertile offspring."},
+  {type:'word', cat:'Ecology', q:"What term describes the role and position a species occupies in its ecosystem?", accept:["niche","ecological niche"], fact:"No two species can occupy exactly the same niche indefinitely — one will outcompete the other."},
+  {type:'word', cat:'Behavior', q:"What cooperative system, found in bees and ants, has a single breeding female and sterile workers? (eu___)", accept:["eusociality","eusocial"], fact:"Naked mole-rats are the only known eusocial mammals, living in colonies ruled by a single queen."},
+  {type:'word', cat:'Genetics', q:"What is the complete set of an organism's DNA called?", accept:["genome","the genome"], fact:"The human genome contains about 3 billion base pairs but only around 20,000 protein-coding genes."},
+  {type:'word', cat:'Physiology', q:"What is the cold-blooded strategy of relying on external heat sources called? (ecto___)", accept:["ectothermy","ectothermic","ectotherm"], fact:"Ectothermy is energy-cheap: reptiles need far less food than similarly sized mammals."},
+];
+
+// ====== TIER DEFINITIONS ======
+const TIERS = [
+  {key:'T1', name:'Cubs',     age:'Ages 5-7',   bank:Q_T1},
+  {key:'T2', name:'Trackers', age:'Ages 8-10',  bank:Q_T2},
+  {key:'T3', name:'Rangers',  age:'Ages 11-13', bank:Q_T3},
+  {key:'T4', name:'Experts',  age:'Adult',      bank:Q_T4},
+];
+const HOME_DMG = 11, UP_DMG = 15, MAX_HP = 100;
+
+// ====== STATE ======
+const state = {
+  p1:{fighter:null, tier:null, hp:MAX_HP},
+  p2:{fighter:null, tier:null, hp:MAX_HP},
+  turn:1, currentQ:null, currentDmg:0, answered:false,
+  turnsPlayed:0, correct:0, pools:{},
+};
+
+// ====== UTIL ======
+function fighterById(id){ return FIGHTERS.find(f=>f.id===id); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// draw a question from a tier's pool (reshuffles when exhausted)
+function drawQ(tierKey){
+  if(!state.pools[tierKey] || state.pools[tierKey].length===0){
+    const bank = TIERS.find(t=>t.key===tierKey).bank;
+    state.pools[tierKey] = shuffle([...bank.keys()]);
+  }
+  const idx = state.pools[tierKey].pop();
+  return TIERS.find(t=>t.key===tierKey).bank[idx];
+}
+
+// fuzzy word matching: normalize, accept articles, allow small edit distance scaled by length
+function normalize(s){
+  return s.toLowerCase().trim()
+    .replace(/^(the|a|an|my|its|it's)\s+/,'')
+    .replace(/[^a-z0-9 ]/g,'')
+    .replace(/\s+/g,' ').trim();
+}
+function editDistance(a,b){
+  const m=a.length,n=b.length; const d=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)d[i][0]=i; for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+  }
+  return d[m][n];
+}
+function wordMatches(input, acceptList){
+  const norm = normalize(input);
+  if(!norm) return false;
+  const noSpace = norm.replace(/ /g,'');
+  for(const raw of acceptList){
+    const acc = normalize(raw); const accNoSpace = acc.replace(/ /g,'');
+    if(norm===acc || noSpace===accNoSpace) return true;
+    // tolerance scales with length: short words near-exact, long words forgive 1-2
+    const tol = acc.length<=4 ? 0 : acc.length<=7 ? 1 : 2;
+    if(editDistance(noSpace, accNoSpace) <= tol) return true;
+  }
+  return false;
+}
+
+// ====== SETUP RENDERING ======
+function renderFighters(){
+  [1,2].forEach(p=>{
+    const grid=document.getElementById('fgrid-'+p);
+    grid.innerHTML='';
+    FIGHTERS.forEach(f=>{
+      const card=document.createElement('div');
+      card.className='fighter-card';
+      const me=state['p'+p].fighter, other=state['p'+(p===1?2:1)].fighter;
+      if(me===f.id) card.classList.add('sel-p'+p);
+      if(other===f.id) card.classList.add('locked');
+      card.innerHTML=`
+        ${me===f.id?`<span class="pick-badge badge-p${p}">P${p}</span>`:''}
+        <span class="emoji">${f.emoji}</span>
+        <span class="fname">${f.name}</span>
+        <span class="fdom">${f.domain}</span>
+        <span class="story-link">📖 Story</span>`;
+      card.querySelector('.story-link').addEventListener('click',(e)=>{e.stopPropagation(); openStory(f.id);});
+      card.addEventListener('click',()=>{ if(other===f.id) return; state['p'+p].fighter=f.id; renderFighters(); checkReady(); });
+      grid.appendChild(card);
+    });
+  });
+}
+function renderTiers(){
+  [1,2].forEach(p=>{
+    const grid=document.getElementById('tgrid-'+p);
+    grid.innerHTML='';
+    TIERS.forEach(t=>{
+      const btn=document.createElement('div');
+      btn.className='tier-btn';
+      if(state['p'+p].tier===t.key) btn.classList.add('sel-p'+p);
+      btn.innerHTML=`<span class="tier-name">${t.name}</span><span class="tier-age">${t.age}</span>`;
+      btn.addEventListener('click',()=>{ state['p'+p].tier=t.key; renderTiers(); checkReady(); });
+      grid.appendChild(btn);
+    });
+  });
+}
+function checkReady(){
+  const ok = state.p1.fighter && state.p2.fighter && state.p1.tier && state.p2.tier;
+  document.getElementById('go-btn').disabled=!ok;
+}
+
+// ====== STORY MODAL ======
+function openStory(id){
+  const f=fighterById(id), s=STORIES[id], d=DIAGRAMS[id];
+  const m=document.getElementById('modal-body');
+  m.innerHTML=`
+    <span class="story-emoji">${f.emoji}</span>
+    <div class="story-name">${f.name}</div>
+    <div class="story-epithet">${s.epithet}</div>
+    <div class="story-tags">${s.tags.map(t=>`<span class="story-tag">${t}</span>`).join('')}</div>
+    <div class="story-divider">🌿 ❦ 🌿</div>
+    <div class="story-body">${s.body.map(p=>`<p>${p}</p>`).join('')}</div>
+    ${d?`<div class="story-diagram">${d.svg}<div class="diagram-caption">${d.cap}</div></div>`:''}`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+function closeStory(){ document.getElementById('modal-bg').classList.remove('show'); }
+
+// ====== BATTLE ======
+function startBattle(){
+  state.p1.hp=MAX_HP; state.p2.hp=MAX_HP; state.turn=1;
+  state.turnsPlayed=0; state.correct=0; state.pools={};
+  document.getElementById('screen-setup').classList.remove('active');
+  document.getElementById('screen-battle').classList.add('active');
+  renderHUD(); beginTurn();
+}
+function tierIndex(key){ return TIERS.findIndex(t=>t.key===key); }
+function renderHUD(){
+  [1,2].forEach(p=>{
+    const ps=state['p'+p], f=fighterById(ps.fighter), t=TIERS.find(x=>x.key===ps.tier);
+    document.getElementById('hud-emoji-'+p).textContent=f.emoji;
+    document.getElementById('hud-name-'+p).textContent=f.name;
+    document.getElementById('hud-tier-'+p).textContent=t.name+' • '+t.age;
+    const pct=Math.max(0,ps.hp)/MAX_HP*100;
+    document.getElementById('hpfill-'+p).style.width=pct+'%';
+    document.getElementById('hptext-'+p).textContent=Math.max(0,ps.hp)+' / '+MAX_HP;
+    const hud=document.getElementById('hud-'+p);
+    hud.classList.toggle('active-p'+p, state.turn===p);
+    hud.classList.remove('active-p'+(p===1?2:1));
+  });
+}
+function beginTurn(){
+  state.answered=false;
+  const p=state.turn, ps=state['p'+p], f=fighterById(ps.fighter);
+  renderHUD();
+  const banner=document.getElementById('turn-banner');
+  banner.className='turn-banner p'+p;
+  banner.textContent=`Player ${p}'s turn — ${f.name} ${f.emoji}`;
+
+  // build choice row: home, and reach-up if not top tier
+  const ti=tierIndex(ps.tier);
+  const cr=document.getElementById('choice-row');
+  cr.innerHTML='';
+  const homeT=TIERS[ti];
+  const homeBtn=document.createElement('button');
+  homeBtn.className='choice-btn choice-home';
+  homeBtn.innerHTML=`<span class="ch-title">⚖️ Play my level</span><span class="ch-sub">${homeT.name} • ${HOME_DMG} damage</span>`;
+  homeBtn.addEventListener('click',()=>askQuestion(homeT.key, HOME_DMG, false));
+  cr.appendChild(homeBtn);
+  if(ti < TIERS.length-1){
+    const upT=TIERS[ti+1];
+    const upBtn=document.createElement('button');
+    upBtn.className='choice-btn choice-up';
+    upBtn.innerHTML=`<span class="ch-title">⬆️ Reach up!</span><span class="ch-sub">${upT.name} • ${UP_DMG} damage</span>`;
+    upBtn.addEventListener('click',()=>askQuestion(upT.key, UP_DMG, true));
+    cr.appendChild(upBtn);
+  }
+  cr.style.display='flex';
+  document.getElementById('qcard').style.display='none';
+  document.getElementById('err').textContent='';
+}
+function askQuestion(tierKey, dmg, isUp){
+  state.currentQ=drawQ(tierKey); state.currentDmg=dmg;
+  document.getElementById('choice-row').style.display='none';
+  const q=state.currentQ;
+  const card=document.getElementById('qcard');
+  card.style.display='block';
+  let inner=`<span class="qcat${isUp?' up':''}">${q.cat}${isUp?' ⬆ reach-up':''}</span><div class="qtext">${q.q}</div>`;
+  if(q.type==='mc'){
+    // shuffle options but track correct
+    const order=shuffle([...q.opts.keys()]);
+    state.shuffledCorrect=order.indexOf(q.ans);
+    inner+=`<div class="opts">`;
+    order.forEach((oi,pos)=>{
+      const letter=String.fromCharCode(65+pos);
+      inner+=`<button class="opt-btn" data-pos="${pos}"><span class="opt-letter">${letter}</span><span>${q.opts[oi]}</span></button>`;
+    });
+    inner+=`</div>`;
+  } else {
+    inner+=`<div class="word-row"><input class="word-input" id="word-input" placeholder="Type your answer..." autocomplete="off"><button class="word-submit" id="word-submit">Go!</button></div>`;
+  }
+  inner+=`<div class="feedback" id="feedback"></div><button class="next-btn" id="next-btn">Next turn →</button>`;
+  card.innerHTML=inner;
+
+  if(q.type==='mc'){
+    card.querySelectorAll('.opt-btn').forEach(b=>{
+      b.addEventListener('click',()=>handleMC(parseInt(b.dataset.pos)));
+    });
+  } else {
+    const inp=document.getElementById('word-input');
+    document.getElementById('word-submit').addEventListener('click',()=>handleWord(inp.value));
+    inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter') handleWord(inp.value); });
+    inp.focus();
+  }
+}
+function handleMC(pos){
+  if(state.answered) return;
+  const correct = pos===state.shuffledCorrect;
+  document.querySelectorAll('.opt-btn').forEach(b=>{
+    const bp=parseInt(b.dataset.pos); b.disabled=true;
+    if(bp===state.shuffledCorrect) b.classList.add('correct');
+    else if(bp===pos) b.classList.add('wrong');
+  });
+  resolve(correct);
+}
+function handleWord(val){
+  if(state.answered) return;
+  if(!val || !val.trim()){ document.getElementById('err').textContent=''; return; }
+  const correct=wordMatches(val, state.currentQ.accept);
+  document.getElementById('word-input').disabled=true;
+  document.getElementById('word-submit').disabled=true;
+  resolve(correct);
+}
+function resolve(correct){
+  state.answered=true; state.turnsPlayed++;
+  const q=state.currentQ;
+  const fb=document.getElementById('feedback');
+  if(correct){
+    state.correct++;
+    const target = state.turn===1?'p2':'p1';
+    state[target].hp -= state.currentDmg;
+    fb.className='feedback hit show';
+    fb.innerHTML=`✅ Correct! You dealt <b>${state.currentDmg} damage</b>!<div class="fb-fact">💡 ${q.fact}</div>`;
+  } else {
+    let ans = q.type==='mc' ? q.opts[q.ans] : q.accept[0];
+    fb.className='feedback miss show';
+    fb.innerHTML=`❌ Not quite — the answer was <b>${ans}</b>. No damage dealt.<div class="fb-fact">💡 ${q.fact}</div>`;
+  }
+  renderHUD();
+  if(state.p1.hp<=0 || state.p2.hp<=0){
+    setTimeout(showWinner, 900);
+  } else {
+    document.getElementById('next-btn').classList.add('show');
+    document.getElementById('next-btn').onclick=()=>{
+      state.turn = state.turn===1?2:1;
+      beginTurn();
+    };
+  }
+}
+function showWinner(){
+  document.getElementById('screen-battle').classList.remove('active');
+  document.getElementById('screen-winner').classList.add('active');
+  const winP = state.p1.hp>0 ? 1 : 2;
+  const f=fighterById(state['p'+winP].fighter);
+  document.getElementById('winner-emoji').textContent=f.emoji;
+  document.getElementById('winner-title').textContent=f.name+' wins!';
+  document.getElementById('winner-sub').textContent=`Player ${winP} is the champion of the wild! 🌿`;
+  document.getElementById('stat-turns').textContent=state.turnsPlayed;
+  const acc=state.turnsPlayed?Math.round(state.correct/state.turnsPlayed*100):0;
+  document.getElementById('stat-acc').textContent=acc+'%';
+  document.getElementById('read-winner-story').onclick=()=>openStory(state['p'+winP].fighter);
+}
+function resetGame(){
+  document.getElementById('screen-winner').classList.remove('active');
+  document.getElementById('screen-setup').classList.add('active');
+  state.p1={fighter:null,tier:null,hp:MAX_HP};
+  state.p2={fighter:null,tier:null,hp:MAX_HP};
+  renderFighters(); renderTiers(); checkReady();
+  window.scrollTo(0,0);
+}
+function rematch(){
+  document.getElementById('screen-winner').classList.remove('active');
+  startBattle();
+}
+
+// ====== INIT ======
+function init(){
+  renderFighters(); renderTiers(); checkReady();
+  document.getElementById('go-btn').addEventListener('click',startBattle);
+  document.getElementById('modal-close').addEventListener('click',closeStory);
+  document.getElementById('modal-bg').addEventListener('click',(e)=>{ if(e.target.id==='modal-bg') closeStory(); });
+  document.getElementById('btn-rematch').addEventListener('click',rematch);
+  document.getElementById('btn-reset').addEventListener('click',resetGame);
+}
+document.addEventListener('DOMContentLoaded',init);
+
+</script>
+</body>
+</html>

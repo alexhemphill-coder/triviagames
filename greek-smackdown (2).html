@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greek Mythology Smackdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dark: #8B6914;
+    --marble: #F5F0E8;
+    --marble-dark: #E8E0CC;
+    --ink: #1A1410;
+    --ink-light: #3D2E1E;
+    --p1: #1A4A7A;
+    --p1-light: #2E6BA8;
+    --p2: #7A1A1A;
+    --p2-light: #A83232;
+    --correct: #2D6A2D;
+    --correct-bg: #E8F5E8;
+    --wrong: #7A1A1A;
+    --wrong-bg: #F5E8E8;
+    --neutral-bg: #EDE5D0;
+    --parchment: #F7EFD9;
+    --parchment-edge: #E4D4A8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Crimson Text', Georgia, serif;
+    background: var(--marble);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.06) 0%, transparent 50%);
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── SETUP SCREEN ── */
+  #screen-setup {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .title-block { text-align: center; margin-bottom: 2rem; }
+  .title-block h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--gold-dark);
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+  }
+  .title-block .subtitle {
+    font-size: 1.1rem;
+    color: var(--ink-light);
+    font-style: italic;
+    margin-top: 0.4rem;
+  }
+  .title-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 1rem auto;
+    max-width: 300px;
+  }
+  .title-divider::before, .title-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.5;
+  }
+  .title-divider span { color: var(--gold); font-size: 1.1rem; }
+
+  .setup-section {
+    background: white;
+    border: 1px solid var(--marble-dark);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .setup-section h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gold-dark);
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.05em;
+  }
+  .setup-hint {
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  .god-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .god-card {
+    position: relative;
+    border: 1.5px solid var(--marble-dark);
+    border-radius: 8px;
+    padding: 8px 6px 6px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--marble);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .god-card:hover { border-color: var(--gold); background: #FBF7EE; }
+  .god-card.selected {
+    border-color: var(--gold);
+    background: #FBF7EE;
+    box-shadow: inset 0 0 0 1px var(--gold);
+  }
+  .god-card.taken { opacity: 0.35; cursor: not-allowed; }
+  .god-card .icon { font-size: 1.5rem; line-height: 1.3; }
+  .god-card .gname {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 3px;
+  }
+  .god-card .gdomain { font-size: 0.65rem; color: var(--ink-light); margin-top: 1px; font-style: italic; }
+  .god-card.selected .gname { color: var(--gold-dark); }
+
+  .story-link {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 3px 0;
+    border: none;
+    border-top: 1px dotted var(--parchment-edge);
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .story-link:hover { color: var(--gold); }
+  .story-link::before { content: '📖 '; }
+
+  .diff-row { display: flex; gap: 10px; }
+  .diff-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid var(--marble-dark);
+    border-radius: 8px;
+    background: var(--marble);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .diff-btn:hover { border-color: var(--gold); background: #FBF7EE; }
+  .diff-btn.selected { border-color: var(--gold); background: #FBF7EE; box-shadow: inset 0 0 0 1px var(--gold); color: var(--gold-dark); }
+  .diff-desc { font-size: 0.75rem; color: var(--ink-light); margin-top: 2px; font-family: 'Crimson Text', serif; font-style: italic; font-weight: 400; }
+
+  .start-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: background 0.15s;
+    margin-top: 0.5rem;
+  }
+  .start-btn:hover { background: var(--gold-dark); }
+  .start-btn:disabled { background: #C8BFA8; cursor: not-allowed; }
+
+  /* ── STORY MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,20,16,0.72);
+    z-index: 100;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; }
+
+  .scroll {
+    position: relative;
+    max-width: 600px;
+    width: 100%;
+    margin: auto;
+    background: var(--parchment);
+    background-image:
+      radial-gradient(ellipse at 30% 0%, rgba(201,168,76,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 100%, rgba(139,105,20,0.08) 0%, transparent 55%);
+    border: 1px solid var(--parchment-edge);
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    padding: 2.25rem 2rem 2rem;
+    animation: scrollIn 0.35s ease;
+  }
+  @keyframes scrollIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .scroll::before, .scroll::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 14px;
+    background: linear-gradient(var(--parchment-edge), transparent);
+    opacity: 0.5;
+  }
+  .scroll::before { top: 0; border-radius: 6px 6px 0 0; }
+  .scroll::after { bottom: 0; transform: rotate(180deg); border-radius: 6px 6px 0 0; }
+
+  .scroll-close {
+    position: absolute;
+    top: 12px; right: 14px;
+    width: 30px; height: 30px;
+    border: 1px solid var(--parchment-edge);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--gold-dark);
+    line-height: 1;
+    transition: all 0.15s;
+  }
+  .scroll-close:hover { background: var(--gold); color: white; border-color: var(--gold); }
+
+  .scroll-header { text-align: center; margin-bottom: 1.25rem; }
+  .scroll-icon { font-size: 3rem; line-height: 1; }
+  .scroll-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold-dark);
+    letter-spacing: 0.05em;
+    margin-top: 0.4rem;
+  }
+  .scroll-epithet {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--ink-light);
+    margin-top: 0.1rem;
+  }
+  .scroll-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 1rem auto 1.25rem; max-width: 240px;
+  }
+  .scroll-divider::before, .scroll-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--gold); opacity: 0.45;
+  }
+  .scroll-divider span { color: var(--gold); font-size: 0.9rem; }
+
+  .scroll-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.24rem;
+    line-height: 1.62;
+    color: var(--ink);
+  }
+  .scroll-body p { margin-bottom: 0.9rem; }
+  .scroll-body p:first-letter {
+    /* only the first paragraph gets the drop cap via class */
+  }
+  .scroll-body p.lead:first-letter {
+    font-family: 'Cinzel', serif;
+    font-size: 3.1rem;
+    font-weight: 700;
+    float: left;
+    line-height: 0.78;
+    padding: 4px 8px 0 0;
+    color: var(--gold-dark);
+  }
+
+  .scroll-tag {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    background: rgba(201,168,76,0.16);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 20px;
+    padding: 3px 10px;
+    margin: 0 4px 6px 0;
+  }
+  .scroll-tags { margin-bottom: 1.25rem; text-align: center; }
+
+  .scroll-pick {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 12px;
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: background 0.15s;
+  }
+  .scroll-pick:hover { background: var(--gold-dark); }
+  .scroll-pick.taken { background: #C8BFA8; cursor: not-allowed; }
+
+  /* ── BATTLE SCREEN ── */
+  #screen-battle {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 1rem 1rem 2rem;
+  }
+
+  .hp-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--marble-dark);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+  }
+  .hp-player { flex: 1; }
+  .hp-player-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hp-player-name.p1 { color: var(--p1); }
+  .hp-player-name.p2 { color: var(--p2); justify-content: flex-end; }
+  .hp-bar-bg {
+    height: 10px;
+    background: var(--marble-dark);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .hp-bar-fill { height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+  .hp-fill-p1 { background: var(--p1); }
+  .hp-fill-p2 { background: var(--p2); }
+  .hp-num { font-size: 0.7rem; color: var(--ink-light); margin-top: 3px; font-style: italic; }
+  .hp-num.right { text-align: right; }
+  .vs-mid { font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 700; color: var(--gold-dark); }
+
+  .turn-banner {
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 1rem;
+  }
+  .turn-banner.p1 { background: #EBF0F8; color: var(--p1); border: 1px solid #B8CAE0; }
+  .turn-banner.p2 { background: #F8EBEB; color: var(--p2); border: 1px solid #E0B8B8; }
+
+  .question-card {
+    background: white;
+    border: 1px solid var(--marble-dark);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+  }
+  .question-card .q-category {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--gold-dark);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .question-card .q-text {
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .question-card.loading .q-text { color: var(--ink-light); font-style: italic; font-size: 1rem; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .opt-btn {
+    padding: 12px 14px;
+    border: 1.5px solid var(--marble-dark);
+    border-radius: 8px;
+    background: var(--marble);
+    cursor: pointer;
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    text-align: left;
+    line-height: 1.35;
+    transition: all 0.1s;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--gold); background: #FBF7EE; }
+  .opt-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); font-weight: 600; }
+  .opt-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong); color: var(--wrong); }
+  .opt-btn:disabled { cursor: not-allowed; }
+
+  .feedback-card {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin-bottom: 1rem;
+    display: none;
+  }
+  .feedback-card.hit { background: var(--correct-bg); border: 1px solid #A8D4A8; color: var(--correct); }
+  .feedback-card.miss { background: var(--wrong-bg); border: 1px solid #D4A8A8; color: var(--wrong); }
+  .feedback-card .fb-head { font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; }
+
+  .next-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--gold);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    display: none;
+    transition: background 0.15s;
+  }
+  .next-btn:hover { background: var(--gold-dark); }
+
+  .score-strip {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--ink-light);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+    padding: 0 2px;
+  }
+
+  /* ── WINNER SCREEN ── */
+  #screen-winner {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 3rem 1rem;
+    text-align: center;
+  }
+  .winner-icon { font-size: 5rem; margin-bottom: 1rem; }
+  .winner-laurel {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--gold-dark);
+    margin-bottom: 0.5rem;
+  }
+  .winner-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+  .winner-sub { font-size: 1.1rem; color: var(--ink-light); font-style: italic; margin-bottom: 2rem; }
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  .stat-box {
+    background: white;
+    border: 1px solid var(--marble-dark);
+    border-radius: 8px;
+    padding: 10px 18px;
+    text-align: center;
+  }
+  .stat-box .stat-val { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: var(--gold-dark); }
+  .stat-box .stat-lbl { font-size: 0.75rem; color: var(--ink-light); margin-top: 2px; }
+
+  .winner-story-btn {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    padding: 10px 24px;
+    background: transparent;
+    border: 1.5px solid var(--gold);
+    border-radius: 8px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gold-dark);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .winner-story-btn:hover { background: var(--gold); color: white; }
+  .winner-story-btn::before { content: '📖 '; }
+
+  .play-again-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 14px 40px;
+    background: var(--gold);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: background 0.15s;
+  }
+  .play-again-btn:hover { background: var(--gold-dark); }
+
+  @media (max-width: 480px) {
+    .god-grid { grid-template-columns: repeat(3, 1fr); }
+    .options-grid { grid-template-columns: 1fr; }
+    .title-block h1 { font-size: 1.8rem; }
+    .scroll { padding: 2rem 1.4rem 1.5rem; }
+    .scroll-body { font-size: 1.16rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen active">
+  <div class="title-block">
+    <h1>Greek Mythology<br>Smackdown</h1>
+    <div class="title-divider"><span>⚡</span></div>
+    <p class="subtitle">Two warriors. One Olympus. Prove your knowledge.</p>
+  </div>
+
+  <div class="setup-section">
+    <h2>Player 1 — Choose your champion</h2>
+    <p class="setup-hint">Tap a god to choose. Tap "Read their story" to learn the legend first.</p>
+    <div class="god-grid" id="god-grid-1"></div>
+  </div>
+
+  <div class="setup-section">
+    <h2>Player 2 — Choose your champion</h2>
+    <p class="setup-hint">Tap a god to choose. Tap "Read their story" to learn the legend first.</p>
+    <div class="god-grid" id="god-grid-2"></div>
+  </div>
+
+  <div class="setup-section">
+    <h2>Choose difficulty</h2>
+    <div class="diff-row">
+      <button class="diff-btn" onclick="selectDiff('easy',this)">
+        Easy<div class="diff-desc">Age 8 — well-known myths</div>
+      </button>
+      <button class="diff-btn" onclick="selectDiff('medium',this)">
+        Medium<div class="diff-desc">Age 10-12 — deeper myths</div>
+      </button>
+      <button class="diff-btn" onclick="selectDiff('hard',this)">
+        Hard<div class="diff-desc">Adult-level mythology</div>
+      </button>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startBattle()" disabled>Begin the Battle</button>
+</div>
+
+<!-- BATTLE -->
+<div id="screen-battle" class="screen">
+  <div class="hp-strip">
+    <div class="hp-player">
+      <div class="hp-player-name p1"><span id="p1-icon"></span><span id="p1-label"></span></div>
+      <div class="hp-bar-bg"><div class="hp-bar-fill hp-fill-p1" id="p1-bar" style="width:100%"></div></div>
+      <div class="hp-num" id="p1-hp-text">100 HP</div>
+    </div>
+    <div class="vs-mid">VS</div>
+    <div class="hp-player" style="text-align:right;">
+      <div class="hp-player-name p2"><span id="p2-label"></span><span id="p2-icon"></span></div>
+      <div class="hp-bar-bg"><div class="hp-bar-fill hp-fill-p2" id="p2-bar" style="width:100%"></div></div>
+      <div class="hp-num right" id="p2-hp-text">100 HP</div>
+    </div>
+  </div>
+
+  <div class="score-strip">
+    <span id="score-left"></span>
+    <span id="score-right"></span>
+  </div>
+
+  <div class="turn-banner p1" id="turn-banner">Player 1's turn</div>
+
+  <div class="question-card" id="question-card">
+    <div style="width:100%">
+      <div class="q-category" id="q-category"></div>
+      <div class="q-text" id="q-text">Loading...</div>
+    </div>
+  </div>
+
+  <div class="options-grid" id="options-grid"></div>
+  <div class="feedback-card" id="feedback-card">
+    <div class="fb-head" id="fb-head"></div>
+    <div id="fb-body"></div>
+  </div>
+  <button class="next-btn" id="next-btn" onclick="nextTurn()">Next Turn →</button>
+</div>
+
+<!-- WINNER -->
+<div id="screen-winner" class="screen">
+  <div class="winner-icon" id="winner-icon"></div>
+  <div class="winner-laurel">~ VICTOR OF OLYMPUS ~</div>
+  <div class="winner-title" id="winner-title"></div>
+  <div class="winner-sub" id="winner-sub"></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="stat-turns"></div><div class="stat-lbl">Turns played</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-acc"></div><div class="stat-lbl">Winner accuracy</div></div>
+  </div>
+  <br>
+  <button class="winner-story-btn" id="winner-story-btn">Read the champion's tale</button>
+  <br>
+  <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+</div>
+
+<!-- STORY MODAL -->
+<div class="modal-overlay" id="story-modal" onclick="if(event.target===this)closeStory()">
+  <div class="scroll">
+    <button class="scroll-close" onclick="closeStory()">✕</button>
+    <div class="scroll-header">
+      <div class="scroll-icon" id="story-icon"></div>
+      <div class="scroll-name" id="story-name"></div>
+      <div class="scroll-epithet" id="story-epithet"></div>
+    </div>
+    <div class="scroll-divider"><span>❧</span></div>
+    <div class="scroll-tags" id="story-tags"></div>
+    <div class="scroll-body" id="story-body"></div>
+    <button class="scroll-pick" id="story-pick"></button>
+  </div>
+</div>
+
+<script>
+const GODS = [
+  { id:'zeus',      name:'Zeus',      domain:'Sky & Thunder',    icon:'⚡' },
+  { id:'poseidon',  name:'Poseidon',  domain:'Sea & Quakes',     icon:'🔱' },
+  { id:'athena',    name:'Athena',    domain:'Wisdom & War',     icon:'🦉' },
+  { id:'apollo',    name:'Apollo',    domain:'Sun & Music',      icon:'☀️' },
+  { id:'artemis',   name:'Artemis',   domain:'Hunt & Moon',      icon:'🌙' },
+  { id:'ares',      name:'Ares',      domain:'War & Battle',     icon:'⚔️' },
+  { id:'hermes',    name:'Hermes',    domain:'Messengers',       icon:'🪶' },
+  { id:'hephaestus',name:'Hephaestus',domain:'Fire & Forge',     icon:'🔥' },
+  { id:'aphrodite', name:'Aphrodite', domain:'Love & Beauty',    icon:'🌹' },
+  { id:'hades',     name:'Hades',     domain:'Underworld',       icon:'💀' },
+  { id:'demeter',   name:'Demeter',   domain:'Harvest & Earth',  icon:'🌾' },
+  { id:'dionysus',  name:'Dionysus',  domain:'Wine & Festivity', icon:'🍇' },
+];
+
+// Each story: epithet, tags (themes), and an array of paragraphs.
+const STORIES = {
+  zeus: {
+    epithet: 'King of the Gods, Lord of the Sky',
+    tags: ['Sky & Thunder', 'King of Olympus', 'The Titan War'],
+    body: [
+      "Before Zeus was king, the world belonged to the Titans, and the cruellest of them was his own father, Cronus. A prophecy had warned Cronus that one of his children would one day overthrow him, just as he had overthrown his own father. So each time his wife Rhea gave birth, Cronus swallowed the child whole — five children vanished into his belly, one after another.",
+      "When her sixth child was due, Rhea could bear it no longer. She fled to the island of Crete and gave birth in secret in a mountain cave. Then she wrapped a stone in swaddling clothes and handed it to Cronus, who swallowed it without looking, certain he had devoured another rival. The hidden baby was Zeus.",
+      "He grew up among shepherds and nymphs, and the noise of his crying was covered by warriors who clashed their shields so Cronus would never hear. When Zeus came of age, he returned in disguise and tricked his father into drinking a potion. Cronus retched up the stone — and then, one by one, the five swallowed children, now fully grown gods: Hades, Poseidon, Hera, Demeter, and Hestia.",
+      "Together the freed gods waged war on the Titans. The struggle, called the Titanomachy, shook the earth for ten long years. Zeus descended into the underworld and freed the Cyclopes, who in gratitude forged for him the thunderbolt — the weapon that would become the symbol of his power. With it he struck the Titans down and cast them into Tartarus, the deepest pit of the world.",
+      "Victorious, the three brothers drew lots to divide the cosmos. Poseidon won the sea, Hades the underworld, and Zeus the sky — and with it, lordship over all. From his throne on Mount Olympus he ruled gods and mortals alike, hurling lightning at those who defied him, yet also guarding the laws of hospitality and the oaths between men. He was mighty, and just as often reckless, but he was the king, and the age of the Olympians had begun."
+    ]
+  },
+  poseidon: {
+    epithet: 'Earth-Shaker, Lord of the Sea',
+    tags: ['Sea & Storms', 'Earthquakes', 'The Contest for Athens'],
+    body: [
+      "When the three brothers divided the world after the fall of the Titans, Poseidon drew the sea. He built a shining palace in its depths and rode the waves in a chariot pulled by horses with hooves of bronze and manes of gold. Sailors prayed to him for calm water — for when his temper rose, he struck the ground with his trident and the earth itself shuddered. They called him the Earth-Shaker.",
+      "Poseidon was proud, and he longed to be honoured by mortals. So when the people of a new city in Attica looked for a divine patron, both he and Athena stepped forward to claim it. To settle the matter, the gods agreed on a contest: each would offer the city a gift, and the people would choose.",
+      "Poseidon struck the rock of the Acropolis with his trident, and a spring burst forth. But the water was salt, as salt as the sea he ruled, and the people could not drink it. Then Athena knelt and planted a single seed. From it grew an olive tree — giving fruit, oil, and wood, a gift that would feed and enrich the city for generations.",
+      "The people chose Athena, and her city took her name: Athens. Poseidon, furious at the slight, flooded the plains in his anger. Yet the sea god was never truly forgotten — the Athenians still honoured him, knowing that a people who lived by the water could never afford to neglect the lord of the deep.",
+      "For all his pride, Poseidon's power was vast and ancient. He fathered the winged horse Pegasus and the great hero Theseus, raised islands from the waves and sank them again, and pursued his grudges across whole oceans — as one wandering king named Odysseus would learn, to his sorrow, for ten long years."
+    ]
+  },
+  athena: {
+    epithet: 'Goddess of Wisdom and Strategy',
+    tags: ['Wisdom & War', 'Born from Zeus', 'Patron of Athens'],
+    body: [
+      "Athena's birth was unlike that of any other god. Zeus had taken as his first wife the Titaness Metis, whose name means cunning wisdom. But a prophecy warned that Metis would bear a child greater than its father — and remembering how he had overthrown his own father, Zeus grew afraid. So he tricked Metis and swallowed her whole, just as Cronus had once swallowed him.",
+      "But Metis was already with child. Inside Zeus she forged a helmet and a robe for her unborn daughter, and the hammering gave Zeus a headache so terrible that he roared across all of Olympus. At last he begged Hephaestus to split his skull open with an axe. When the blow fell, out leapt Athena — fully grown, clad in gleaming armour, with a war cry that shook the heavens.",
+      "From the first she was Zeus's favourite, the only one he trusted with his thunderbolt and the protective shield called the aegis. But Athena was not a goddess of blind rage like Ares. Her war was the war of strategy and discipline, of the clever plan and the steady hand. She prized wisdom above fury, and craft above destruction.",
+      "It was Athena who guided the cleverest of heroes. She stood beside Perseus when he slew Medusa, lending him her polished shield so he could look at the monster's reflection and not be turned to stone. She watched over Odysseus through all his wanderings, prizing his quick mind as a reflection of her own. And it was her cunning, some say, that lay behind the great wooden horse that finally won the Trojan War.",
+      "Her sacred bird was the owl, whose wide eyes see through the dark, and her gift to mortals was the olive tree. When the people of Athens chose her over Poseidon to be their patron, she gave the city not only her name but her character — a place that prized learning, art, and clever argument above all. To this day the owl remains a symbol of wisdom, and Athena its eternal guardian."
+    ]
+  },
+  apollo: {
+    epithet: 'God of the Sun, Music, and Prophecy',
+    tags: ['Light & Music', 'Prophecy', 'The Oracle of Delphi'],
+    body: [
+      "Apollo and his twin sister Artemis were born on the tiny floating island of Delos. Their mother was the Titaness Leto, and Zeus their father — which meant that Hera, Zeus's jealous wife, pursued Leto across the whole earth, forbidding any land to give her rest. Only Delos, a barren rock adrift on the sea, dared to shelter her. There, beneath a palm tree, the twins were born, and the island blazed with golden light.",
+      "Apollo grew swiftly into one of the most radiant of all the gods — lord of the sun, of music, of healing, and of prophecy. He carried a silver bow, and a golden lyre given to him by the infant Hermes, whose music could still the winds and soothe the savage heart. Wherever Apollo walked, harmony followed.",
+      "But the young god had an enemy to face. At the foot of Mount Parnassus lurked a monstrous serpent called Python, a creature of the old earth that had once tormented his mother. Apollo hunted it down and slew it with a hundred arrows. Over the spot where it fell, he founded a temple — and there spoke the most famous oracle in all the ancient world.",
+      "At Delphi, a priestess called the Pythia sat above a cleft in the rock and breathed its sacred vapours. Through her, Apollo gave his prophecies. Kings and farmers, generals and lovers travelled from across the world to ask their questions. But his answers were riddles as often as guidance — for the future, Apollo knew, is rarely kind to those who hear it too plainly.",
+      "Above the temple doors were carved two phrases that became the heart of Greek wisdom: Know thyself, and Nothing in excess. They were Apollo's truest gift — not the dazzling light, nor even the prophecies, but the call to clear sight and balance. He was the god of order and reason, the bright sun by which the Greeks measured a well-lived life."
+    ]
+  },
+  artemis: {
+    epithet: 'Goddess of the Hunt and the Moon',
+    tags: ['The Wild Hunt', 'The Moon', 'Protector of the Young'],
+    body: [
+      "Artemis was born first, just before her twin brother Apollo, on the floating island of Delos. The myths say that the moment she came into the world she helped her mother Leto give birth to her brother — and so, though still a newborn herself, she became forever the protector of mothers, children, and all young and wild things.",
+      "When she was still a small girl, Artemis climbed onto her father Zeus's knee and asked him for her gifts. She wanted, she said, never to marry, but to roam free forever. She asked for a silver bow and arrows, for a band of nymphs to hunt at her side, for the mountains and wild forests as her kingdom, and for the power to bring light. Charmed, Zeus granted her every wish.",
+      "So Artemis became the huntress of the gods, racing through moonlit forests with her hounds and her band of maidens, her silver arrows never missing their mark. She was the goddess of the wilderness, of everything untamed — and she guarded her independence fiercely. Woe to any mortal who crossed her or trespassed on her privacy.",
+      "One such was the hunter Actaeon, who stumbled upon Artemis bathing in a forest spring. Furious that a mortal had seen her, the goddess flung water in his face and transformed him into a stag. His own hunting hounds, no longer knowing their master, chased him down and tore him apart. It was a harsh punishment — but Artemis was the wild made into a goddess, and the wild is never gentle.",
+      "Yet she was also fierce in loyalty and love. She drove her moon-chariot across the night sky while her brother Apollo drove the sun by day, the two of them dividing the heavens between them. To the Greeks she was both terrifying and protecting — the cold beauty of the moon, the freedom of the untamed forest, and the steady aim of one who answers to no one."
+    ]
+  },
+  ares: {
+    epithet: 'God of War and Battle-Rage',
+    tags: ['War & Bloodshed', 'Fury', 'Feared by All'],
+    body: [
+      "Ares was the son of Zeus and Hera, and the god of war — but not the clever, disciplined war of his half-sister Athena. Ares was war itself in its rawest form: the chaos of the battlefield, the bloodlust, the screaming charge, the savage joy of slaughter. Where Athena planned, Ares simply raged.",
+      "For this, the other gods did not love him. Even his own father Zeus once told him that of all the Olympians, Ares was the most hateful to him — for he delighted in nothing but strife and war. The Greeks honoured him, but warily; they prayed to him for courage in battle, yet feared the madness he could bring.",
+      "Into battle Ares rode in a bronze chariot, and at his side ran his grim companions: his sister Enyo, goddess of destruction, and his sons Phobos and Deimos — Fear and Terror — who spread panic before him wherever he went. The earth groaned under his chariot wheels, and brave men's hearts failed at his coming.",
+      "Yet for all his ferocity, Ares was not unbeatable. In the Trojan War he fought on the side of Troy, but when he charged at the Greek hero Diomedes, the goddess Athena guided the mortal's spear and drove it into the war god's side. Ares bellowed with a cry like ten thousand soldiers and fled back to Olympus to complain to Zeus, who told him coldly to stop whining.",
+      "His one tender thread was love. Ares and Aphrodite, goddess of beauty, were drawn to one another despite her marriage to Hephaestus — and from their union, some say, came Harmonia, goddess of harmony, as if even the god of war could father peace. But Ares belonged to the battlefield. He was the dark thrill of combat given a face, the part of war that no strategy can fully tame."
+    ]
+  },
+  hermes: {
+    epithet: 'Messenger of the Gods, Guide of Souls',
+    tags: ['Messengers & Travel', 'Trickster', 'Born Mischievous'],
+    body: [
+      "Hermes was the son of Zeus and the shy nymph Maia, and he was a trickster from the very first day of his life — quite literally. Born at dawn in a mountain cave, he climbed out of his cradle before noon, and by evening had already pulled off the most daring theft in the history of Olympus.",
+      "Wandering out of the cave, the infant found a tortoise and, with a flash of inspiration, hollowed out its shell and strung it with cords to make the first lyre. Pleased with his new toy, he then spotted a herd of fine cattle belonging to his half-brother Apollo. The baby god stole fifty of them, driving them backwards so their hoofprints would point the wrong way, and hid them in a cave.",
+      "When Apollo discovered the theft and traced it — somehow — to a newborn baby, he was outraged and hauled Hermes before Zeus. The infant lied so charmingly and argued his innocence so cleverly that Zeus burst out laughing. Then Hermes began to play his new lyre, and the music was so beautiful that Apollo's anger melted away. The brothers struck a bargain: Hermes gave Apollo the lyre, and Apollo gave Hermes the cattle and his friendship.",
+      "Zeus, delighted by his quick-witted son, made him the herald and messenger of the gods. Hermes was given a winged cap and winged sandals that let him fly faster than thought, and a staff called the caduceus, twined with two serpents. He carried Zeus's commands across the world and could pass freely where no other god could go.",
+      "For Hermes alone among the Olympians could travel into the underworld and return. It was his solemn duty to guide the souls of the dead down to the realm of Hades — a role that made the merry trickster also a god of boundaries and crossings. He was the patron of travellers, merchants, messengers, and yes, of thieves and liars too: the swift, clever, laughing god who moved between all worlds."
+    ]
+  },
+  hephaestus: {
+    epithet: 'God of Fire and the Forge',
+    tags: ['Fire & Craft', 'The Divine Smith', 'Cast from Olympus'],
+    body: [
+      "Hephaestus was the only one of the great gods who was not beautiful, and the only one who knew real suffering. He was the son of Hera — and the myths tell two stories of his fall. In one, he was born lame, and his mother Hera, ashamed of an imperfect child, flung him from the heights of Olympus. In another, he took his mother's side in a quarrel, and a furious Zeus hurled him from the sky.",
+      "Either way, he fell for a whole day, tumbling through the air until he crashed into the sea far below. There the sea-goddess Thetis found him and took him in, and in a hidden cave beneath the waves the rejected god discovered his gift. With fire and metal and patient hands, Hephaestus became the greatest craftsman the world would ever know.",
+      "He forged wonders that no one else could make: the thunderbolts of Zeus, the winged sandals of Hermes, the armour of Achilles that shone like the sun, the unbreakable chains, and even mechanical servants of gold that could move and speak and help him at his anvil. His workshops lay beneath volcanoes, and when the mountains smoked, men said Hephaestus was at his forge.",
+      "He took his revenge on his cruel mother with the cunning of a craftsman, not the strength of a warrior. He built Hera a magnificent golden throne and sent it to Olympus as a gift. But when she sat upon it, invisible bonds sprang out and trapped her fast, and no god could free her. Only when Hephaestus was coaxed back to Olympus — and given the beautiful Aphrodite as his wife — did he release her.",
+      "Though the other gods sometimes mocked his limping walk, none could deny that the works of his hands held Olympus together. Hephaestus was proof that worth is not in beauty or strength, but in what one can create. From his fire and his patience came the most precious things the gods possessed — and he, the outcast, was the maker of them all."
+    ]
+  },
+  aphrodite: {
+    epithet: 'Goddess of Love and Beauty',
+    tags: ['Love & Desire', 'Born of Sea-Foam', 'The Golden Apple'],
+    body: [
+      "Aphrodite had no childhood, for she was never a baby. She rose, already a grown and radiant goddess, from the foam of the sea near the island of Cyprus — born, the oldest myths say, from the white spray where sky and ocean met. She stepped onto the shore and flowers bloomed beneath her feet, and from that moment she was the most beautiful being in all creation.",
+      "Her beauty was also a power, and a dangerous one. Aphrodite could make any god or mortal fall helplessly in love, and she wore a magic girdle that no one could resist. The gods feared the chaos this might cause, and so Zeus married her to Hephaestus, the steady, hard-working god of the forge — the least likely, they hoped, to be undone by her charms.",
+      "It was a quarrel over Aphrodite's own gift that lit the greatest war in Greek legend. At a wedding feast, the goddess of strife rolled a golden apple inscribed for the fairest among the gathered goddesses. Hera, Athena, and Aphrodite each claimed it, and Zeus, wise enough not to choose, sent the decision to a Trojan prince named Paris.",
+      "Each goddess offered Paris a bribe. Hera promised him power; Athena promised him wisdom and victory in war. But Aphrodite promised him the love of the most beautiful woman in the world — and to a young man, that was no contest at all. Paris named Aphrodite the fairest, and she kept her word.",
+      "The woman she gave him was Helen, the wife of a Greek king. When Paris carried Helen away to Troy, the kings of Greece launched a thousand ships to win her back, and the ten-year Trojan War began. So it was that the goddess of love became, indirectly, the cause of the most famous war ever told — for love, in the Greek mind, was never gentle or safe. It was the most powerful force in the world, and the hardest to control."
+    ]
+  },
+  hades: {
+    epithet: 'Lord of the Underworld, King of the Dead',
+    tags: ['The Underworld', 'Riches of the Earth', 'Persephone'],
+    body: [
+      "When the three brothers divided the world after defeating the Titans, Hades drew the darkest portion: the underworld, the vast realm of the dead beneath the earth. He left the sunlit world to his brothers Zeus and Poseidon and descended to his shadowy kingdom, and he rarely came up again. For this the other gods regarded him with unease — but Hades was not evil. He was stern, just, and faithful to his grim duty.",
+      "His realm was guarded by the three-headed dog Cerberus, who let the dead enter but never leave, and bounded by the river Styx, across which the ferryman Charon carried the souls of the departed for the price of a single coin. Hades ruled it all from a throne of shadow, and because the gold and silver and gems of the earth lay within his domain, he was also a god of hidden wealth.",
+      "But the lord of the dead was lonely. One day, looking up to the world above, he saw the maiden Persephone, daughter of Demeter, goddess of the harvest, gathering flowers in a meadow. In an instant he loved her, and being a god who took rather than asked, he split the earth open and carried her down to his kingdom to be his queen.",
+      "Her mother Demeter searched the whole world in grief, and as she mourned, the crops withered and the earth grew cold and barren. At last Zeus commanded Hades to return Persephone. But Hades, cunning, had given her a few seeds of a pomegranate to eat — and anyone who eats the food of the dead is bound to the underworld forever.",
+      "So a compromise was struck. For part of each year Persephone would return to her mother in the sunlit world, and the earth would bloom with spring and summer. But for the months she spent below as queen of the dead, Demeter would mourn, and the world would fall into autumn and winter. And thus, the Greeks said, the seasons were born — out of the love of the silent king beneath the earth."
+    ]
+  },
+  demeter: {
+    epithet: 'Goddess of the Harvest and the Seasons',
+    tags: ['Harvest & Grain', 'A Mother\'s Grief', 'The Birth of Winter'],
+    body: [
+      "Demeter was the goddess of the harvest, of grain and growing things, and it was by her grace that the fields turned golden and mortals had bread to eat. Of all things in the world, she loved one above the rest: her daughter Persephone, a bright and gentle girl who was the joy of her life.",
+      "One day, as Persephone wandered a meadow gathering flowers with her companions, the earth split open with a roar. Out of the chasm thundered Hades, lord of the dead, in his black chariot. Before anyone could move, he seized Persephone and carried her down into the underworld to be his queen. The girl's cry echoed across the mountains — and then she was gone.",
+      "Demeter heard that cry and was seized with terror. For nine days and nights she searched the whole earth, carrying torches, eating nothing, resting nowhere, calling her daughter's name. No god would tell her what had happened, until at last the sun, who sees everything, revealed the truth: it was Hades who had taken Persephone, and Zeus himself who had allowed it.",
+      "Demeter's grief turned to fury. She withdrew from the company of the gods and let her power fall still. The crops stopped growing. The fields turned to dust, the trees dropped their fruit, and a terrible famine spread across the world. Mortals starved, and with no harvests there were no offerings — and the gods began to feel the loss too. At last Zeus understood: he would have to give Persephone back.",
+      "But because Persephone had eaten a few pomegranate seeds in the underworld, she could not leave it entirely. So it was agreed that she would spend part of the year with her mother and part as queen of the dead. When mother and daughter are reunited, Demeter rejoices, and the earth bursts into spring and summer. When Persephone must descend again, Demeter mourns, and the world grows cold and bare. And that is why, the Greeks said, we have the winter — the sorrow of a mother whose child has gone away."
+    ]
+  },
+  dionysus: {
+    epithet: 'God of Wine, Theatre, and Ecstasy',
+    tags: ['Wine & Revelry', 'Twice-Born', 'Theatre & Madness'],
+    body: [
+      "Dionysus was unique among the great gods, for his mother was a mortal woman — Semele, a princess of Thebes, whom Zeus loved. The jealous Hera, learning of the affair, disguised herself and whispered doubt into Semele's ear: was her divine lover truly a god? Tricked, Semele begged Zeus to reveal himself in his full glory. Bound by an oath, he sadly obliged — and no mortal can look upon a god's true form and live. Semele was consumed by the blaze.",
+      "But Zeus snatched the unborn child from the flames and sewed him into his own thigh, where Dionysus grew until he was ready to be born a second time. For this he was called the twice-born god. To keep him safe from Hera's wrath, he was raised in secret by nymphs in a far-off land, hidden away through his childhood.",
+      "As he grew, Dionysus discovered the secret of the grapevine and how its fruit could be made into wine — a drink that brought joy, release, and forgetfulness of sorrow. He wandered the world spreading this gift, followed by a wild, joyful procession of nymphs and revellers, teaching mortals to cultivate the vine. Wherever he was welcomed, there was celebration; wherever he was scorned, there was a terrible reckoning.",
+      "For Dionysus was a god of two faces. He was the bringer of festivity, freedom, and the loosening of cares — but also of madness and savage frenzy for those who insulted him. King Pentheus of Thebes refused to honour the new god and mocked his worship; in punishment, Dionysus drove the women of the city into a divine frenzy, and they tore the king apart, his own mother among them, not knowing what she did.",
+      "Yet his lasting gift to the Greeks was a gentler one. From the songs and dances held in his honour grew the very first theatre — tragedy and comedy alike were born at his festivals in Athens. Dionysus was the god of everything that lifts mortals out of their ordinary selves: wine, music, dance, and the strange magic of the stage. The last of the gods to join Olympus, he was the one who reminded even the immortals how to let go."
+    ]
+  }
+};
+
+const QUESTIONS = {
+  easy: [
+    { cat:'Gods', q:'Who is the king of the Greek gods?', opts:['Zeus','Poseidon','Hades','Ares'], ans:0, fact:'Zeus rules from Mount Olympus and wields a mighty thunderbolt.' },
+    { cat:'Gods', q:'Which god rules over the sea?', opts:['Ares','Apollo','Poseidon','Hermes'], ans:2, fact:'Poseidon could cause earthquakes and storms with his trident.' },
+    { cat:'Gods', q:'Who is the goddess of wisdom?', opts:['Aphrodite','Hera','Artemis','Athena'], ans:3, fact:'Athena sprang fully grown from Zeus\'s head, already wearing armour!' },
+    { cat:'Gods', q:'What is Hermes the god of?', opts:['Fire','Messengers & travel','Hunting','The sea'], ans:1, fact:'Hermes wore winged sandals that let him fly between Olympus and Earth.' },
+    { cat:'Gods', q:'Which goddess is the god of love?', opts:['Demeter','Hestia','Aphrodite','Artemis'], ans:2, fact:'Aphrodite was said to have been born from the sea foam.' },
+    { cat:'Gods', q:'What weapon does Zeus use?', opts:['Trident','Thunderbolt','Bow & arrow','Sword'], ans:1, fact:'Zeus\'s thunderbolts were forged by the Cyclopes in the underworld.' },
+    { cat:'Gods', q:'Who is the god of the sun and music?', opts:['Dionysus','Ares','Hermes','Apollo'], ans:3, fact:'Apollo drove a golden chariot across the sky each day to bring sunlight.' },
+    { cat:'Gods', q:'Which god rules the underworld?', opts:['Poseidon','Hades','Ares','Hephaestus'], ans:1, fact:'Hades owned a helmet that made him invisible — very useful for a ruler of the dead.' },
+    { cat:'Myths', q:'What is the name of the winged horse?', opts:['Cerberus','Minotaur','Pegasus','Hydra'], ans:2, fact:'Pegasus sprang from the blood of Medusa when Perseus cut off her head.' },
+    { cat:'Myths', q:'Who was trapped in a labyrinth?', opts:['Hydra','Minotaur','Cyclops','Sphinx'], ans:1, fact:'The Minotaur was half-man, half-bull, and lived in a maze in Crete.' },
+    { cat:'Myths', q:'What is the name of the three-headed dog guarding the underworld?', opts:['Hydra','Fenrir','Cerberus','Orthrus'], ans:2, fact:'Cerberus prevented the dead from leaving and the living from entering.' },
+    { cat:'Myths', q:'What did Pandora release from her box?', opts:['Gold and jewels','All the evils of the world','The twelve gods','Rain and thunder'], ans:1, fact:'Hope was the last thing left inside Pandora\'s box after all the evils escaped.' },
+    { cat:'Heroes', q:'Which hero killed the Medusa?', opts:['Heracles','Achilles','Odysseus','Perseus'], ans:3, fact:'Perseus used a mirrored shield to avoid looking directly at Medusa.' },
+    { cat:'Heroes', q:'Who completed the Twelve Labours?', opts:['Jason','Perseus','Heracles','Theseus'], ans:2, fact:'Heracles was the strongest hero in Greek mythology, son of Zeus himself.' },
+    { cat:'Heroes', q:'Which hero sailed on the Argo searching for the Golden Fleece?', opts:['Odysseus','Jason','Theseus','Perseus'], ans:1, fact:'Jason and his crew, the Argonauts, faced many monsters and challenges on their quest.' },
+    { cat:'Greece', q:'Where did the Greek gods live?', opts:['Mount Etna','Mount Olympus','The Acropolis','The Underworld'], ans:1, fact:'Mount Olympus is the highest mountain in Greece at about 2,918 metres tall.' },
+    { cat:'Greece', q:'What city was famous for its great warriors?', opts:['Athens','Corinth','Troy','Sparta'], ans:3, fact:'Spartan boys began military training at age 7 and served until they were 60.' },
+    { cat:'Greece', q:'What was the great war in Greek mythology fought over?', opts:['Gold','A beautiful woman named Helen','Mount Olympus','The Golden Fleece'], ans:1, fact:'The Trojan War lasted ten years and was caused by Paris taking Helen from King Menelaus.' },
+    { cat:'Creatures', q:'How many heads does the Hydra grow back when one is cut off?', opts:['One','Two','Three','None'], ans:1, fact:'Heracles defeated the Hydra by burning the stump after each cut so no heads grew back.' },
+    { cat:'Creatures', q:'What is a Cyclops?', opts:['A two-headed dragon','A giant with one eye','A winged horse','A half-man half-horse'], ans:1, fact:'The Cyclops Polyphemus was blinded by the hero Odysseus using a wooden stake.' },
+    { cat:'Creatures', q:'What creature is half man, half horse?', opts:['Satyr','Griffin','Centaur','Minotaur'], ans:2, fact:'Centaurs were known for being wild and unruly, except for the wise Chiron.' },
+    { cat:'Myths', q:'Which king turned things to gold with his touch?', opts:['Midas','Croesus','Tantalus','Sisyphus'], ans:0, fact:'King Midas regretted his wish when he couldn\'t eat or drink — everything turned to gold!' },
+    { cat:'Gods', q:'Who is the goddess of the harvest?', opts:['Hestia','Hera','Demeter','Persephone'], ans:2, fact:'When Demeter was sad, crops stopped growing — that\'s where the Ancient Greeks thought winter came from.' },
+    { cat:'Gods', q:'Who is the god of wine and parties?', opts:['Hermes','Dionysus','Apollo','Pan'], ans:1, fact:'Dionysus was one of the few gods with a mortal parent — his mother was a human princess.' },
+    { cat:'Greece', q:'What ancient temple stood on the Acropolis in Athens?', opts:['The Colosseum','The Parthenon','The Sphinx','The Colossus'], ans:1, fact:'The Parthenon was built to honour Athena and took about 15 years to complete.' },
+    { cat:'Gods', q:'Who is the queen of the gods and wife of Zeus?', opts:['Hera','Athena','Demeter','Hestia'], ans:0, fact:'Hera was the goddess of marriage, and the peacock was her sacred bird.' },
+    { cat:'Gods', q:'Which goddess is the huntress of the moon?', opts:['Athena','Aphrodite','Artemis','Hera'], ans:2, fact:'Artemis carried a silver bow and roamed the forests with her hunting hounds.' },
+    { cat:'Gods', q:'Who is the god of war?', opts:['Apollo','Ares','Hermes','Hades'], ans:1, fact:'Ares loved the chaos of battle, which made even the other gods wary of him.' },
+    { cat:'Gods', q:'Who is the blacksmith god of fire and the forge?', opts:['Hephaestus','Hermes','Apollo','Helios'], ans:0, fact:'Hephaestus forged the weapons of the gods, including Zeus\'s thunderbolts.' },
+    { cat:'Myths', q:'Who flew too close to the sun on wings of wax?', opts:['Perseus','Icarus','Jason','Theseus'], ans:1, fact:'Icarus ignored his father\'s warning, the wax melted, and he fell into the sea.' },
+    { cat:'Creatures', q:'What is the name of the snake-haired monster who turns people to stone?', opts:['Medusa','Echidna','Scylla','Lamia'], ans:0, fact:'Anyone who looked directly at Medusa\'s face was instantly turned to stone.' },
+    { cat:'Creatures', q:'What is a centaur famous for being?', opts:['Half bird','Half fish','Half horse','Half snake'], ans:2, fact:'The wise centaur Chiron taught many great Greek heroes, including Achilles.' },
+    { cat:'Myths', q:'How many Labours did Heracles have to complete?', opts:['Seven','Ten','Twelve','Twenty'], ans:2, fact:'The Twelve Labours included slaying the Nemean Lion and capturing Cerberus.' },
+    { cat:'Greece', q:'What were the famous athletic games held in ancient Greece?', opts:['The Olympic Games','The Roman Games','The Spartan Trials','The Delphi Races'], ans:0, fact:'The ancient Olympic Games were held every four years in honour of Zeus.' },
+    { cat:'Gods', q:'What animal is the symbol of the goddess Athena?', opts:['Eagle','Owl','Dove','Peacock'], ans:1, fact:'The owl represented wisdom and even appeared on ancient Athenian coins.' },
+    { cat:'Myths', q:'What golden object did Jason and the Argonauts search for?', opts:['The Golden Apple','The Golden Fleece','The Golden Chariot','The Golden Lyre'], ans:1, fact:'The Golden Fleece came from a magical flying ram and was guarded by a dragon.' },
+    { cat:'Gods', q:'Which god carried messages for the other gods?', opts:['Apollo','Hermes','Ares','Hades'], ans:1, fact:'Hermes was the fastest of the gods thanks to his winged sandals.' },
+    { cat:'Creatures', q:'What kind of creature was Pegasus?', opts:['A flying horse','A sea serpent','A giant bird','A two-headed dog'], ans:0, fact:'Pegasus was a magnificent winged horse, pure white in colour.' },
+    { cat:'Myths', q:'Who was the strongest hero, the son of Zeus?', opts:['Theseus','Jason','Heracles','Perseus'], ans:2, fact:'Heracles (also called Hercules) was famous for his incredible strength.' },
+    { cat:'Greece', q:'What was the name of the famous wooden horse used to trick the Trojans?', opts:['The Spartan Horse','The Trojan Horse','The Greek Horse','The Olympian Horse'], ans:1, fact:'Greek soldiers hid inside the hollow wooden horse to sneak into Troy.' },
+    { cat:'Gods', q:'Who is the queen of the underworld?', opts:['Hera','Persephone','Demeter','Hestia'], ans:1, fact:'Persephone spends half the year in the underworld with Hades and half on Earth with her mother.' },
+    { cat:'Gods', q:'Which goddess watches over the home and hearth?', opts:['Hestia','Athena','Artemis','Iris'], ans:0, fact:'Hestia was so peaceful she gave up her throne on Olympus to avoid conflict.' },
+    { cat:'Gods', q:'What is Apollo the god of besides the sun?', opts:['War','Music','The sea','Farming'], ans:1, fact:'Apollo played a golden lyre and led the nine Muses in song.' },
+    { cat:'Gods', q:'Who is the messenger goddess of the rainbow?', opts:['Nike','Iris','Eos','Selene'], ans:1, fact:'Iris travelled along rainbows to carry messages between the gods and mortals.' },
+    { cat:'Gods', q:'Which god is famous for being very strong and short-tempered in battle?', opts:['Hermes','Apollo','Ares','Dionysus'], ans:2, fact:'Ares loved fighting so much that even his own father Zeus disliked him.' },
+    { cat:'Gods', q:'What does Demeter make grow?', opts:['Crops and grain','Fire','Storms','Gold'], ans:0, fact:'When Demeter is happy the fields are full, and when she is sad nothing grows.' },
+    { cat:'Gods', q:'Who is the goddess of love and beauty?', opts:['Hera','Aphrodite','Athena','Artemis'], ans:1, fact:'Aphrodite had a magical belt that made anyone fall in love with her.' },
+    { cat:'Gods', q:'What is Poseidon\'s three-pronged spear called?', opts:['A javelin','A trident','A pike','A lance'], ans:1, fact:'With one strike of his trident, Poseidon could make the ground shake.' },
+    { cat:'Gods', q:'Which god has winged sandals?', opts:['Ares','Hephaestus','Hermes','Hades'], ans:2, fact:'The winged sandals let Hermes zip around faster than any other god.' },
+    { cat:'Gods', q:'Who is the god of wine and celebration?', opts:['Apollo','Dionysus','Pan','Hermes'], ans:1, fact:'Dionysus taught people how to grow grapes and make wine.' },
+    { cat:'Gods', q:'Which goddess turned into the patron of the city of Athens?', opts:['Hera','Aphrodite','Athena','Hestia'], ans:2, fact:'Athena won the city by giving the people the useful olive tree.' },
+    { cat:'Gods', q:'What does Hephaestus do at his forge?', opts:['Cook food','Make weapons and armour','Grow plants','Heal the sick'], ans:1, fact:'Hephaestus made the armour for the hero Achilles.' },
+    { cat:'Gods', q:'Who carries the souls of the dead to the underworld?', opts:['Ares','Hermes','Apollo','Dionysus'], ans:1, fact:'Hermes is the only Olympian who can move freely in and out of the underworld.' },
+    { cat:'Gods', q:'Which goddess is the twin sister of Apollo?', opts:['Athena','Artemis','Hera','Demeter'], ans:1, fact:'Artemis and Apollo were both born on the island of Delos.' },
+    { cat:'Myths', q:'What did Pandora open that she was told to keep shut?', opts:['A door','A box or jar','A book','A gate'], ans:1, fact:'When Pandora opened it, all the troubles of the world flew out — but Hope stayed inside.' },
+    { cat:'Myths', q:'Whose hair was made of snakes?', opts:['Medusa','Echo','Daphne','Pandora'], ans:0, fact:'Anyone who looked at Medusa was turned into stone.' },
+    { cat:'Myths', q:'What melted on Icarus when he flew too high?', opts:['His shoes','The wax on his wings','His helmet','His cloak'], ans:1, fact:'His father Daedalus had warned him not to fly too close to the sun.' },
+    { cat:'Myths', q:'What did King Midas turn everything into when he touched it?', opts:['Stone','Gold','Ice','Wood'], ans:1, fact:'Midas soon learned that he couldn\'t even eat, because his food turned to gold!' },
+    { cat:'Myths', q:'Who fell in love with his own reflection?', opts:['Narcissus','Orpheus','Adonis','Hyacinth'], ans:0, fact:'The flower called the narcissus is named after him.' },
+    { cat:'Myths', q:'What kind of tree did the nymph Daphne turn into?', opts:['Olive','Oak','Laurel','Apple'], ans:2, fact:'Apollo wore a wreath of laurel leaves to remember Daphne.' },
+    { cat:'Myths', q:'What was hidden inside the giant wooden horse at Troy?', opts:['Treasure','Greek soldiers','Food','Horses'], ans:1, fact:'The Greeks tricked the Trojans into pulling the horse into their city.' },
+    { cat:'Myths', q:'What did Theseus follow to find his way out of the maze?', opts:['A map','A ball of thread','A torch','The stars'], ans:1, fact:'Princess Ariadne gave Theseus the thread so he wouldn\'t get lost.' },
+    { cat:'Myths', q:'What was the Golden Fleece?', opts:['A golden crown','The wool of a magical ram','A golden shield','A golden cloak'], ans:1, fact:'Jason and the Argonauts sailed far across the sea to find the Golden Fleece.' },
+    { cat:'Heroes', q:'Which hero is famous for being very strong and doing twelve great tasks?', opts:['Jason','Heracles','Perseus','Theseus'], ans:1, fact:'Heracles was the son of Zeus, which is why he was so incredibly strong.' },
+    { cat:'Heroes', q:'Who cut off the head of Medusa?', opts:['Theseus','Perseus','Jason','Achilles'], ans:1, fact:'Perseus looked at Medusa\'s reflection in his shield to avoid being turned to stone.' },
+    { cat:'Heroes', q:'Which hero took ten years to sail home after the Trojan War?', opts:['Achilles','Hector','Odysseus','Ajax'], ans:2, fact:'Odysseus faced monsters, witches, and storms on his long journey home.' },
+    { cat:'Heroes', q:'Who led the Argonauts on their ship the Argo?', opts:['Jason','Theseus','Perseus','Heracles'], ans:0, fact:'The Argonauts were a crew of brave heroes who joined Jason\'s quest.' },
+    { cat:'Heroes', q:'Which hero killed the bull-headed Minotaur?', opts:['Perseus','Theseus','Jason','Heracles'], ans:1, fact:'Theseus found the Minotaur deep inside a maze called the Labyrinth.' },
+    { cat:'Creatures', q:'How many eyes does a Cyclops have?', opts:['One','Two','Three','Four'], ans:0, fact:'The single giant eye sat in the middle of the Cyclops\'s forehead.' },
+    { cat:'Creatures', q:'What is the top half of a centaur?', opts:['A bird','A human','A fish','A goat'], ans:1, fact:'A centaur is a human from the waist up and a horse from the waist down.' },
+    { cat:'Creatures', q:'What does the Hydra grow when you cut off one head?', opts:['Nothing','Two new heads','Wings','Fire'], ans:1, fact:'Heracles burned each neck so the heads couldn\'t grow back.' },
+    { cat:'Creatures', q:'What kind of animal is Pegasus?', opts:['A flying horse','A giant eagle','A sea serpent','A lion'], ans:0, fact:'Pegasus was a beautiful white horse with large feathered wings.' },
+    { cat:'Creatures', q:'How many heads does Cerberus the guard dog have?', opts:['One','Two','Three','Five'], ans:2, fact:'Cerberus guards the gates of the underworld so the dead can\'t escape.' },
+    { cat:'Creatures', q:'What did the Sirens use to lure sailors?', opts:['Bright lights','Their beautiful singing','Treasure','Magic spells'], ans:1, fact:'Sailors who heard the Sirens\' song would steer their ships onto the rocks.' },
+    { cat:'Creatures', q:'What is a satyr\'s lower half?', opts:['A fish','A goat','A snake','A horse'], ans:1, fact:'Satyrs were playful nature spirits who loved music and followed Dionysus.' },
+    { cat:'Greece', q:'What mountain did the Greek gods live on top of?', opts:['Mount Etna','Mount Olympus','Mount Ida','Mount Parnassus'], ans:1, fact:'Mount Olympus is the tallest mountain in all of Greece.' },
+    { cat:'Greece', q:'Which city was famous for its tough, brave soldiers?', opts:['Athens','Sparta','Corinth','Delphi'], ans:1, fact:'Spartan children began training to be warriors when they were very young.' },
+    { cat:'Greece', q:'What sporting event did the ancient Greeks invent?', opts:['The World Cup','The Olympic Games','Tennis','The marathon relay'], ans:1, fact:'The first Olympic Games were held to honour the king of the gods, Zeus.' },
+    { cat:'Greece', q:'Which famous war was fought over the city of Troy?', opts:['The Persian War','The Trojan War','The Spartan War','The Titan War'], ans:1, fact:'The Trojan War lasted ten long years before the Greeks finally won.' },
+    { cat:'Gods', q:'Who is the wife of Zeus and queen of the gods?', opts:['Hera','Hestia','Demeter','Leto'], ans:0, fact:'Hera was the goddess of marriage and family.' },
+    { cat:'Gods', q:'Which goddess loves hunting in the forest with her bow?', opts:['Athena','Hera','Artemis','Aphrodite'], ans:2, fact:'Artemis is also the goddess of the moon and protects wild animals.' },
+    { cat:'Gods', q:'Who threw thunderbolts down from the sky?', opts:['Poseidon','Zeus','Hades','Apollo'], ans:1, fact:'Zeus\'s thunderbolts were his most powerful weapon as king of the sky.' },
+    { cat:'Myths', q:'Which musician went to the underworld to bring back his wife?', opts:['Apollo','Orpheus','Pan','Hermes'], ans:1, fact:'Orpheus played music so beautiful that even Hades was moved to tears.' },
+    { cat:'Myths', q:'What animal did Zeus often turn into in myths?', opts:['A lion','A swan or bull','A wolf','A bear'], ans:1, fact:'Zeus took many disguises, including a swan, a bull, and even golden rain.' },
+    { cat:'Myths', q:'Who held up the sky on his shoulders?', opts:['Atlas','Prometheus','Cronus','Helios'], ans:0, fact:'Atlas was a Titan forced to hold up the heavens forever.' },
+    { cat:'Myths', q:'Who gave fire to humans?', opts:['Zeus','Prometheus','Hephaestus','Apollo'], ans:1, fact:'Prometheus was punished by Zeus for sharing the gift of fire with people.' },
+    { cat:'Creatures', q:'What is the name of the giant one-eyed creatures?', opts:['Titans','Cyclopes','Gorgons','Centaurs'], ans:1, fact:'The Cyclopes were master builders who forged Zeus\'s thunderbolts.' },
+    { cat:'Creatures', q:'What does a griffin have the head and wings of?', opts:['A snake','An eagle','A fish','A bull'], ans:1, fact:'A griffin has the body of a lion and the head and wings of an eagle.' },
+    { cat:'Gods', q:'Which god is the blacksmith of the gods?', opts:['Ares','Hephaestus','Hermes','Apollo'], ans:1, fact:'Hephaestus built amazing things, including thrones and magical metal helpers.' },
+    { cat:'Gods', q:'What bird is the symbol of wise Athena?', opts:['Owl','Eagle','Dove','Crow'], ans:0, fact:'The owl stood for wisdom and appeared on coins from the city of Athens.' },
+    { cat:'Gods', q:'What bird is the symbol of mighty Zeus?', opts:['Owl','Eagle','Peacock','Swan'], ans:1, fact:'The powerful eagle was Zeus\'s favourite bird and a sign of his kingship.' },
+    { cat:'Gods', q:'What bird is the symbol of Hera?', opts:['Peacock','Owl','Eagle','Dove'], ans:0, fact:'The peacock\'s beautiful tail feathers were a symbol of Hera, queen of the gods.' },
+    { cat:'Heroes', q:'What was the weak spot of the hero Achilles?', opts:['His hand','His heel','His knee','His ear'], ans:1, fact:'This is why we still call a person\'s weak point their \'Achilles heel\'.' },
+    { cat:'Heroes', q:'Which clever inventor built the Labyrinth and a pair of wings?', opts:['Daedalus','Icarus','Hephaestus','Talos'], ans:0, fact:'Daedalus was a brilliant inventor, and Icarus was his son.' },
+    { cat:'Myths', q:'What punishment did Sisyphus get in the underworld?', opts:['To swim forever','To push a boulder up a hill forever','To run forever','To dig forever'], ans:1, fact:'Every time Sisyphus neared the top, the boulder rolled back down again.' },
+    { cat:'Myths', q:'What was left inside Pandora\'s box after everything escaped?', opts:['Fear','Hope','Gold','Nothing'], ans:1, fact:'Hope remained to comfort people through all the troubles in the world.' },
+    { cat:'Greece', q:'What was the famous temple for the goddess Athena in Athens?', opts:['The Colosseum','The Parthenon','The Pantheon','The Oracle'], ans:1, fact:'The Parthenon still stands on a hill called the Acropolis today.' },
+    { cat:'Greece', q:'Where did people go to hear prophecies from the gods?', opts:['Sparta','The Oracle of Delphi','Mount Olympus','Troy'], ans:1, fact:'A priestess at Delphi gave messages believed to come from the god Apollo.' },
+    { cat:'Gods', q:'Who is the god of the underworld and the dead?', opts:['Hades','Poseidon','Ares','Cronus'], ans:0, fact:'Hades ruled the land of the dead but was not actually evil.' },
+    { cat:'Gods', q:'What did Athena give the city of Athens to win it?', opts:['A river','An olive tree','A golden statue','A horse'], ans:1, fact:'The olive tree gave food, oil, and wood, so the people chose Athena\'s gift.' },
+    { cat:'Gods', q:'What did Poseidon give the city to try to win it?', opts:['A salt-water spring','A forest','A mountain','A ship'], ans:0, fact:'Poseidon\'s spring was salty, so the people picked Athena\'s olive tree instead.' },
+    { cat:'Creatures', q:'What were the Gorgons?', opts:['Sea gods','Monstrous sisters with snake hair','Giant birds','Tree spirits'], ans:1, fact:'Medusa was the most famous of the three Gorgon sisters.' },
+    { cat:'Creatures', q:'What is the Sphinx famous for asking travellers?', opts:['For money','A riddle','Their name','For food'], ans:1, fact:'Anyone who couldn\'t answer the Sphinx\'s riddle met a terrible fate.' },
+    { cat:'Myths', q:'Which young man loved Aphrodite and was very handsome?', opts:['Adonis','Narcissus','Paris','Orpheus'], ans:0, fact:'Adonis was famous throughout the myths for his great beauty.' },
+    { cat:'Myths', q:'What did the hero Jason need a crew of heroes to help him find?', opts:['The Golden Apple','The Golden Fleece','Medusa\'s head','The Trojan Horse'], ans:1, fact:'The Golden Fleece was guarded by a dragon that never slept.' },
+    { cat:'Gods', q:'Which Titan was the father of Zeus?', opts:['Atlas','Cronus','Prometheus','Oceanus'], ans:1, fact:'Cronus swallowed his children, but baby Zeus was hidden and saved.' },
+    { cat:'Gods', q:'What were the gods who ruled before the Olympians called?', opts:['The Titans','The Giants','The Furies','The Muses'], ans:0, fact:'Zeus and the Olympians defeated the Titans in a huge war.' },
+    { cat:'Greece', q:'What sea did many Greek myths take place around?', opts:['The Pacific','The Mediterranean','The Atlantic','The Arctic'], ans:1, fact:'Greece is surrounded by the sea, so many heroes travelled by boat.' },
+    { cat:'Gods', q:'How many main gods lived on Mount Olympus?', opts:['Five','Twelve','Twenty','Three'], ans:1, fact:'They were called the Twelve Olympians, with Zeus as their king.' },
+    { cat:'Creatures', q:'What scary creature is a mix of lion, goat, and snake?', opts:['The Chimera','The Hydra','The Sphinx','The Kraken'], ans:0, fact:'The Chimera could even breathe fire and was defeated by the hero Bellerophon.' },
+    { cat:'Creatures', q:'What are nymphs in Greek mythology?', opts:['Tiny giants','Nature spirits','Sea monsters','Ghosts'], ans:1, fact:'Nymphs were gentle spirits who lived in rivers, trees, and mountains.' },
+    { cat:'Myths', q:'Who was the most beautiful woman, taken to the city of Troy?', opts:['Helen','Athena','Cassandra','Penelope'], ans:0, fact:'Helen of Troy was said to have \'a face that launched a thousand ships\'.' },
+    { cat:'Heroes', q:'What faithful wife waited many years for Odysseus to come home?', opts:['Helen','Penelope','Circe','Calypso'], ans:1, fact:'Penelope cleverly tricked many suitors while waiting for Odysseus.' },
+    { cat:'Gods', q:'Which god is known as a trickster and the patron of thieves?', opts:['Ares','Hermes','Hades','Apollo'], ans:1, fact:'On his very first day alive, baby Hermes stole Apollo\'s cattle!' },
+    { cat:'Gods', q:'What did Dionysus teach humans to make?', opts:['Bread','Wine','Cheese','Pottery'], ans:1, fact:'Dionysus travelled the world showing people how to grow grapevines.' },
+    { cat:'Myths', q:'What sort of creature did Bellerophon ride to fight the Chimera?', opts:['A dragon','Pegasus the winged horse','A giant eagle','A lion'], ans:1, fact:'Riding Pegasus, Bellerophon could attack the Chimera safely from above.' },
+    { cat:'Greece', q:'What did Greek heroes often wear to protect their heads in battle?', opts:['A crown','A helmet','A hood','A mask'], ans:1, fact:'Greek soldiers also carried round shields and long spears.' },
+    { cat:'Creatures', q:'What was Talos, the giant who guarded the island of Crete?', opts:['A stone statue','A giant made of bronze','A fire dragon','A sea serpent'], ans:1, fact:'Talos was a huge bronze man who threw rocks at enemy ships.' },
+    { cat:'Gods', q:'Which goddess was born from the foam of the sea?', opts:['Athena','Aphrodite','Hera','Artemis'], ans:1, fact:'Aphrodite rose fully grown from the waves near the island of Cyprus.' },
+    { cat:'Gods', q:'Which goddess sprang fully grown from Zeus\'s head?', opts:['Aphrodite','Athena','Artemis','Hera'], ans:1, fact:'Athena burst out of Zeus\'s head already wearing her armour.' },
+  ],
+  medium: [
+    { cat:'Gods', q:'What is the name of Poseidon\'s weapon?', opts:['Thunderbolt','Caduceus','Trident','Sword of Damocles'], ans:2, fact:'Poseidon\'s trident could split rocks, stir the seas, and cause earthquakes.' },
+    { cat:'Gods', q:'Hephaestus was thrown from Olympus — who threw him?', opts:['Zeus','Poseidon','Hera','Ares'], ans:2, fact:'Some myths say Hera threw him out as a baby because he was ugly, and he became lame from the fall.' },
+    { cat:'Gods', q:'What animal is associated with Athena?', opts:['Eagle','Owl','Deer','Snake'], ans:1, fact:'The owl symbolised wisdom and was so closely linked to Athens that it appeared on their coins.' },
+    { cat:'Gods', q:'Who is the twin sibling of Apollo?', opts:['Athena','Hermes','Ares','Artemis'], ans:3, fact:'Apollo and Artemis were born on the island of Delos after their mother Leto was chased by Hera.' },
+    { cat:'Gods', q:'What is the rod that Hermes carries?', opts:['Thyrsus','Caduceus','Ankh','Scepter'], ans:1, fact:'The caduceus features two snakes wrapped around a winged staff — now a symbol of medicine.' },
+    { cat:'Myths', q:'What punishment did Sisyphus receive in the underworld?', opts:['Eternal fire','Roll a boulder uphill forever','Chained to a rock','Eternal thirst'], ans:1, fact:'The boulder always rolled back down before reaching the top — Sisyphus\'s torment never ended.' },
+    { cat:'Myths', q:'What is the name of Achilles\'s only weak spot?', opts:['His wrist','His heel','His shoulder','His neck'], ans:1, fact:'His mother Thetis dipped him in the River Styx to make him invincible, but held him by his heel.' },
+    { cat:'Myths', q:'Who was the mother of the Minotaur?', opts:['Medusa','Circe','Pasiphae','Ariadne'], ans:2, fact:'Pasiphae was the Queen of Crete — the Minotaur was the result of a curse from Poseidon.' },
+    { cat:'Myths', q:'How did Odysseus escape the Cyclops\'s cave?', opts:['By fighting him','By hiding under a sheep','By making a boat','By using the caduceus'], ans:1, fact:'Odysseus and his men clung to the bellies of sheep as they walked out so the blinded Cyclops couldn\'t feel them.' },
+    { cat:'Myths', q:'What did Prometheus give to humans?', opts:['Water','Fire','Language','Iron tools'], ans:1, fact:'Zeus punished Prometheus by chaining him to a rock and having an eagle eat his liver every day.' },
+    { cat:'Heroes', q:'Who is the hero of the Odyssey?', opts:['Heracles','Achilles','Perseus','Odysseus'], ans:3, fact:'Odysseus took ten years to get home after the Trojan War, facing monsters and gods along the way.' },
+    { cat:'Heroes', q:'What labyrinth-builder designed wings of feathers and wax?', opts:['Pythagoras','Archimedes','Daedalus','Euclid'], ans:2, fact:'Daedalus warned his son Icarus not to fly too close to the sun, but Icarus ignored him.' },
+    { cat:'Heroes', q:'Which hero killed the Minotaur?', opts:['Jason','Perseus','Theseus','Heracles'], ans:2, fact:'Princess Ariadne gave Theseus a ball of thread so he could find his way back out of the labyrinth.' },
+    { cat:'Myths', q:'What happens to you if you look at Medusa?', opts:['You fall in love','You turn to stone','You fall asleep','You lose your memory'], ans:1, fact:'Medusa was once a beautiful woman transformed into a monster by Athena as punishment.' },
+    { cat:'Creatures', q:'What creature is half woman, half bird and lured sailors to their deaths with song?', opts:['Harpy','Gorgon','Siren','Chimera'], ans:2, fact:'Odysseus had himself tied to the mast so he could hear the Sirens\' song without steering toward them.' },
+    { cat:'Creatures', q:'The Chimera was a mix of which three animals?', opts:['Lion, goat, serpent','Eagle, bull, snake','Wolf, horse, eagle','Dragon, lion, bear'], ans:0, fact:'The hero Bellerophon killed the Chimera riding on the winged horse Pegasus.' },
+    { cat:'Greece', q:'What city-state was famous for arts, philosophy and democracy?', opts:['Sparta','Corinth','Athens','Thebes'], ans:2, fact:'Athens is considered the birthplace of democracy — citizens voted directly on laws around 500 BC.' },
+    { cat:'Greece', q:'What wooden structure helped the Greeks win the Trojan War?', opts:['A battering ram','A Trojan Horse','A war ship','A siege tower'], ans:1, fact:'Greek soldiers hid inside the giant hollow wooden horse and crept out at night to open the gates.' },
+    { cat:'Myths', q:'Who was turned into a laurel tree?', opts:['Echo','Daphne','Persephone','Callisto'], ans:1, fact:'Daphne\'s father transformed her into a laurel tree to save her from Apollo, who was pursuing her.' },
+    { cat:'Gods', q:'Persephone was taken to the underworld by whom?', opts:['Ares','Zeus','Hades','Poseidon'], ans:2, fact:'Persephone spends part of the year in the underworld, which is why we have winter when she\'s away.' },
+    { cat:'Gods', q:'Which goddess caused the Trojan War by offering Paris the most beautiful woman?', opts:['Hera','Athena','Aphrodite','Artemis'], ans:2, fact:'Three goddesses competed for a golden apple labelled "for the fairest" — Aphrodite won by bribing Paris.' },
+    { cat:'Myths', q:'What is the River Styx?', opts:['A mountain in Greece','A river in the underworld','A city in Sparta','A sea monster'], ans:1, fact:'The dead had to pay Charon the ferryman one coin to cross the River Styx into the underworld.' },
+    { cat:'Heroes', q:'What creature did Heracles have to defeat for his first labour?', opts:['The Hydra','The Nemean Lion','The Minotaur','Cerberus'], ans:1, fact:'The Nemean Lion had golden fur no weapon could pierce, so Heracles strangled it with his bare hands.' },
+    { cat:'Creatures', q:'What is a Gorgon?', opts:['A sea serpent','A female monster with snakes for hair','A giant cyclops','A three-headed dog'], ans:1, fact:'There were three Gorgon sisters — Medusa was the only mortal one.' },
+    { cat:'Myths', q:'What did Narcissus fall in love with?', opts:['Echo','A nymph','His own reflection','A golden statue'], ans:2, fact:'Narcissus stared at his reflection in a pool until he wasted away — the word "narcissism" comes from him.' },
+    { cat:'Gods', q:'From what was Aphrodite born?', opts:['Zeus\'s head','Sea foam','A golden egg','A laurel tree'], ans:1, fact:'Aphrodite rose fully grown from the foam of the sea near the island of Cyprus.' },
+    { cat:'Gods', q:'What instrument is the god Apollo most associated with?', opts:['The flute','The lyre','The drum','The horn'], ans:1, fact:'Apollo received his golden lyre from the infant Hermes, who invented it from a tortoise shell.' },
+    { cat:'Gods', q:'Who invented the lyre as a baby on his first day of life?', opts:['Apollo','Hermes','Pan','Orpheus'], ans:1, fact:'Baby Hermes also stole Apollo\'s cattle that same day — he was a trickster from birth!' },
+    { cat:'Myths', q:'What did King Midas wish for that became a curse?', opts:['Eternal life','A golden touch','Endless wine','The power of flight'], ans:1, fact:'Everything Midas touched turned to gold — including his food, drink, and even his own daughter.' },
+    { cat:'Heroes', q:'Who used a ball of thread to escape the Labyrinth?', opts:['Jason','Theseus','Perseus','Odysseus'], ans:1, fact:'Princess Ariadne gave Theseus the thread so he could retrace his steps out of the maze.' },
+    { cat:'Myths', q:'Why did Demeter make the earth barren and cold?', opts:['She lost a bet with Zeus','Her daughter was taken to the underworld','She was banished from Olympus','Mortals stopped worshipping her'], ans:1, fact:'Demeter\'s grief over Persephone\'s capture is the mythological origin of winter.' },
+    { cat:'Gods', q:'How was Dionysus described as being "twice-born"?', opts:['He had two mothers','He was reborn from his ashes','He was sewn into Zeus\'s thigh after his mother died','He died and returned from the underworld'], ans:2, fact:'Zeus rescued the unborn Dionysus from his dying mother and carried him in his thigh until birth.' },
+    { cat:'Creatures', q:'What was Cerberus?', opts:['A winged horse','A three-headed dog','A fire-breathing bull','A giant serpent'], ans:1, fact:'Capturing Cerberus from the underworld was the final and hardest of Heracles\'s Twelve Labours.' },
+    { cat:'Heroes', q:'Whose music was so beautiful it could charm animals, trees, and even stones?', opts:['Apollo','Orpheus','Pan','Marsyas'], ans:1, fact:'Orpheus nearly rescued his wife from the underworld using only the power of his music.' },
+    { cat:'Greece', q:'Who was the most famous oracle that people consulted in ancient Greece?', opts:['The Oracle of Athens','The Oracle of Delphi','The Oracle of Sparta','The Oracle of Thebes'], ans:1, fact:'At Delphi, a priestess gave Apollo\'s prophecies — often in puzzling riddles.' },
+    { cat:'Gods', q:'Which Titan was forced to hold up the sky forever?', opts:['Prometheus','Cronus','Atlas','Hyperion'], ans:2, fact:'Atlas was punished by Zeus after the Titans lost their war against the Olympian gods.' },
+    { cat:'Myths', q:'In Pandora\'s story, what single thing remained inside the jar?', opts:['Greed','Hope','Fear','Love'], ans:1, fact:'After all the evils flew out, Hope alone was left behind to comfort humankind.' },
+    { cat:'Creatures', q:'What were satyrs?', opts:['Sea nymphs','Half-man, half-goat companions of Dionysus','Giant one-eyed shepherds','Winged spirits of vengeance'], ans:1, fact:'Satyrs loved music, wine, and dancing, and often followed the god Dionysus.' },
+    { cat:'Gods', q:'Which Titaness was the mother of Apollo and Artemis?', opts:['Rhea','Leto','Metis','Themis'], ans:1, fact:'Hera was so jealous that she forbade Leto from giving birth on solid ground.' },
+    { cat:'Gods', q:'Who was the cupbearer of the gods before Ganymede?', opts:['Hebe','Iris','Nike','Eos'], ans:0, fact:'Hebe, goddess of youth, served nectar and ambrosia to the Olympians.' },
+    { cat:'Gods', q:'What is the name of the goddess of victory?', opts:['Nike','Tyche','Eris','Nemesis'], ans:0, fact:'Nike was often shown with wings, flying down to crown winners.' },
+    { cat:'Gods', q:'Which god was married to Aphrodite?', opts:['Ares','Apollo','Hephaestus','Hermes'], ans:2, fact:'Aphrodite was married to Hephaestus but often spent time with Ares.' },
+    { cat:'Gods', q:'What did Hades use a special helmet to do?', opts:['Breathe underwater','Become invisible','Fly','Control fire'], ans:1, fact:'The Cyclopes made Hades a Cap of Invisibility during the war against the Titans.' },
+    { cat:'Gods', q:'Which goddess of strife threw the golden apple that started the Trojan War?', opts:['Nemesis','Eris','Hecate','Tyche'], ans:1, fact:'Eris was angry at not being invited to a wedding, so she caused trouble.' },
+    { cat:'Gods', q:'What was written on the golden apple of discord?', opts:['For the strongest','To the fairest','For the wisest','To the king'], ans:1, fact:'Three goddesses each claimed the apple, leading to a fateful contest.' },
+    { cat:'Gods', q:'Which Trojan prince had to judge which goddess was fairest?', opts:['Hector','Paris','Aeneas','Priam'], ans:1, fact:'Paris chose Aphrodite because she promised him the most beautiful woman.' },
+    { cat:'Myths', q:'Why was Prometheus chained to a rock?', opts:['For stealing fire for humans','For lying to Zeus','For losing a battle','For freeing the Titans'], ans:0, fact:'An eagle ate his liver each day, and it grew back each night to be eaten again.' },
+    { cat:'Myths', q:'How did Perseus avoid being turned to stone by Medusa?', opts:['He closed his eyes','He used his shield as a mirror','He wore a blindfold','He attacked from behind'], ans:1, fact:'Athena gave Perseus a polished shield to use as a mirror.' },
+    { cat:'Myths', q:'What sprang from Medusa\'s body when she was beheaded?', opts:['A river','The winged horse Pegasus','A swarm of snakes','Gold'], ans:1, fact:'Pegasus and the giant Chrysaor both emerged from Medusa.' },
+    { cat:'Myths', q:'What did Orpheus do wrong on his way out of the underworld?', opts:['He spoke to Hades','He looked back at his wife','He dropped his lyre','He took the wrong path'], ans:1, fact:'Because he looked back too soon, Eurydice was lost to him forever.' },
+    { cat:'Myths', q:'Who was the witch who turned Odysseus\'s men into pigs?', opts:['Calypso','Circe','Medea','Scylla'], ans:1, fact:'Hermes gave Odysseus a magic herb to protect him from Circe\'s spells.' },
+    { cat:'Myths', q:'What was the riddle creature outside the city of Thebes?', opts:['The Hydra','The Sphinx','The Chimera','The Minotaur'], ans:1, fact:'Oedipus answered the Sphinx\'s riddle and freed the city of Thebes.' },
+    { cat:'Myths', q:'What was the answer to the Sphinx\'s famous riddle?', opts:['A bird','Man','The sun','A river'], ans:1, fact:'Man crawls as a baby, walks as an adult, and uses a cane when old.' },
+    { cat:'Myths', q:'Why did Demeter make winter come to the world?', opts:['She was angry at Zeus','She was grieving for Persephone','She was punished','She lost a contest'], ans:1, fact:'When Persephone returns each spring, Demeter makes the world bloom again.' },
+    { cat:'Heroes', q:'What was the first of Heracles\'s Twelve Labours?', opts:['Slaying the Hydra','Killing the Nemean Lion','Capturing Cerberus','Cleaning the stables'], ans:1, fact:'Heracles wore the lion\'s skin as armour afterwards.' },
+    { cat:'Heroes', q:'Whose death finally drove Achilles back into the Trojan War?', opts:['Hector','Patroclus','Ajax','Agamemnon'], ans:1, fact:'Patroclus was Achilles\'s closest companion, and his death enraged Achilles.' },
+    { cat:'Heroes', q:'Who was the greatest warrior defending the city of Troy?', opts:['Paris','Hector','Aeneas','Priam'], ans:1, fact:'Hector was a prince of Troy and was eventually killed by Achilles.' },
+    { cat:'Heroes', q:'What princess helped Theseus escape the Labyrinth?', opts:['Ariadne','Phaedra','Medea','Antigone'], ans:0, fact:'Ariadne gave Theseus a ball of thread to retrace his steps.' },
+    { cat:'Heroes', q:'Which sorceress helped Jason win the Golden Fleece?', opts:['Circe','Medea','Calypso','Hecate'], ans:1, fact:'Medea used her magic to put the guardian dragon to sleep.' },
+    { cat:'Creatures', q:'What were the Harpies?', opts:['Fish-women','Bird-women who snatched things','Snake-women','Horse-women'], ans:1, fact:'The Harpies tormented King Phineus by stealing his food.' },
+    { cat:'Creatures', q:'What two dangers guarded the narrow strait Odysseus had to pass?', opts:['Scylla and Charybdis','The Hydra and Cerberus','Two Cyclopes','The Sirens and Harpies'], ans:0, fact:'Scylla was a six-headed monster and Charybdis was a deadly whirlpool.' },
+    { cat:'Creatures', q:'How many heads did the monster Scylla have?', opts:['Three','Six','Nine','Twelve'], ans:1, fact:'Each of Scylla\'s six heads could snatch a sailor from a passing ship.' },
+    { cat:'Creatures', q:'What is the Nemean Lion\'s special feature?', opts:['It could fly','Its skin couldn\'t be pierced','It breathed fire','It had two heads'], ans:1, fact:'Because no weapon worked, Heracles had to strangle the lion with his hands.' },
+    { cat:'Greece', q:'What two famous words were carved at the temple of Delphi?', opts:['Know thyself','Conquer all','Fear no one','Trust the gods'], ans:0, fact:'\'Know thyself\' and \'Nothing in excess\' guided Greek thinking.' },
+    { cat:'Greece', q:'What was the round, central public space of a Greek city called?', opts:['The agora','The forum','The arena','The temple'], ans:0, fact:'The agora was a marketplace and meeting spot at the heart of the city.' },
+    { cat:'Greece', q:'Which city is considered the birthplace of democracy?', opts:['Sparta','Athens','Thebes','Corinth'], ans:1, fact:'In Athens, citizens voted directly on the laws of the city.' },
+    { cat:'Gods', q:'What is the food of the gods called?', opts:['Nectar','Ambrosia','Manna','Honey'], ans:1, fact:'Ambrosia was the food and nectar was the drink that kept the gods immortal.' },
+    { cat:'Gods', q:'What is the drink of the gods called?', opts:['Nectar','Ambrosia','Wine','Mead'], ans:0, fact:'Together with ambrosia, nectar kept the Olympian gods young forever.' },
+    { cat:'Gods', q:'Which goddess was the personification of the dawn?', opts:['Selene','Eos','Iris','Nyx'], ans:1, fact:'Eos opened the gates of the sky each morning for the sun to rise.' },
+    { cat:'Gods', q:'Who was the god that drove the sun chariot across the sky each day?', opts:['Apollo or Helios','Hermes','Ares','Hephaestus'], ans:0, fact:'Helios, and later Apollo, was said to pull the sun across the sky.' },
+    { cat:'Myths', q:'Whose son drove the sun chariot and lost control of it?', opts:['Phaethon','Icarus','Bellerophon','Hippolytus'], ans:0, fact:'Phaethon scorched the earth until Zeus had to stop him with a thunderbolt.' },
+    { cat:'Myths', q:'What happened to those who ate the lotus in the Odyssey?', opts:['They fell asleep','They forgot about going home','They turned to stone','They grew younger'], ans:1, fact:'The Lotus-Eaters\' fruit made Odysseus\'s men want to stay forever.' },
+    { cat:'Myths', q:'Who was turned into a spider for boasting about her weaving?', opts:['Arachne','Niobe','Daphne','Io'], ans:0, fact:'Arachne challenged Athena to a weaving contest and paid the price.' },
+    { cat:'Myths', q:'What did Echo lose as a punishment from Hera?', opts:['Her sight','Her own voice','Her memory','Her beauty'], ans:1, fact:'Echo could only repeat the last words others said to her.' },
+    { cat:'Gods', q:'Which three brothers divided the world after defeating the Titans?', opts:['Zeus, Poseidon, Hades','Zeus, Apollo, Ares','Cronus, Atlas, Prometheus','Zeus, Hermes, Hephaestus'], ans:0, fact:'Zeus took the sky, Poseidon the sea, and Hades the underworld.' },
+    { cat:'Gods', q:'How did baby Zeus avoid being swallowed by his father Cronus?', opts:['He hid in a cave','His mother gave Cronus a stone instead','He flew away','He fought back'], ans:1, fact:'Rhea wrapped a stone in a blanket and Cronus swallowed it by mistake.' },
+    { cat:'Heroes', q:'What was the name of Odysseus\'s loyal old dog?', opts:['Argos','Cerberus','Laelaps','Sirius'], ans:0, fact:'Argos recognised his master after 20 years, then peacefully died.' },
+    { cat:'Heroes', q:'How did Theseus\'s father die?', opts:['In battle','He jumped into the sea seeing black sails','Old age','Poisoned'], ans:1, fact:'Theseus forgot to change his sails to white, so his father thought he had died.' },
+    { cat:'Creatures', q:'What were the Furies (Erinyes) known for?', opts:['Granting wishes','Punishing wrongdoers','Guarding treasure','Spinning fate'], ans:1, fact:'The Furies relentlessly chased people who committed terrible crimes.' },
+    { cat:'Creatures', q:'What were the three Fates in charge of?', opts:['The weather','The thread of human life','The seasons','The oceans'], ans:1, fact:'They spun, measured, and cut the thread of each person\'s life.' },
+    { cat:'Gods', q:'Who was the goddess of magic and crossroads?', opts:['Hecate','Nyx','Selene','Tyche'], ans:0, fact:'Hecate carried torches and was linked with the moon and witchcraft.' },
+    { cat:'Gods', q:'Which god had a winged staff with two snakes called a caduceus?', opts:['Apollo','Hermes','Asclepius','Ares'], ans:1, fact:'The caduceus is now often used as a symbol connected with medicine.' },
+    { cat:'Myths', q:'What did Atalanta lose a race because of?', opts:['She tripped','She stopped for golden apples','She got tired','She took a wrong turn'], ans:1, fact:'Hippomenes dropped three golden apples to distract the swift Atalanta.' },
+    { cat:'Myths', q:'What happened to King Tantalus in the underworld?', opts:['He pushed a boulder','Food and water always escaped him','He was chained to a wheel','He held up the sky'], ans:1, fact:'This is where we get the word \'tantalising\' — always just out of reach.' },
+    { cat:'Myths', q:'What was special about the spring where Narcissus saw himself?', opts:['It was magical','It showed his reflection clearly','It was sacred to Apollo','It granted wishes'], ans:1, fact:'Narcissus fell so in love with his reflection that he could not leave it.' },
+    { cat:'Heroes', q:'Who killed the Chimera with the help of Pegasus?', opts:['Perseus','Bellerophon','Theseus','Heracles'], ans:1, fact:'Bellerophon attacked from the air on the back of the winged horse.' },
+    { cat:'Heroes', q:'What did Perseus need to defeat the sea monster threatening Andromeda?', opts:['A magic sword','Medusa\'s head','Poseidon\'s trident','A golden net'], ans:1, fact:'Perseus used Medusa\'s head to turn the monster to stone.' },
+    { cat:'Gods', q:'Which god was thrown from Olympus and became lame?', opts:['Ares','Hephaestus','Hermes','Apollo'], ans:1, fact:'Despite his injury, Hephaestus became the most skilled craftsman of all.' },
+    { cat:'Gods', q:'How did Hephaestus trap his mother Hera as revenge?', opts:['With a net','With a magic golden throne','In a cave','With chains of fire'], ans:1, fact:'Hera sat on the throne and invisible bonds locked her in place.' },
+    { cat:'Creatures', q:'What were the Cyclopes skilled at making?', opts:['Music','Weapons and lightning bolts','Ships','Maps'], ans:1, fact:'They forged Zeus\'s thunderbolts deep beneath the earth.' },
+    { cat:'Creatures', q:'What is a Minotaur a mix of?', opts:['Man and bull','Man and lion','Man and horse','Man and goat'], ans:0, fact:'The Minotaur had the body of a man and the head of a bull.' },
+    { cat:'Greece', q:'Who was the legendary blind poet said to have composed the Iliad?', opts:['Hesiod','Homer','Sophocles','Aesop'], ans:1, fact:'Homer\'s epic poems are among the oldest works of Western literature.' },
+    { cat:'Greece', q:'What is the long poem about Odysseus\'s journey home called?', opts:['The Iliad','The Odyssey','The Aeneid','The Theogony'], ans:1, fact:'The Odyssey tells of the ten-year voyage of Odysseus back to Ithaca.' },
+    { cat:'Greece', q:'What poem by Homer tells of the Trojan War?', opts:['The Odyssey','The Iliad','The Aeneid','Works and Days'], ans:1, fact:'The Iliad focuses on the rage of Achilles during the Trojan War.' },
+    { cat:'Gods', q:'Who was the goddess of revenge against pride?', opts:['Nemesis','Eris','Tyche','Nike'], ans:0, fact:'Nemesis punished people who were too proud or boastful.' },
+    { cat:'Gods', q:'Which Titan\'s name means \'forethought\'?', opts:['Atlas','Prometheus','Epimetheus','Cronus'], ans:1, fact:'His brother Epimetheus, by contrast, meant \'afterthought\'.' },
+    { cat:'Myths', q:'What did Jason promise to do if Medea helped him?', opts:['Make her queen','Marry her','Give her gold','Free her father'], ans:1, fact:'Jason married Medea, though their story later ended in tragedy.' },
+    { cat:'Myths', q:'Who was turned into a cow by Zeus to hide her from Hera?', opts:['Io','Europa','Callisto','Leda'], ans:0, fact:'Hera was not fooled and sent a gadfly to chase the cow Io across the world.' },
+    { cat:'Myths', q:'Which woman was carried off by Zeus in the form of a bull?', opts:['Io','Europa','Danae','Leda'], ans:1, fact:'The continent of Europe is said to be named after Europa.' },
+    { cat:'Gods', q:'Who was the god of sleep?', opts:['Hypnos','Thanatos','Morpheus','Nyx'], ans:0, fact:'Hypnos was the twin brother of Thanatos, the god of death.' },
+    { cat:'Gods', q:'Who was the god of death who gently carried away the dead?', opts:['Hades','Thanatos','Hypnos','Charon'], ans:1, fact:'Thanatos was the peaceful personification of death itself.' },
+    { cat:'Creatures', q:'What did the ferryman Charon do?', opts:['Guard the gates','Carry the dead across the river Styx','Judge the dead','Forge weapons'], ans:1, fact:'The dead needed a coin to pay Charon for the ride across the river.' },
+    { cat:'Creatures', q:'What did people place with the dead to pay the ferryman?', opts:['A coin','A flower','A sword','A scroll'], ans:0, fact:'A coin was placed in the mouth so the dead could pay Charon.' },
+    { cat:'Heroes', q:'What did Heracles do to clean the Augean stables in one day?', opts:['Used a hundred workers','Redirected two rivers','Burned them down','Used magic'], ans:1, fact:'Heracles cleverly diverted rivers to wash out the filthy stables.' },
+    { cat:'Heroes', q:'What golden objects did Heracles fetch from a garden for one labour?', opts:['Golden apples','Golden coins','Golden fleece','Golden arrows'], ans:0, fact:'He briefly held up the sky so Atlas would fetch the golden apples for him.' },
+    { cat:'Myths', q:'What gift did Athena and Poseidon compete to give to Athens?', opts:['A weapon each','An olive tree and a spring','A temple each','A river each'], ans:1, fact:'Athena\'s olive tree was judged the better gift, so the city took her name.' },
+    { cat:'Gods', q:'Which goddess gave up her seat among the Twelve Olympians?', opts:['Hestia','Demeter','Hera','Iris'], ans:0, fact:'Hestia stepped aside to keep the peace, and Dionysus took her place.' },
+    { cat:'Gods', q:'Who replaced Hestia as one of the Twelve Olympians?', opts:['Hades','Dionysus','Pan','Heracles'], ans:1, fact:'Dionysus, god of wine, was the last to join the Olympian gods.' },
+    { cat:'Myths', q:'Who was the beautiful youth loved by Aphrodite and killed by a boar?', opts:['Adonis','Hyacinth','Ganymede','Endymion'], ans:0, fact:'From the blood of Adonis sprang the red anemone flower.' },
+    { cat:'Myths', q:'What flower grew where Apollo\'s friend Hyacinth died?', opts:['The rose','The hyacinth','The lily','The poppy'], ans:1, fact:'Apollo created the hyacinth flower to remember his lost friend.' },
+    { cat:'Greece', q:'What were Greek storytelling stage plays called?', opts:['Operas','Tragedies and comedies','Ballets','Recitals'], ans:1, fact:'Greek theatre began at festivals held in honour of Dionysus.' },
+    { cat:'Greece', q:'At which festival did Greek theatre first develop?', opts:['Festivals of Zeus','Festivals of Dionysus','Festivals of Apollo','Festivals of Athena'], ans:1, fact:'Both comedy and tragedy were born at the festivals of Dionysus.' },
+    { cat:'Creatures', q:'What was a \'shade\' in Greek mythology?', opts:['A ghost of the dead','A type of nymph','A shadow monster','A forest spirit'], ans:0, fact:'Shades were the spirits of the dead who lived in the underworld.' },
+    { cat:'Creatures', q:'What was the Caledonian creature hunted by many heroes?', opts:['A lion','A giant boar','A serpent','A bull'], ans:1, fact:'Many famous heroes joined the hunt for the great Caledonian Boar.' },
+    { cat:'Heroes', q:'Who was the famous huntress who joined the Caledonian Boar hunt?', opts:['Atalanta','Medea','Ariadne','Penelope'], ans:0, fact:'Atalanta was the first to wound the great boar.' },
+    { cat:'Gods', q:'Which god was raised in secret to hide him from Cronus?', opts:['Zeus','Poseidon','Hades','Apollo'], ans:0, fact:'Zeus grew up on the island of Crete, far from his father\'s reach.' },
+    { cat:'Gods', q:'What weapon did the Cyclopes forge for Zeus?', opts:['A trident','The thunderbolt','A sword','A bow'], ans:1, fact:'The thunderbolt became the symbol of Zeus\'s power over the sky.' },
+    { cat:'Myths', q:'Who unwove her weaving each night to delay choosing a new husband?', opts:['Penelope','Helen','Andromache','Cassandra'], ans:0, fact:'Penelope promised to choose a suitor once she finished, but never did.' },
+  ],
+  hard: [
+    { cat:'Gods', q:'Who was Ares\'s sister and fellow war goddess?', opts:['Athena','Enyo','Eris','Nike'], ans:1, fact:'Enyo was the goddess of war and destruction, companion and sister to Ares on the battlefield.' },
+    { cat:'Gods', q:'What is the name of Poseidon\'s trident-bearing son who is also a sea god?', opts:['Proteus','Nereus','Triton','Glaucus'], ans:2, fact:'Triton was a merman who could calm or raise storms by blowing his conch shell.' },
+    { cat:'Gods', q:'What did Zeus swallow that led to Athena\'s birth?', opts:['A golden egg','His first wife Metis','A thunderbolt','A potion'], ans:1, fact:'Zeus swallowed Metis because a prophecy said her children would be more powerful than him — but Athena burst out of his head anyway.' },
+    { cat:'Gods', q:'Who was the Titan who bore the sky on his shoulders?', opts:['Prometheus','Cronus','Hyperion','Atlas'], ans:3, fact:'Atlas was sentenced to this punishment by Zeus after the Titans lost the war against the Olympians.' },
+    { cat:'Gods', q:'Hecate is goddess of which realm?', opts:['Dawn','Magic and crossroads','Fate','Dreams'], ans:1, fact:'Hecate was unique among gods in being able to move between the worlds of the living, dead, and Olympus.' },
+    { cat:'Myths', q:'What was the name of Odysseus\'s island home?', opts:['Crete','Rhodes','Ithaca','Corfu'], ans:2, fact:'Odysseus spent twenty years away from Ithaca — ten fighting the Trojan War and ten sailing home.' },
+    { cat:'Myths', q:'What is the name of the river in the underworld that causes forgetfulness?', opts:['Styx','Phlegethon','Lethe','Acheron'], ans:2, fact:'The dead drank from the Lethe to forget their earthly lives before reincarnation.' },
+    { cat:'Myths', q:'Who was the judge of the dead in the underworld?', opts:['Hades','Minos','Charon','Thanatos'], ans:1, fact:'King Minos of Crete became a judge of the dead after his fair reign as a mortal king.' },
+    { cat:'Myths', q:'What was the name of Achilles\'s companion who died before him?', opts:['Ajax','Patroclus','Diomedes','Nestor'], ans:1, fact:'It was the death of Patroclus that finally drove Achilles to return to battle in the Trojan War.' },
+    { cat:'Myths', q:'Tantalus is in the underworld reaching for fruit and water that always recede — giving us what word?', opts:['Tantalize','Torment','Taunt','Tarnish'], ans:0, fact:'The word "tantalize" literally means to tempt someone with something they can\'t reach, just like Tantalus.' },
+    { cat:'Heroes', q:'What was the name of Jason\'s ship?', opts:['Penelope','Argo','Daedalion','Calypso'], ans:1, fact:'The Argo was built with wood from the sacred forest of Dodona and could speak prophecy.' },
+    { cat:'Heroes', q:'Bellerophon tamed which creature before his downfall?', opts:['Cerberus','Pegasus','The Sphinx','Scylla'], ans:1, fact:'Bellerophon became arrogant after many victories and tried to ride Pegasus to Mount Olympus — Zeus sent a gadfly that threw him off.' },
+    { cat:'Heroes', q:'What did Orpheus do to try to rescue Eurydice from the underworld?', opts:['Fought Hades','Played music so beautiful Hades wept','Stole the golden fleece','Solved a riddle'], ans:1, fact:'Orpheus nearly succeeded — but he looked back at Eurydice before reaching the surface, and she vanished forever.' },
+    { cat:'Myths', q:'The Fates — Clotho, Lachesis, and Atropos — control what?', opts:['The weather','The thread of each person\'s life','The calendar','The stars'], ans:1, fact:'Clotho spun the thread of life, Lachesis measured it, and Atropos cut it — ending a life.' },
+    { cat:'Myths', q:'What was the name of the nymph who kept Odysseus on her island for seven years?', opts:['Circe','Calypso','Scylla','Charybdis'], ans:1, fact:'Calypso fell in love with Odysseus and offered him immortality, but he refused and asked to go home.' },
+    { cat:'Creatures', q:'Scylla and Charybdis guarded a narrow strait — what was Charybdis?', opts:['A six-headed monster','A whirlpool','A fire-breathing serpent','A giant crab'], ans:1, fact:'Odysseus steered closer to Scylla to avoid Charybdis — losing six men was better than losing the whole ship.' },
+    { cat:'Creatures', q:'What sphinx riddle did Oedipus answer?', opts:['What is the fastest animal?','What walks on four legs in morning, two at noon, three in evening?','What has no beginning or end?','What cannot be touched but changes everything?'], ans:1, fact:'The answer is "man" — a baby crawls, an adult walks, and an old person uses a cane.' },
+    { cat:'Greece', q:'What war did Herodotus famously write about?', opts:['The Trojan War','The Peloponnesian War','The Persian Wars','The War of Alexander'], ans:2, fact:'Herodotus is called the "Father of History" — his account of the Persian Wars is among the earliest surviving works of history.' },
+    { cat:'Greece', q:'What city did Alexander the Great found in Egypt?', opts:['Cairo','Memphis','Thebes','Alexandria'], ans:3, fact:'Alexander founded over 20 cities named Alexandria, but the Egyptian one became the most famous — home to the great Library.' },
+    { cat:'Gods', q:'What is the Greek primordial deity of the Earth?', opts:['Rhea','Demeter','Gaia','Cybele'], ans:2, fact:'Gaia is the ancestral mother of all life — she came into being from the primordial void called Chaos.' },
+    { cat:'Myths', q:'In the myth of Persephone, why must she stay in the underworld part of each year?', opts:['She was captured in battle','She ate pomegranate seeds there','She fell in love with Hades','She broke a sacred law'], ans:1, fact:'Eating food in the underworld bound you to it — Persephone ate six seeds, so she stays six months each year.' },
+    { cat:'Myths', q:'What did the gods eat to maintain their immortality?', opts:['Golden apples only','Nectar and ambrosia','The blood of heroes','Sacred spring water'], ans:1, fact:'Ambrosia was food and nectar was drink — both were forbidden to mortals on pain of death.' },
+    { cat:'Heroes', q:'What did Heracles use to defeat the Lernaean Hydra?', opts:['A golden sword','A torch to cauterize each neck stump','Poison arrows','The trident of Poseidon'], ans:1, fact:'Heracles had his nephew Iolaus burn each neck after he cut it, preventing the heads from regrowing.' },
+    { cat:'Gods', q:'Nike was the goddess of what?', opts:['Speed','Victory','Wisdom','War'], ans:1, fact:'Nike was often depicted with wings — the famous shoe brand takes its name and "swoosh" logo from her.' },
+    { cat:'Myths', q:'The Cyclops Polyphemus, blinded by Odysseus, was the son of which god?', opts:['Zeus','Poseidon','Hades','Helios'], ans:1, fact:'Blinding Polyphemus earned Odysseus the wrath of Poseidon, who delayed his journey home for years.' },
+    { cat:'Gods', q:'Who were the parents of the Titans, born of Chaos?', opts:['Zeus and Hera','Gaia and Uranus','Cronus and Rhea','Oceanus and Tethys'], ans:1, fact:'Gaia (Earth) and Uranus (Sky) were the parents of the twelve Titans, including Cronus.' },
+    { cat:'Gods', q:'Which Titan stole fire from the gods to give to humanity?', opts:['Atlas','Prometheus','Epimetheus','Helios'], ans:1, fact:'Prometheus\'s name means "forethought" — his gift of fire let civilization begin.' },
+    { cat:'Myths', q:'What was the sacred prophetic instruction carved at the temple of Delphi?', opts:['Conquer all','Know thyself','Fear the gods','Trust no oracle'], ans:1, fact:'"Know thyself" and "Nothing in excess" were the two famous maxims inscribed at Delphi.' },
+    { cat:'Heroes', q:'Which king of Crete demanded a tribute of Athenian youths to feed the Minotaur?', opts:['Minos','Aegeus','Aeacus','Rhadamanthus'], ans:0, fact:'Theseus volunteered as one of the tributes specifically to slay the Minotaur and end the cruelty.' },
+    { cat:'Gods', q:'Eris, goddess of strife, started the Trojan War by throwing what?', opts:['A spear','A golden apple','A thunderbolt','A cursed ring'], ans:1, fact:'The apple was inscribed "to the fairest," sparking the rivalry between Hera, Athena, and Aphrodite.' },
+    { cat:'Myths', q:'Who was the ferryman who carried the dead across the river Styx?', opts:['Thanatos','Charon','Hypnos','Hermes'], ans:1, fact:'The Greeks buried their dead with a coin so they could pay Charon for the crossing.' },
+    { cat:'Creatures', q:'What were the Erinyes, also called the Furies?', opts:['Sea nymphs','Spirits of vengeance who punished wrongdoers','Fates who spun destiny','Winds that drove ships'], ans:1, fact:'The Furies relentlessly pursued those who broke sacred bonds, especially crimes against family.' },
+    { cat:'Gods', q:'Which goddess was Zeus\'s first divine wife, swallowed before Athena\'s birth?', opts:['Hera','Metis','Themis','Mnemosyne'], ans:1, fact:'Metis personified cunning wisdom, which she passed to her daughter Athena.' },
+    { cat:'Heroes', q:'In the Iliad, who killed the Trojan prince Hector?', opts:['Ajax','Odysseus','Achilles','Diomedes'], ans:2, fact:'Achilles killed Hector to avenge the death of his beloved companion Patroclus.' },
+    { cat:'Myths', q:'What was ambrosia in Greek mythology?', opts:['A sacred river','The food of the gods','A type of armour','A magical herb'], ans:1, fact:'Ambrosia was the divine food that, along with nectar, gave the gods their immortality.' },
+    { cat:'Gods', q:'Hestia was the goddess of what?', opts:['The hearth and home','The dawn','The harvest','The hunt'], ans:0, fact:'Hestia gave up her seat among the twelve Olympians to Dionysus, choosing to tend the sacred hearth instead.' },
+    { cat:'Greece', q:'Which philosopher was famously sentenced to death by drinking hemlock in Athens?', opts:['Plato','Aristotle','Socrates','Pythagoras'], ans:2, fact:'Socrates was condemned for "corrupting the youth" and accepted his execution rather than flee.' },
+    { cat:'Gods', q:'Who was the primordial deity of the sky, castrated by his son Cronus?', opts:['Chaos','Uranus','Pontus','Erebus'], ans:1, fact:'From the blood of Uranus sprang the Giants, the Furies, and more.' },
+    { cat:'Gods', q:'Which primordial being came first, according to Hesiod\'s Theogony?', opts:['Gaia','Chaos','Eros','Tartarus'], ans:1, fact:'From Chaos came Gaia (Earth), Tartarus, and Eros at the dawn of creation.' },
+    { cat:'Gods', q:'Who was the Titan goddess of memory and mother of the Muses?', opts:['Mnemosyne','Themis','Phoebe','Tethys'], ans:0, fact:'The nine Muses were born after Zeus spent nine nights with Mnemosyne.' },
+    { cat:'Gods', q:'How many Muses were there?', opts:['Three','Seven','Nine','Twelve'], ans:2, fact:'Each of the nine Muses inspired a different art, such as poetry or dance.' },
+    { cat:'Gods', q:'Who was the Titan god of the sea before Poseidon?', opts:['Nereus','Oceanus','Proteus','Pontus'], ans:1, fact:'Oceanus was thought to be the great river encircling the whole world.' },
+    { cat:'Gods', q:'Which goddess of justice and order advised Zeus?', opts:['Themis','Dike','Nemesis','Tyche'], ans:0, fact:'Themis represented divine law and was one of Zeus\'s early wives.' },
+    { cat:'Gods', q:'Who was the god of healing, son of Apollo, raised by the centaur Chiron?', opts:['Asclepius','Hymen','Aristaeus','Paean'], ans:0, fact:'Asclepius became so skilled he could raise the dead, angering Hades.' },
+    { cat:'Gods', q:'What was the name of Demeter\'s mystery cult centred at Eleusis?', opts:['The Orphic Mysteries','The Eleusinian Mysteries','The Dionysian Mysteries','The Delphic Rites'], ans:1, fact:'The Eleusinian Mysteries promised initiates a better afterlife.' },
+    { cat:'Myths', q:'Which king\'s house was cursed, leading to the tragedies of Agamemnon and Orestes?', opts:['The House of Atreus','The House of Cadmus','The House of Priam','The House of Laius'], ans:0, fact:'The curse on the House of Atreus spanned several blood-soaked generations.' },
+    { cat:'Myths', q:'Who killed her own children in revenge against Jason?', opts:['Circe','Medea','Clytemnestra','Procne'], ans:1, fact:'Medea\'s terrible revenge is the subject of a famous play by Euripides.' },
+    { cat:'Myths', q:'Which seer was cursed to always tell the truth but never be believed?', opts:['Tiresias','Cassandra','Calchas','Helenus'], ans:1, fact:'Cassandra warned Troy about the wooden horse, but no one listened.' },
+    { cat:'Myths', q:'Which blind prophet appears in the myths of both Oedipus and Odysseus?', opts:['Calchas','Tiresias','Phineus','Mopsus'], ans:1, fact:'Tiresias spent seven years as a woman and was blinded by the gods.' },
+    { cat:'Myths', q:'What did Agamemnon sacrifice to gain fair winds for Troy?', opts:['His finest horse','His daughter Iphigenia','A hundred bulls','His golden armour'], ans:1, fact:'This sacrifice set in motion the tragic events of his own murder.' },
+    { cat:'Myths', q:'Who murdered Agamemnon upon his return from Troy?', opts:['His wife Clytemnestra','His son Orestes','Aegisthus alone','His brother Menelaus'], ans:0, fact:'Clytemnestra killed him partly to avenge their daughter Iphigenia.' },
+    { cat:'Myths', q:'In Sophocles\'s play, what fate did Oedipus unknowingly fulfil?', opts:['He betrayed his city','He killed his father and married his mother','He stole from the gods','He started a great war'], ans:1, fact:'When Oedipus learned the truth, he blinded himself in horror.' },
+    { cat:'Heroes', q:'What was the name of Achilles\'s immortal mother?', opts:['Thetis','Leto','Maia','Metis'], ans:0, fact:'Thetis was a sea nymph who dipped Achilles in the river Styx as a baby.' },
+    { cat:'Heroes', q:'Which Greek hero was famous for his cunning and the idea of the wooden horse?', opts:['Ajax','Diomedes','Odysseus','Nestor'], ans:2, fact:'Odysseus\'s clever scheme finally ended the ten-year siege of Troy.' },
+    { cat:'Heroes', q:'Who was the Trojan hero who fled the burning city and later founded the Roman line?', opts:['Hector','Aeneas','Paris','Antenor'], ans:1, fact:'Aeneas\'s journey is told in the Roman poet Virgil\'s Aeneid.' },
+    { cat:'Heroes', q:'Which giant Greek warrior went mad and killed livestock thinking they were enemies?', opts:['Ajax the Great','Diomedes','Achilles','Menelaus'], ans:0, fact:'Ajax took his own life out of shame after his madness passed.' },
+    { cat:'Heroes', q:'Who taught heroes like Achilles and Jason as a wise centaur tutor?', opts:['Nessus','Pholus','Chiron','Eurytion'], ans:2, fact:'Chiron was an immortal centaur known for his wisdom and skill in medicine.' },
+    { cat:'Creatures', q:'What was the Lernaean Hydra\'s most dangerous trait?', opts:['It flew','It grew two heads for each one cut off','It breathed ice','It was invisible'], ans:1, fact:'One of the Hydra\'s heads was immortal and had to be buried under a rock.' },
+    { cat:'Creatures', q:'What were the Hesperides who guarded the golden apples?', opts:['Sea monsters','Nymphs of the evening','Giant birds','Fire spirits'], ans:1, fact:'A dragon named Ladon helped the Hesperides guard the golden apples.' },
+    { cat:'Creatures', q:'What was Echidna often called?', opts:['The Mother of Monsters','The Queen of the Sea','The Lady of Storms','The Keeper of Fire'], ans:0, fact:'Echidna and Typhon were parents to many famous monsters.' },
+    { cat:'Creatures', q:'What monstrous storm-giant did Zeus battle for control of the cosmos?', opts:['Typhon','Briareus','Antaeus','Argus'], ans:0, fact:'Typhon was so vast his head was said to scrape the stars.' },
+    { cat:'Creatures', q:'What was the Stymphalian creatures Heracles defeated?', opts:['Man-eating birds','Giant serpents','Fire-breathing bulls','Stone lions'], ans:0, fact:'Heracles used a bronze rattle from Athena to scare the birds into the air.' },
+    { cat:'Gods', q:'Which goddess was said to be Zeus\'s first wife before Hera?', opts:['Metis','Themis','Leto','Demeter'], ans:0, fact:'Zeus swallowed Metis to prevent a prophecy about a powerful son.' },
+    { cat:'Gods', q:'What was the name of Hephaestus\'s automatons that helped him work?', opts:['Golden handmaidens','Bronze servants','Iron guardians','Silver smiths'], ans:0, fact:'He crafted golden mechanical women who could think and speak.' },
+    { cat:'Gods', q:'Who was the two-faced primordial pair Nyx and Erebus?', opts:['Night and Darkness','Day and Light','Earth and Sea','Sky and Sea'], ans:0, fact:'From Nyx (Night) came many forces including sleep, death, and fate.' },
+    { cat:'Myths', q:'What was the Procrustes famous for doing to travellers?', opts:['Stretching or cutting them to fit a bed','Asking riddles','Turning them to stone','Stealing their names'], ans:0, fact:'Theseus gave Procrustes the same cruel treatment he gave others.' },
+    { cat:'Myths', q:'Which musician lost a contest with Apollo and was flayed for his pride?', opts:['Marsyas','Orpheus','Pan','Linus'], ans:0, fact:'The satyr Marsyas dared to challenge Apollo\'s skill on the flute.' },
+    { cat:'Myths', q:'What instrument did Pan create from reeds after Syrinx fled him?', opts:['The lyre','The pan pipes','The flute','The drum'], ans:1, fact:'Syrinx was turned into reeds, which Pan made into his famous pipes.' },
+    { cat:'Myths', q:'Who flew too near the sun in some accounts after escaping Crete?', opts:['Icarus','Phaethon','Bellerophon','Ganymede'], ans:0, fact:'Daedalus survived the flight, but his son Icarus did not heed the warning.' },
+    { cat:'Gods', q:'What river of the underworld was associated with fire?', opts:['Lethe','Phlegethon','Cocytus','Acheron'], ans:1, fact:'Phlegethon was a river of flame that flowed into the depths of Tartarus.' },
+    { cat:'Gods', q:'What was the deepest part of the underworld, a prison for the Titans?', opts:['Erebus','Tartarus','Elysium','Asphodel'], ans:1, fact:'Tartarus was as far below Hades as the earth is below the sky.' },
+    { cat:'Gods', q:'Where did the most heroic and virtuous souls go in the afterlife?', opts:['Tartarus','Elysium','The Asphodel Meadows','Erebus'], ans:1, fact:'Elysium, or the Elysian Fields, was a paradise for the blessed dead.' },
+    { cat:'Heroes', q:'What weapon was used to slay the Calydonian Boar\'s hunt leader\'s kin?', opts:['A spear','A bow','A sword','An axe'], ans:0, fact:'Meleager killed his uncles in a quarrel over the boar\'s hide.' },
+    { cat:'Heroes', q:'Whose life was tied to a burning log, which his mother kept hidden?', opts:['Meleager','Jason','Perseus','Bellerophon'], ans:0, fact:'When his mother threw the log on the fire, Meleager died.' },
+    { cat:'Myths', q:'Which mortal woman did Zeus visit as a shower of golden rain?', opts:['Danae','Leda','Europa','Io'], ans:0, fact:'Danae\'s son by Zeus was the hero Perseus.' },
+    { cat:'Myths', q:'In what form did Zeus approach Leda?', opts:['A bull','A swan','An eagle','Golden rain'], ans:1, fact:'From this union came Helen of Troy, hatched from an egg in some myths.' },
+    { cat:'Greece', q:'Who wrote the Theogony, describing the origins of the gods?', opts:['Homer','Hesiod','Pindar','Aeschylus'], ans:1, fact:'Hesiod\'s Theogony is our main source for the genealogy of the gods.' },
+    { cat:'Greece', q:'Which playwright wrote the tragedy \'Oedipus Rex\'?', opts:['Aeschylus','Sophocles','Euripides','Aristophanes'], ans:1, fact:'Sophocles wrote over 100 plays, though only seven survive in full.' },
+    { cat:'Greece', q:'Which ancient Greek is called the \'Father of History\'?', opts:['Thucydides','Herodotus','Xenophon','Polybius'], ans:1, fact:'Herodotus wrote a sweeping account of the wars between Greece and Persia.' },
+    { cat:'Greece', q:'What oracle did Croesus famously misinterpret before going to war?', opts:['Delphi','Dodona','Didyma','Trophonius'], ans:0, fact:'He was told a great empire would fall — it turned out to be his own.' },
+    { cat:'Gods', q:'Who was the goddess of the rainbow and a messenger of the gods?', opts:['Iris','Eos','Hebe','Nike'], ans:0, fact:'Iris linked the gods to humanity along the bridge of the rainbow.' },
+    { cat:'Gods', q:'Who was the boy carried to Olympus by an eagle to be cupbearer?', opts:['Ganymede','Hyacinth','Adonis','Endymion'], ans:0, fact:'Zeus, taken by his beauty, made Ganymede cupbearer to the gods.' },
+    { cat:'Myths', q:'What did Bellerophon\'s pride lead him to attempt?', opts:['To slay Zeus','To fly Pegasus to Olympus','To steal fire','To marry a goddess'], ans:1, fact:'Zeus sent a gadfly to sting Pegasus, throwing Bellerophon back to earth.' },
+    { cat:'Myths', q:'What was the name of the spring that arose where Pegasus struck the ground?', opts:['Castalia','Hippocrene','Pirene','Arethusa'], ans:1, fact:'The Hippocrene spring on Mount Helicon was sacred to the Muses.' },
+    { cat:'Creatures', q:'What was Cerberus\'s parentage said to be?', opts:['Typhon and Echidna','Gaia and Uranus','Nyx and Erebus','Pontus and Thalassa'], ans:0, fact:'The monster-parents Typhon and Echidna also bore the Hydra and Chimera.' },
+    { cat:'Creatures', q:'What hundred-eyed giant did Hera set to guard Io?', opts:['Argus Panoptes','Briareus','Polyphemus','Geryon'], ans:0, fact:'After Hermes killed Argus, Hera set his eyes into the peacock\'s tail.' },
+    { cat:'Creatures', q:'What three-bodied giant did Heracles fight for his cattle?', opts:['Geryon','Antaeus','Cacus','Eurytion'], ans:0, fact:'Fetching Geryon\'s cattle was one of Heracles\'s twelve labours.' },
+    { cat:'Gods', q:'Which Titan fathered the sun, moon, and dawn?', opts:['Hyperion','Coeus','Crius','Iapetus'], ans:0, fact:'Hyperion\'s children were Helios, Selene, and Eos.' },
+    { cat:'Gods', q:'Who personified the moon, driving a silver chariot at night?', opts:['Eos','Selene','Nyx','Hecate'], ans:1, fact:'Selene fell in love with the sleeping shepherd Endymion.' },
+    { cat:'Myths', q:'What did Eos ask for Tithonus, forgetting to also request eternal youth?', opts:['Great wealth','Immortality','Wisdom','Strength'], ans:1, fact:'Tithonus lived forever but aged endlessly, eventually becoming a cicada.' },
+    { cat:'Myths', q:'Which queen boasted she was better than Leto and lost all her children?', opts:['Niobe','Cassiopeia','Arachne','Hecuba'], ans:0, fact:'Apollo and Artemis slew Niobe\'s children, and she wept into stone.' },
+    { cat:'Myths', q:'Whose boast that her daughter was lovelier than the Nereids angered Poseidon?', opts:['Niobe','Cassiopeia','Hecuba','Clytemnestra'], ans:1, fact:'This led to Andromeda being chained to a rock for a sea monster.' },
+    { cat:'Heroes', q:'What did Jason\'s uncle Pelias demand to keep the throne from him?', opts:['The Golden Fleece','Medusa\'s head','A dragon\'s tooth','The golden apples'], ans:0, fact:'Pelias hoped the impossible quest would get rid of Jason for good.' },
+    { cat:'Heroes', q:'What sprang up when Cadmus sowed a dragon\'s teeth?', opts:['Golden coins','Armed warriors','Serpents','Trees'], ans:1, fact:'The surviving warriors helped Cadmus found the city of Thebes.' },
+    { cat:'Greece', q:'Which city did Cadmus found after slaying a dragon?', opts:['Athens','Thebes','Corinth','Argos'], ans:1, fact:'Cadmus also was credited with bringing the alphabet to Greece.' },
+    { cat:'Gods', q:'Who was the personification of fate or fortune?', opts:['Tyche','Ananke','Moros','Kratos'], ans:0, fact:'Tyche governed the luck and prosperity of cities and people.' },
+    { cat:'Gods', q:'Which goddess oversaw childbirth and was often delayed by Hera?', opts:['Eileithyia','Hebe','Iris','Hestia'], ans:0, fact:'Hera once held back Eileithyia to delay the birth of Heracles.' },
+    { cat:'Myths', q:'What was the fatal flaw that doomed the city of Troy in the end?', opts:['A traitor\'s bribe','Trusting the wooden horse','A broken oath','A failed sacrifice'], ans:1, fact:'Despite Cassandra\'s and Laocoön\'s warnings, Troy took the horse inside.' },
+    { cat:'Myths', q:'Which priest warned \'beware Greeks bearing gifts\' and was killed by serpents?', opts:['Laocoön','Calchas','Chryses','Tiresias'], ans:0, fact:'Sea serpents dragged Laocoön and his sons into the sea, silencing him.' },
+    { cat:'Heroes', q:'What was the name of Perseus\'s mother?', opts:['Danae','Alcmene','Andromeda','Antiope'], ans:0, fact:'Danae and the infant Perseus were set adrift in a chest by her father.' },
+    { cat:'Heroes', q:'Which king did Perseus accidentally kill, fulfilling a prophecy?', opts:['Acrisius','Polydectes','Cepheus','Phineus'], ans:0, fact:'A discus thrown by Perseus struck and killed his grandfather Acrisius.' },
+    { cat:'Gods', q:'Who were the three Cyclopes that forged the gods\' weapons?', opts:['Brontes, Steropes, Arges','Cottus, Gyges, Briareus','Atlas, Coeus, Crius','Pallas, Perses, Astraeus'], ans:0, fact:'Their names meant Thunder, Lightning, and Brightness.' },
+    { cat:'Gods', q:'What were the hundred-handed giants who fought for Zeus called?', opts:['The Hecatoncheires','The Gigantes','The Cyclopes','The Curetes'], ans:0, fact:'The Hecatoncheires hurled boulders at the Titans during the great war.' },
+    { cat:'Myths', q:'In the Gigantomachy, who did the gods need a mortal\'s help to defeat?', opts:['The Titans','The Giants','The Cyclopes','Typhon'], ans:1, fact:'A prophecy said only with the hero Heracles could the Giants be slain.' },
+    { cat:'Greece', q:'Which tragedian is known for plays like \'Medea\' and \'The Bacchae\'?', opts:['Aeschylus','Sophocles','Euripides','Menander'], ans:2, fact:'Euripides often portrayed the gods and heroes in a critical light.' },
+    { cat:'Greece', q:'What was the \'Aegis\' associated with Zeus and Athena?', opts:['A spear','A protective shield or cloak','A crown','A chariot'], ans:1, fact:'Athena\'s aegis bore the head of Medusa to terrify her foes.' },
+    { cat:'Myths', q:'What did Theseus\'s father Aegeus give his name to?', opts:['A mountain','The Aegean Sea','A temple','A festival'], ans:1, fact:'Aegeus leapt into the sea, which has been called the Aegean ever since.' },
+    { cat:'Gods', q:'Who was the satyr-like god of the wild and shepherds with goat legs?', opts:['Pan','Silenus','Priapus','Aristaeus'], ans:0, fact:'The sudden fear Pan could cause gives us the word \'panic\'.' },
+    { cat:'Myths', q:'What did Midas grow after judging against Apollo in a music contest?', opts:['Horns','Donkey ears','A tail','Wings'], ans:1, fact:'Midas hid his donkey ears under a cap, but his barber knew the secret.' },
+    { cat:'Heroes', q:'What poison ultimately killed the mighty Heracles?', opts:['A serpent\'s bite','The Hydra\'s blood on a robe','A poisoned arrow','A witch\'s potion'], ans:1, fact:'The centaur Nessus tricked Heracles\'s wife into using his tainted blood.' },
+    { cat:'Heroes', q:'What happened to Heracles after his death?', opts:['He went to Tartarus','He became a god on Olympus','He was reborn','He became a constellation only'], ans:1, fact:'Heracles was made immortal and reconciled with the goddess Hera.' },
+    { cat:'Gods', q:'Which goddess of discord is the mother of many grim spirits like Toil and Famine?', opts:['Eris','Nyx','Nemesis','Ate'], ans:0, fact:'Hesiod lists Eris as the mother of hardships such as Strife and Ruin.' },
+    { cat:'Myths', q:'What was the name of Odysseus\'s son who searched for him?', opts:['Telemachus','Telegonus','Antinous','Eumaeus'], ans:0, fact:'Telemachus journeyed to seek news of his long-lost father.' },
+    { cat:'Myths', q:'Which goddess most aided Odysseus throughout his journey?', opts:['Hera','Aphrodite','Athena','Artemis'], ans:2, fact:'Athena admired Odysseus\'s cleverness and protected him repeatedly.' },
+    { cat:'Greece', q:'What was the sacred site where athletes competed every four years for Zeus?', opts:['Delphi','Olympia','Nemea','Isthmia'], ans:1, fact:'The ancient Olympic Games were held at Olympia for over a thousand years.' },
+  ]
+};
+
+// Lower damage = longer games. ~7-9 correct hits to win at 100 HP.
+const DAMAGE = { easy: 12, medium: 14, hard: 16 };
+const HP_MAX = 100;
+
+let state = {};
+let pendingStory = null; // tracks which player a story-pick should assign to
+
+/* ─────────── GOD GRID ─────────── */
+function renderGodGrid(gridId, player) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '';
+  const myPick = player === 1 ? state.p1 : state.p2;
+  const otherPick = player === 1 ? state.p2 : state.p1;
+
+  GODS.forEach(g => {
+    const taken = otherPick && g.id === otherPick.id;
+    const selected = myPick && g.id === myPick.id;
+
+    const card = document.createElement('div');
+    card.className = 'god-card' + (selected ? ' selected' : '') + (taken ? ' taken' : '');
+
+    const main = document.createElement('div');
+    main.innerHTML = `<div class="icon">${g.icon}</div><div class="gname">${g.name}</div><div class="gdomain">${g.domain}</div>`;
+    if (!taken) main.onclick = () => pickGod(g, player);
+    main.style.cursor = taken ? 'not-allowed' : 'pointer';
+    card.appendChild(main);
+
+    const link = document.createElement('button');
+    link.className = 'story-link';
+    link.textContent = 'Read their story';
+    link.onclick = (e) => { e.stopPropagation(); openStory(g.id, player); };
+    card.appendChild(link);
+
+    grid.appendChild(card);
+  });
+}
+
+function pickGod(g, player) {
+  if (player === 1) state.p1 = g; else state.p2 = g;
+  renderGodGrid('god-grid-1', 1);
+  renderGodGrid('god-grid-2', 2);
+  checkReady();
+}
+
+/* ─────────── STORY MODAL ─────────── */
+function openStory(godId, player) {
+  const god = GODS.find(x => x.id === godId);
+  const story = STORIES[godId];
+  if (!god || !story) return;
+  pendingStory = { godId, player };
+
+  document.getElementById('story-icon').textContent = god.icon;
+  document.getElementById('story-name').textContent = god.name;
+  document.getElementById('story-epithet').textContent = story.epithet;
+
+  const tagsEl = document.getElementById('story-tags');
+  tagsEl.innerHTML = '';
+  story.tags.forEach(t => {
+    const s = document.createElement('span');
+    s.className = 'scroll-tag';
+    s.textContent = t;
+    tagsEl.appendChild(s);
+  });
+
+  const bodyEl = document.getElementById('story-body');
+  bodyEl.innerHTML = '';
+  story.body.forEach((para, i) => {
+    const p = document.createElement('p');
+    if (i === 0) p.className = 'lead';
+    p.textContent = para;
+    bodyEl.appendChild(p);
+  });
+
+  const pickBtn = document.getElementById('story-pick');
+  if (player === null) {
+    // opened from winner screen — no picking
+    pickBtn.style.display = 'none';
+  } else {
+    pickBtn.style.display = 'block';
+    const otherPick = player === 1 ? state.p2 : state.p1;
+    const takenByOther = otherPick && otherPick.id === godId;
+    if (takenByOther) {
+      pickBtn.className = 'scroll-pick taken';
+      pickBtn.textContent = `Already chosen by Player ${player === 1 ? 2 : 1}`;
+      pickBtn.onclick = null;
+    } else {
+      pickBtn.className = 'scroll-pick';
+      pickBtn.textContent = `Choose ${god.name} for Player ${player}`;
+      pickBtn.onclick = () => { pickGod(god, player); closeStory(); };
+    }
+  }
+
+  document.getElementById('story-modal').classList.add('active');
+  document.querySelector('.scroll').scrollTop = 0;
+  document.getElementById('story-modal').scrollTop = 0;
+}
+
+function closeStory() {
+  document.getElementById('story-modal').classList.remove('active');
+  pendingStory = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeStory();
+});
+
+/* ─────────── SETUP ─────────── */
+function initSetup() {
+  state = { p1: null, p2: null, diff: null, hp: [HP_MAX, HP_MAX], turn: 0, usedQ: { easy:[], medium:[], hard:[] }, turnCount: 0, hits: [0,0], attempts: [0,0] };
+  renderGodGrid('god-grid-1', 1);
+  renderGodGrid('god-grid-2', 2);
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  checkReady();
+}
+
+function selectDiff(d, btn) {
+  state.diff = d;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  checkReady();
+}
+
+function checkReady() {
+  document.getElementById('start-btn').disabled = !(state.p1 && state.p2 && state.diff);
+}
+
+/* ─────────── BATTLE ─────────── */
+function startBattle() {
+  if (!state.p1 || !state.p2 || !state.diff) return;
+  state.hp = [HP_MAX, HP_MAX];
+  state.turn = 0;
+  state.usedQ = { easy:[], medium:[], hard:[] };
+  state.turnCount = 0;
+  state.hits = [0, 0];
+  state.attempts = [0, 0];
+
+  document.getElementById('p1-icon').textContent = state.p1.icon + ' ';
+  document.getElementById('p1-label').textContent = state.p1.name;
+  document.getElementById('p2-icon').textContent = ' ' + state.p2.icon;
+  document.getElementById('p2-label').textContent = state.p2.name;
+
+  showScreen('screen-battle');
+  updateHPBars();
+  loadQuestion();
+}
+
+function updateHPBars() {
+  const p1 = Math.max(0, state.hp[0]);
+  const p2 = Math.max(0, state.hp[1]);
+  document.getElementById('p1-bar').style.width = (p1 / HP_MAX * 100) + '%';
+  document.getElementById('p2-bar').style.width = (p2 / HP_MAX * 100) + '%';
+  document.getElementById('p1-hp-text').textContent = p1 + ' HP';
+  document.getElementById('p2-hp-text').textContent = p2 + ' HP';
+  document.getElementById('score-left').textContent = `${state.p1.name}: ${state.hits[0]}/${state.attempts[0]} correct`;
+  document.getElementById('score-right').textContent = `${state.p2.name}: ${state.hits[1]}/${state.attempts[1]} correct`;
+}
+
+function loadQuestion() {
+  const t = state.turn;
+  const god = t === 0 ? state.p1 : state.p2;
+  const banner = document.getElementById('turn-banner');
+  banner.className = 'turn-banner ' + (t === 0 ? 'p1' : 'p2');
+  banner.textContent = `${t === 0 ? 'Player 1' : 'Player 2'} (${god.name}) — your turn!`;
+
+  document.getElementById('q-category').textContent = '';
+  document.getElementById('q-text').textContent = 'Drawing a question from the Oracle...';
+  document.getElementById('question-card').className = 'question-card loading';
+  document.getElementById('options-grid').innerHTML = '';
+  document.getElementById('feedback-card').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+
+  const pool = QUESTIONS[state.diff];
+  const used = state.usedQ[state.diff];
+  let available = pool.map((_, i) => i).filter(i => !used.includes(i));
+
+  if (available.length === 0) {
+    state.usedQ[state.diff] = [];
+    available = pool.map((_, i) => i);
+  }
+
+  const idx = available[Math.floor(Math.random() * available.length)];
+  state.usedQ[state.diff].push(idx);
+  state.currentQ = { ...pool[idx] };
+
+  const shuffled = state.currentQ.opts.map((o, i) => ({ o, orig: i }));
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  state.currentQ.shuffledOpts = shuffled.map(s => s.o);
+  state.currentQ.correctShuffled = shuffled.findIndex(s => s.orig === state.currentQ.ans);
+
+  setTimeout(() => {
+    document.getElementById('q-category').textContent = state.currentQ.cat;
+    document.getElementById('q-text').textContent = state.currentQ.q;
+    document.getElementById('question-card').className = 'question-card';
+
+    const grid = document.getElementById('options-grid');
+    grid.innerHTML = '';
+    state.currentQ.shuffledOpts.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = opt;
+      btn.onclick = () => answer(i, btn);
+      grid.appendChild(btn);
+    });
+  }, 300);
+}
+
+function answer(idx, btn) {
+  const q = state.currentQ;
+  const t = state.turn;
+  state.attempts[t]++;
+
+  document.querySelectorAll('.opt-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correctShuffled) b.classList.add('correct');
+  });
+
+  const correct = idx === q.correctShuffled;
+  if (!correct) btn.classList.add('wrong');
+
+  const fb = document.getElementById('feedback-card');
+  const head = document.getElementById('fb-head');
+  const body = document.getElementById('fb-body');
+
+  if (correct) {
+    state.hits[t]++;
+    const dmg = DAMAGE[state.diff];
+    state.hp[1 - t] -= dmg;
+    updateHPBars();
+    fb.className = 'feedback-card hit';
+    const attacker = t === 0 ? state.p1 : state.p2;
+    head.textContent = `${attacker.icon} Correct! ${attacker.name} deals ${dmg} damage!`;
+    body.textContent = q.fact;
+    fb.style.display = 'block';
+
+    if (state.hp[1 - t] <= 0) {
+      setTimeout(showWinner, 1200);
+      return;
+    }
+  } else {
+    fb.className = 'feedback-card miss';
+    head.textContent = 'Missed! The correct answer was: ' + q.opts[q.ans];
+    body.textContent = q.fact;
+    fb.style.display = 'block';
+  }
+
+  state.turnCount++;
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+function nextTurn() {
+  state.turn = 1 - state.turn;
+  loadQuestion();
+}
+
+function showWinner() {
+  showScreen('screen-winner');
+  const winner = state.turn === 0 ? state.p1 : state.p2;
+  const loser = state.turn === 0 ? state.p2 : state.p1;
+  const pNum = state.turn === 0 ? 'Player 1' : 'Player 2';
+  const wi = state.turn;
+  const acc = state.attempts[wi] > 0 ? Math.round(state.hits[wi] / state.attempts[wi] * 100) : 0;
+
+  document.getElementById('winner-icon').textContent = winner.icon;
+  document.getElementById('winner-title').textContent = `${pNum}'s ${winner.name} wins!`;
+  document.getElementById('winner-sub').textContent = `${loser.name} has been cast from Olympus.`;
+  document.getElementById('stat-turns').textContent = state.turnCount;
+  document.getElementById('stat-acc').textContent = acc + '%';
+
+  const storyBtn = document.getElementById('winner-story-btn');
+  storyBtn.textContent = `Read ${winner.name}'s tale`;
+  storyBtn.onclick = () => openStory(winner.id, null);
+}
+
+function resetGame() {
+  initSetup();
+  showScreen('screen-setup');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ─────────── INIT ─────────── */
+initSetup();
+
+</script>
+</body>
+</html>

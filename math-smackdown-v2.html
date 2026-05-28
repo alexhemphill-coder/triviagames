@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Smackdown — Battle of the Great Minds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blueprint: #0d3b66;
+    --blueprint-deep: #082a4a;
+    --blueprint-ink: #0a2540;
+    --paper: #f4f1e8;
+    --paper-line: #d9d3c2;
+    --grid: rgba(255,255,255,0.10);
+    --grid-strong: rgba(255,255,255,0.18);
+    --cyan: #4cc9f0;
+    --amber: #f4a259;
+    --p1: #4cc9f0;
+    --p1-deep: #2196c4;
+    --p2: #f4a259;
+    --p2-deep: #d97b34;
+    --ok: #80ed99;
+    --err: #ff6b6b;
+    --chalk: #eef3f8;
+    --chalk-dim: #9db4cc;
+    --easy: #80ed99;
+    --easy-deep: #46b96a;
+    --medium: #f4c95d;
+    --medium-deep: #c79a2c;
+    --hard: #ff6b6b;
+    --hard-deep: #c23434;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--blueprint);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      linear-gradient(var(--grid-strong) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px);
+    background-size: 22px 22px, 22px 22px, 110px 110px, 110px 110px;
+    color: var(--chalk);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .screen { display: none; animation: fade 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+
+  /* SETUP */
+  #screen-setup { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+  .title-block {
+    text-align: center;
+    border: 2px solid var(--chalk);
+    border-radius: 4px;
+    padding: 1.4rem 1rem 1.1rem;
+    margin-bottom: 1.6rem;
+    position: relative;
+    background: rgba(8,42,74,0.45);
+  }
+  .title-block::before {
+    content: "FIG. 1 — CHAMPIONS OF MATHEMATICS";
+    position: absolute; top: -10px; left: 16px;
+    background: var(--blueprint);
+    padding: 0 8px;
+    font-size: 0.6rem; letter-spacing: 0.18em; color: var(--chalk-dim);
+  }
+  .game-title {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 2.05rem;
+    line-height: 1.05;
+    color: var(--cyan);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 18px rgba(76,201,240,0.35);
+  }
+  .game-sub {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--chalk-dim);
+    margin-top: 0.5rem;
+  }
+
+  .setup-section { margin-bottom: 1.7rem; }
+  .setup-section h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px dashed var(--grid-strong);
+    padding-bottom: 6px; margin-bottom: 4px;
+  }
+  .setup-section h2.p1c { color: var(--p1); }
+  .setup-section h2.p2c { color: var(--p2); }
+  .setup-hint { font-size: 0.72rem; color: var(--chalk-dim); margin-bottom: 0.9rem; font-style: italic; font-family:'Fraunces',serif;}
+
+  .sci-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 560px){ .sci-grid { grid-template-columns: repeat(2,1fr);} .game-title{font-size:1.6rem;} }
+
+  .sci-card {
+    border: 1.5px solid var(--grid-strong);
+    border-radius: 4px;
+    background: rgba(8,42,74,0.55);
+    padding: 12px 10px 10px;
+    text-align: center;
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+    position: relative;
+  }
+  .sci-card .icon { font-size: 1.7rem; line-height: 1; }
+  .sci-card .sname { font-weight: 700; font-size: 0.82rem; margin-top: 6px; letter-spacing: 0.02em; }
+  .sci-card .sdomain { font-size: 0.62rem; color: var(--chalk-dim); margin-top: 2px; font-family:'Fraunces',serif; font-style:italic;}
+  .sci-card > div:first-child:hover { transform: translateY(-2px); }
+  .sci-card.selected { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 16px rgba(76,201,240,0.3); }
+  .sci-card.selected.p2sel { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber), 0 0 16px rgba(244,162,89,0.3); }
+  .sci-card.taken { opacity: 0.4; }
+
+  .story-link {
+    margin-top: 9px;
+    width: 100%;
+    background: transparent;
+    border: 1px dotted var(--chalk-dim);
+    color: var(--chalk-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    padding: 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.12s;
+  }
+  .story-link:hover { color: var(--cyan); border-color: var(--cyan); }
+
+  .rules-box {
+    border: 1.5px solid var(--grid-strong);
+    border-radius: 4px;
+    background: rgba(8,42,74,0.4);
+    padding: 14px 16px;
+    font-size: 0.74rem;
+    color: var(--chalk-dim);
+    line-height: 1.7;
+  }
+  .rules-box b { color: var(--chalk); }
+  .rules-box .e { color: var(--easy); font-weight:700; }
+  .rules-box .m { color: var(--medium); font-weight:700; }
+  .rules-box .h { color: var(--hard); font-weight:700; }
+
+  .start-btn {
+    width: 100%;
+    margin-top: 0.6rem;
+    background: var(--cyan);
+    color: var(--blueprint-deep);
+    border: none;
+    font-family: 'Major Mono Display', monospace;
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    padding: 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .start-btn:disabled { background: #3a5878; color: #6f88a3; cursor: not-allowed; }
+  .start-btn:not(:disabled):hover { box-shadow: 0 0 22px rgba(76,201,240,0.5); transform: translateY(-1px); }
+
+  /* BATTLE */
+  #screen-battle { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 2rem; }
+
+  .hp-strip {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(8,42,74,0.6);
+    border: 1.5px solid var(--grid-strong);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 1rem;
+  }
+  .hp-player { flex: 1; }
+  .hp-player-name {
+    font-size: 0.72rem; font-weight: 700; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px; letter-spacing: 0.03em;
+  }
+  .hp-player-name.p1 { color: var(--p1); }
+  .hp-player-name.p2 { color: var(--p2); justify-content: flex-end; }
+  .hp-bar-bg { height: 12px; background: rgba(0,0,0,0.3); border:1px solid var(--grid-strong); border-radius: 2px; overflow: hidden; }
+  .hp-bar-fill { height: 100%; transition: width 0.5s ease; }
+  .hp-fill-p1 { background: linear-gradient(90deg,var(--p1-deep),var(--p1)); }
+  .hp-fill-p2 { background: linear-gradient(90deg,var(--p2),var(--p2-deep)); }
+  .hp-num { font-size: 0.66rem; color: var(--chalk-dim); margin-top: 4px; }
+  .hp-num.right { text-align: right; }
+  .vs-mid { font-family: 'Major Mono Display', monospace; font-size: 0.9rem; color: var(--chalk); }
+
+  .score-strip { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--chalk-dim); margin-bottom: 0.8rem; padding: 0 2px; }
+
+  .turn-banner {
+    text-align: center; padding: 9px; border-radius: 4px;
+    font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em;
+    margin-bottom: 1rem; text-transform: uppercase;
+  }
+  .turn-banner.p1 { background: rgba(76,201,240,0.14); color: var(--p1); border: 1px solid var(--p1-deep); }
+  .turn-banner.p2 { background: rgba(244,162,89,0.14); color: var(--p2); border: 1px solid var(--p2-deep); }
+
+  /* DIFFICULTY PICKER (per-turn) */
+  .diff-pick-wrap { margin-bottom: 1rem; }
+  .diff-pick-label {
+    text-align:center; font-size:0.72rem; color:var(--chalk-dim);
+    font-family:'Fraunces',serif; font-style:italic; margin-bottom:0.7rem;
+  }
+  .diff-pick-row { display:flex; gap:10px; }
+  @media (max-width:480px){ .diff-pick-row { flex-direction:column; } }
+  .diff-pick-btn {
+    flex:1;
+    background: rgba(8,42,74,0.55);
+    border: 1.5px solid var(--grid-strong);
+    color: var(--chalk);
+    font-family:'Space Mono',monospace;
+    font-weight:700; font-size:0.9rem;
+    padding:14px 10px;
+    border-radius:4px; cursor:pointer;
+    transition: all 0.12s;
+    text-align:center;
+  }
+  .diff-pick-btn .dmg { display:block; font-size:0.64rem; font-weight:400; margin-top:5px; color:var(--chalk-dim); font-family:'Fraunces',serif; font-style:italic; }
+  .diff-pick-btn.e:hover { border-color:var(--easy); color:var(--easy); box-shadow:0 0 14px rgba(128,237,153,0.3); transform:translateY(-2px); }
+  .diff-pick-btn.m:hover { border-color:var(--medium); color:var(--medium); box-shadow:0 0 14px rgba(244,201,93,0.3); transform:translateY(-2px); }
+  .diff-pick-btn.h:hover { border-color:var(--hard); color:var(--hard); box-shadow:0 0 14px rgba(255,107,107,0.3); transform:translateY(-2px); }
+
+  .diff-tag {
+    display:inline-block; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:3px 9px; border-radius:3px; font-weight:700; margin-left:8px; vertical-align:middle;
+  }
+  .diff-tag.e { background:var(--easy); color:#06351a; }
+  .diff-tag.m { background:var(--medium); color:#3d2e00; }
+  .diff-tag.h { background:var(--hard); color:#4a0606; }
+
+  .question-card {
+    background: var(--paper);
+    color: var(--blueprint-ink);
+    border-radius: 4px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1rem;
+    min-height: 92px;
+    display: flex; align-items: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    background-image: repeating-linear-gradient(transparent, transparent 27px, var(--paper-line) 27px, var(--paper-line) 28px);
+  }
+  .q-category { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; color: var(--p1-deep); margin-bottom: 7px; text-transform: uppercase; }
+  .q-text { font-family: 'Fraunces', serif; font-size: 1.08rem; font-weight: 600; line-height: 1.4; }
+
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  @media (max-width: 480px){ .options-grid { grid-template-columns: 1fr; } }
+  .opt-btn {
+    background: rgba(244,241,232,0.95);
+    color: var(--blueprint-ink);
+    border: 1.5px solid transparent;
+    border-radius: 4px;
+    padding: 13px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .opt-btn:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--p1-deep); }
+  .opt-btn:disabled { cursor: default; }
+  .opt-btn.correct { background: var(--ok); color: #06351a; border-color: #2faa55; font-weight: 700; }
+  .opt-btn.wrong { background: var(--err); color: #4a0606; border-color: #c23434; }
+  .opt-btn.dim { opacity: 0.45; }
+  .opt-key { display:inline-block; min-width:1.1em; font-family:'Major Mono Display',monospace; color:var(--cyan); margin-right:0.5em; }
+
+  .feedback-card {
+    display: none;
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid;
+    background: rgba(8,42,74,0.7);
+  }
+  .feedback-card.hit { border-color: var(--ok); }
+  .feedback-card.miss { border-color: var(--err); }
+  .feedback-card.show { display: block; }
+  .fb-head { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; }
+  .feedback-card.hit .fb-head { color: var(--ok); }
+  .feedback-card.miss .fb-head { color: var(--err); }
+  #fb-body { font-family: 'Fraunces', serif; font-size: 0.9rem; color: var(--chalk); line-height: 1.5; font-style: italic; }
+
+  .next-btn {
+    display: none;
+    width: 100%;
+    background: var(--chalk);
+    color: var(--blueprint-deep);
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 0.9rem; letter-spacing: 0.05em;
+    padding: 13px; border-radius: 4px; cursor: pointer;
+    transition: all 0.12s;
+  }
+  .next-btn:hover { box-shadow: 0 0 16px rgba(238,243,248,0.4); }
+  .next-btn.show { display: block; }
+
+  /* WINNER */
+  #screen-winner { max-width: 580px; margin: 0 auto; padding: 2.5rem 1.2rem; text-align: center; }
+  .winner-icon { font-size: 4.5rem; line-height: 1; filter: drop-shadow(0 0 22px rgba(76,201,240,0.5)); }
+  .winner-laurel { font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--cyan); margin: 0.8rem 0; }
+  .winner-title { font-family: 'Major Mono Display', monospace; font-size: 1.7rem; color: var(--chalk); line-height: 1.15; }
+  .winner-sub { font-family: 'Fraunces', serif; font-style: italic; color: var(--chalk-dim); margin-top: 0.6rem; font-size: 0.95rem; }
+  .stats-row { display: flex; gap: 14px; justify-content: center; margin-top: 1.8rem; flex-wrap:wrap; }
+  .stat-box { border: 1.5px solid var(--grid-strong); border-radius: 4px; padding: 14px 22px; background: rgba(8,42,74,0.5); }
+  .stat-val { font-family: 'Major Mono Display', monospace; font-size: 1.6rem; color: var(--cyan); }
+  .stat-lbl { font-size: 0.6rem; color: var(--chalk-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+  .winner-story-btn {
+    background: transparent; border: 1px dotted var(--chalk-dim); color: var(--chalk-dim);
+    font-family: 'Space Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em;
+    padding: 9px 16px; border-radius: 3px; cursor: pointer; margin-top: 1.6rem; text-transform: uppercase;
+  }
+  .winner-story-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .play-again-btn {
+    display: block; margin: 1.2rem auto 0;
+    background: var(--cyan); color: var(--blueprint-deep); border: none;
+    font-family: 'Major Mono Display', monospace; font-size: 1rem; letter-spacing: 0.03em;
+    padding: 13px 30px; border-radius: 4px; cursor: pointer;
+  }
+  .play-again-btn:hover { box-shadow: 0 0 20px rgba(76,201,240,0.5); }
+
+  /* STORY MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 50;
+    background: rgba(4,18,33,0.85);
+    padding: 1.2rem; overflow-y: auto;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; }
+  .scroll {
+    background: var(--paper);
+    color: var(--blueprint-ink);
+    max-width: 600px; width: 100%;
+    border-radius: 6px;
+    padding: 2rem 1.9rem 1.7rem;
+    position: relative;
+    margin: 1.5rem auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(13,59,102,0.08) 31px, rgba(13,59,102,0.08) 32px);
+  }
+  .scroll-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 1.3rem; color: var(--blueprint); cursor: pointer; line-height: 1; }
+  .scroll-header { text-align: center; }
+  .scroll-icon { font-size: 3rem; line-height: 1; }
+  .scroll-name { font-family: 'Major Mono Display', monospace; font-size: 1.5rem; color: var(--blueprint); margin-top: 6px; }
+  .scroll-epithet { font-family: 'Fraunces', serif; font-style: italic; font-size: 0.92rem; color: var(--p1-deep); margin-top: 3px; }
+  .scroll-divider { text-align: center; color: var(--amber); margin: 1rem 0; letter-spacing: 0.3em; font-size: 0.8rem; }
+  .scroll-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 1.1rem; }
+  .scroll-tag { font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; background: var(--blueprint); color: var(--paper); padding: 3px 9px; border-radius: 3px; }
+  .scroll-body p { font-family: 'Fraunces', serif; font-size: 0.97rem; line-height: 1.65; margin-bottom: 0.9rem; color: #1c2d3f; }
+  .scroll-body p.lead::first-letter { font-size: 2.8rem; font-weight: 900; float: left; line-height: 0.8; padding: 4px 8px 0 0; color: var(--p1-deep); font-family: 'Fraunces', serif; }
+  .scroll-pick {
+    width: 100%; margin-top: 0.6rem;
+    background: var(--blueprint); color: var(--paper); border: none;
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.04em;
+    padding: 12px; border-radius: 4px; cursor: pointer; transition: background 0.12s;
+  }
+  .scroll-pick:hover { background: var(--blueprint-deep); }
+  .scroll-pick.taken { background: #9aa6b2; cursor: not-allowed; }
+
+  /* NUMERIC ANSWER INPUT */
+  .num-answer-wrap { display:none; gap:10px; margin-bottom:1rem; align-items:stretch; }
+  @media (max-width:480px){ .num-answer-wrap { flex-direction:column; } }
+  #num-input {
+    flex:1; min-width:0;
+    background: rgba(244,241,232,0.97);
+    color: var(--blueprint-ink);
+    border: 2px solid var(--p1-deep);
+    border-radius:4px;
+    font-family:'Major Mono Display', monospace;
+    font-size:1.2rem;
+    padding:13px 16px;
+    text-align:center;
+    letter-spacing:0.04em;
+  }
+  #num-input:focus { outline:none; box-shadow:0 0 14px rgba(76,201,240,0.4); }
+  #num-input.ok { border-color:#2faa55; background:var(--ok); color:#06351a; }
+  #num-input.bad { border-color:#c23434; background:var(--err); color:#4a0606; }
+  #num-input:disabled { opacity:1; }
+  #num-submit {
+    background: var(--cyan); color:var(--blueprint-deep); border:none;
+    font-family:'Space Mono',monospace; font-weight:700; font-size:0.9rem; letter-spacing:0.04em;
+    padding:13px 26px; border-radius:4px; cursor:pointer; transition:all 0.12s; white-space:nowrap;
+  }
+  #num-submit:hover:not(:disabled){ box-shadow:0 0 16px rgba(76,201,240,0.5); }
+  #num-submit:disabled{ background:#3a5878; color:#6f88a3; cursor:default; }
+  .num-hint { font-size:0.64rem; color:var(--chalk-dim); font-family:'Fraunces',serif; font-style:italic; margin-bottom:1rem; text-align:center; }
+
+  /* TIER PICKER (setup) */
+  .tier-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media (max-width:560px){ .tier-grid { grid-template-columns:1fr; } }
+  .tier-btn {
+    text-align:left; background:rgba(8,42,74,0.55);
+    border:1.5px solid var(--grid-strong); border-radius:4px;
+    color:var(--chalk); font-family:'Space Mono',monospace;
+    padding:12px 14px; cursor:pointer; transition:all 0.12s;
+    display:flex; flex-direction:column; gap:3px;
+  }
+  .tier-btn .tier-name { font-weight:700; font-size:0.9rem; letter-spacing:0.02em; }
+  .tier-btn .tier-desc { font-size:0.64rem; color:var(--chalk-dim); font-family:'Fraunces',serif; font-style:italic; }
+  .tier-btn:hover { transform:translateY(-1px); border-color:var(--p1-deep); }
+  .tier-btn.selected { border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan), 0 0 14px rgba(76,201,240,0.3); }
+  .tier-btn.selected .tier-name { color:var(--cyan); }
+  .tier-btn.selected.p2sel { border-color:var(--amber); box-shadow:0 0 0 1px var(--amber), 0 0 14px rgba(244,162,89,0.3); }
+  .tier-btn.selected.p2sel .tier-name { color:var(--amber); }
+
+  /* TURN CHOICE (home vs reach up) */
+  .choice-label-top { text-align:center; font-size:0.72rem; color:var(--chalk-dim); font-family:'Fraunces',serif; font-style:italic; margin-bottom:0.7rem; }
+  .choice-row { display:flex; gap:10px; margin-bottom:1rem; }
+  @media (max-width:480px){ .choice-row { flex-direction:column; } }
+  .choice-btn {
+    flex:1; background:rgba(8,42,74,0.55);
+    border:1.5px solid var(--grid-strong); border-radius:4px;
+    color:var(--chalk); font-family:'Space Mono',monospace;
+    padding:16px 12px; cursor:pointer; transition:all 0.12s;
+    display:flex; flex-direction:column; gap:4px; align-items:center; text-align:center;
+  }
+  .choice-btn .choice-label { font-weight:700; font-size:0.92rem; }
+  .choice-btn .choice-tier { font-size:0.66rem; color:var(--chalk-dim); font-family:'Fraunces',serif; font-style:italic; }
+  .choice-btn .choice-dmg { font-size:0.78rem; font-weight:700; margin-top:2px; }
+  .choice-btn.home:hover { border-color:var(--cyan); box-shadow:0 0 14px rgba(76,201,240,0.3); transform:translateY(-2px); }
+  .choice-btn.home .choice-dmg { color:var(--cyan); }
+  .choice-btn.reach { border-color:var(--medium-deep); background:rgba(244,201,93,0.07); }
+  .choice-btn.reach:hover { border-color:var(--medium); box-shadow:0 0 16px rgba(244,201,93,0.35); transform:translateY(-2px); }
+  .choice-btn.reach .choice-label { color:var(--medium); }
+  .choice-btn.reach .choice-dmg { color:var(--medium); }
+
+  .diff-tag { display:inline-block; font-size:0.56rem; letter-spacing:0.08em; text-transform:uppercase; padding:3px 9px; border-radius:3px; font-weight:700; margin-left:8px; vertical-align:middle; }
+  .diff-tag.home { background:var(--cyan); color:var(--blueprint-deep); }
+  .diff-tag.reach { background:var(--medium); color:#3d2e00; }
+
+  /* NUMERIC INPUT */
+  .num-answer-wrap { display:none; gap:10px; margin-bottom:1rem; align-items:stretch; }
+  @media (max-width:480px){ .num-answer-wrap { flex-direction:column; } }
+  #num-input {
+    flex:1; min-width:0; background:rgba(244,241,232,0.97); color:var(--blueprint-ink);
+    border:2px solid var(--p1-deep); border-radius:4px;
+    font-family:'Major Mono Display',monospace; font-size:1.2rem;
+    padding:13px 16px; text-align:center; letter-spacing:0.04em;
+  }
+  #num-input:focus { outline:none; box-shadow:0 0 14px rgba(76,201,240,0.4); }
+  #num-input.ok { border-color:#2faa55; background:var(--ok); color:#06351a; }
+  #num-input.bad { border-color:#c23434; background:var(--err); color:#4a0606; }
+  #num-input:disabled { opacity:1; }
+  #num-submit {
+    background:var(--cyan); color:var(--blueprint-deep); border:none;
+    font-family:'Space Mono',monospace; font-weight:700; font-size:0.9rem; letter-spacing:0.04em;
+    padding:13px 26px; border-radius:4px; cursor:pointer; transition:all 0.12s; white-space:nowrap;
+  }
+  #num-submit:hover:not(:disabled){ box-shadow:0 0 16px rgba(76,201,240,0.5); }
+  #num-submit:disabled{ background:#3a5878; color:#6f88a3; cursor:default; }
+
+  /* STORY DIAGRAM */
+  .diagram-box {
+    margin:1.3rem 0 0.5rem; padding:1rem; border-radius:6px;
+    background:var(--blueprint-deep);
+    border:1.5px solid var(--p1-deep);
+  }
+  .diagram-title { font-family:'Space Mono',monospace; font-weight:700; font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--cyan); text-align:center; margin-bottom:0.6rem; }
+  .diagram-svg { display:flex; justify-content:center; }
+  .diagram-svg svg { width:100%; max-width:320px; height:auto; }
+  .diagram-caption { font-family:'Fraunces',serif; font-style:italic; font-size:0.8rem; color:var(--chalk-dim); text-align:center; margin-top:0.6rem; line-height:1.5; }
+</style>
+
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen active">
+  <div class="title-block">
+    <div class="game-title">Math<br>Smackdown</div>
+    <div class="game-sub">Two great minds enter. One proof prevails.</div>
+  </div>
+
+  <div class="setup-section">
+    <h2 class="p1c">Player 1 — Choose your mathematician</h2>
+    <p class="setup-hint">Tap a card to choose. Tap "Read their story" to learn the legend first.</p>
+    <div class="sci-grid" id="sci-grid-1"></div>
+  </div>
+  <div class="setup-section">
+    <h2 class="p1c">Player 1 — Choose your level</h2>
+    <p class="setup-hint">You'll answer questions at this level. You can also "reach up" one level on your turn for bonus damage.</p>
+    <div class="tier-grid" id="tier-grid-1"></div>
+  </div>
+
+  <div class="setup-section">
+    <h2 class="p2c">Player 2 — Choose your mathematician</h2>
+    <p class="setup-hint">Tap a card to choose. Tap "Read their story" to learn the legend first.</p>
+    <div class="sci-grid" id="sci-grid-2"></div>
+  </div>
+  <div class="setup-section">
+    <h2 class="p2c">Player 2 — Choose your level</h2>
+    <p class="setup-hint">Each player can be a different level — perfect for siblings of different ages!</p>
+    <div class="tier-grid" id="tier-grid-2"></div>
+  </div>
+
+  <div class="setup-section">
+    <h2>How it works</h2>
+    <div class="rules-box">
+      Each player plays at their own grade level, so siblings of any age can battle fairly. On your turn, answer a question at <b>your level</b> for <b>11 damage</b>, or be brave and <span class="m">reach up</span> one level for <b>15 damage</b>. Some questions are multiple choice; others ask you to <b>type a number</b>. Answer correctly to hurt your opponent — miss, and you deal nothing. First mathematician to knock the other to <b>0 HP</b> wins.
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startBattle()" disabled>Begin the Proof</button>
+</div>
+
+<!-- BATTLE -->
+<div id="screen-battle" class="screen">
+  <div class="hp-strip">
+    <div class="hp-player">
+      <div class="hp-player-name p1"><span id="p1-icon"></span><span id="p1-label"></span></div>
+      <div class="hp-bar-bg"><div class="hp-bar-fill hp-fill-p1" id="p1-bar" style="width:100%"></div></div>
+      <div class="hp-num" id="p1-hp-text">100 HP</div>
+    </div>
+    <div class="vs-mid">VS</div>
+    <div class="hp-player" style="text-align:right;">
+      <div class="hp-player-name p2"><span id="p2-label"></span><span id="p2-icon"></span></div>
+      <div class="hp-bar-bg"><div class="hp-bar-fill hp-fill-p2" id="p2-bar" style="width:100%"></div></div>
+      <div class="hp-num right" id="p2-hp-text">100 HP</div>
+    </div>
+  </div>
+
+  <div class="score-strip">
+    <span id="score-left"></span>
+    <span id="score-right"></span>
+  </div>
+
+  <div class="turn-banner p1" id="turn-banner">Player 1's turn</div>
+
+  <div class="choice-wrap" id="choice-wrap">
+    <div class="choice-label-top">Play it safe at your level, or reach up for more damage?</div>
+    <div class="choice-row" id="choice-row"></div>
+  </div>
+
+  <div id="question-area" style="display:none;">
+    <div class="question-card">
+      <div style="width:100%">
+        <div class="q-category" id="q-category"></div>
+        <div class="q-text" id="q-text">Loading...</div>
+      </div>
+    </div>
+
+    <div class="options-grid" id="options-grid"></div>
+
+    <div class="num-answer-wrap" id="num-answer-wrap">
+      <input type="text" id="num-input" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+      <button id="num-submit" onclick="submitNumeric()">Submit</button>
+    </div>
+
+    <div class="feedback-card" id="feedback-card">
+      <div class="fb-head" id="fb-head"></div>
+      <div id="fb-body"></div>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="nextTurn()">Next Turn →</button>
+  </div>
+</div>
+
+<!-- WINNER -->
+<div id="screen-winner" class="screen">
+  <div class="winner-icon" id="winner-icon"></div>
+  <div class="winner-laurel">~ FIELDS MEDALLIST OF THE NIGHT ~</div>
+  <div class="winner-title" id="winner-title"></div>
+  <div class="winner-sub" id="winner-sub"></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="stat-turns"></div><div class="stat-lbl">Turns played</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-acc"></div><div class="stat-lbl">Winner accuracy</div></div>
+  </div>
+  <button class="winner-story-btn" id="winner-story-btn">Read the champion's story</button>
+  <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+</div>
+
+<!-- STORY MODAL -->
+<div class="modal-overlay" id="story-modal" onclick="if(event.target===this)closeStory()">
+  <div class="scroll">
+    <button class="scroll-close" onclick="closeStory()">✕</button>
+    <div class="scroll-header">
+      <div class="scroll-icon" id="story-icon"></div>
+      <div class="scroll-name" id="story-name"></div>
+      <div class="scroll-epithet" id="story-epithet"></div>
+    </div>
+    <div class="scroll-divider">◇ ◆ ◇</div>
+    <div class="scroll-tags" id="story-tags"></div>
+    <div class="scroll-body" id="story-body"></div>
+    <button class="scroll-pick" id="story-pick"></button>
+  </div>
+</div>
+
+<script>
+const SCIENTISTS = [
+  { id:'euclid',     name:'Euclid',     domain:'Geometry',           icon:'📐' },
+  { id:'pythagoras', name:'Pythagoras', domain:'Triangles & Numbers', icon:'△' },
+  { id:'archimedes', name:'Archimedes', domain:'Circles & Levers',    icon:'⚙️' },
+  { id:'gauss',      name:'Gauss',      domain:'Number Theory',       icon:'🔢' },
+  { id:'lovelace',   name:'Lovelace',   domain:'Computing',           icon:'💻' },
+  { id:'noether',    name:'Noether',    domain:'Algebra & Symmetry',  icon:'🔷' },
+  { id:'ramanujan',  name:'Ramanujan',  domain:'Infinite Series',     icon:'∞' },
+  { id:'euler',      name:'Euler',      domain:'Everything',          icon:'🅴' },
+  { id:'hypatia',    name:'Hypatia',    domain:'Astronomy & Conics',  icon:'🌟' },
+  { id:'fibonacci',  name:'Fibonacci',  domain:'Sequences',           icon:'🌀' },
+  { id:'johnson',    name:'Johnson',    domain:'Orbital Mechanics',   icon:'🚀' },
+  { id:'newton',     name:'Newton',     domain:'Calculus',            icon:'🍎' },
+];
+
+/* Each story has: epithet, tags, body[] paragraphs, and a diagram:
+   { title, caption, svg } showing their famous math at work. */
+const STORIES = {
+  euclid: {
+    epithet: 'The Father of Geometry',
+    tags: ['Geometry', 'The Elements', 'Proof'],
+    body: [
+      "Almost nothing is known about Euclid the man. He lived in the great city of Alexandria in Egypt around 300 BCE, taught at its famous library, and then vanished so completely from history that we are not certain when he was born or when he died. Yet he wrote a book that would be studied, copied, and taught for more than two thousand years.",
+      "That book was The Elements. In it, Euclid did something astonishing: he started with just a handful of simple, obvious statements — that you can draw a straight line between any two points, that all right angles are equal — and from those few seeds he grew the entire forest of geometry, proving hundreds of results step by careful step.",
+      "This was the birth of the proof. Before Euclid, mathematics was mostly a collection of rules that happened to work. After him, it became a tower of certainty, where every floor rests securely on the one below. A student who understood his logic did not have to take anything on faith — they could see, link by link, exactly why each statement had to be true.",
+      "Legend says that the ruler of Egypt, King Ptolemy, asked Euclid if there was an easier way to learn geometry than wading through all those proofs. Euclid replied that there is no royal road to geometry — meaning that even a king must do the hard thinking himself.",
+      "For over twenty centuries, to learn geometry simply meant to read Euclid. Abraham Lincoln studied him by candlelight to sharpen his reasoning; Einstein called a little book of Euclid's geometry one of the great awakenings of his boyhood."
+    ],
+    diagram: {
+      title: 'Euclid: Building from axioms',
+      caption: 'From a handful of accepted truths, Euclid proved an entire universe of geometry — like the angles of a triangle always summing to 180°.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="60,160 260,160 150,50" fill="none" stroke="var(--p1)" stroke-width="2"/>
+        <path d="M 60 160 A 26 26 0 0 1 84 145" fill="none" stroke="var(--amber)" stroke-width="1.6"/>
+        <path d="M 260 160 A 26 26 0 0 0 236 145" fill="none" stroke="var(--amber)" stroke-width="1.6"/>
+        <path d="M 150 50 A 24 24 0 0 1 168 64 M 150 50 A 24 24 0 0 0 132 64" fill="none" stroke="var(--amber)" stroke-width="1.6"/>
+        <text x="74" y="152" fill="var(--amber)" font-size="13" font-family="monospace">a</text>
+        <text x="240" y="152" fill="var(--amber)" font-size="13" font-family="monospace">b</text>
+        <text x="144" y="80" fill="var(--amber)" font-size="13" font-family="monospace">c</text>
+        <text x="160" y="190" fill="var(--chalk-dim)" font-size="13" font-family="monospace" text-anchor="middle">a + b + c = 180°</text>
+      </svg>`
+    }
+  },
+  pythagoras: {
+    epithet: 'The Master of Numbers',
+    tags: ['The Theorem', 'Secret Brotherhood', 'Music & Math'],
+    body: [
+      "Pythagoras lived around 500 BCE on the Greek island of Samos and became one of the most mysterious figures in the history of mathematics. He founded a secret society — half school, half religion — whose members shared everything and believed that the whole universe was secretly woven out of numbers.",
+      "His followers, the Pythagoreans, made a discovery that thrilled them: musical harmony obeys simple number ratios. Pluck a string, then pluck one exactly half as long, and the two notes sound perfectly in tune, an octave apart. To them this was proof that hidden numbers ruled even beauty and music.",
+      "The theorem that bears his name is one of the most famous facts in all of mathematics: in any right-angled triangle, the square on the longest side equals the sum of the squares on the other two. Builders had used special cases of this for centuries, but the Pythagoreans were obsessed with proving it true for every right triangle, forever.",
+      "Then came a crisis. Their own theorem revealed numbers that could not be written as simple fractions — the 'irrational' numbers, like the square root of two. This shattered their belief that everything was made of whole-number ratios. One story claims a member who revealed the secret was drowned at sea for it.",
+      "Whether those darker tales are true or not, the Pythagorean idea proved unstoppable: that the world can be understood through number and pattern. Every time an architect checks a corner is square, or a musician tunes an instrument, the strange dream of Pythagoras lives on."
+    ],
+    diagram: {
+      title: 'The Pythagorean Theorem',
+      caption: 'The squares built on the two short sides (9 + 16) exactly fill the square on the long side (25). This holds for every right triangle.',
+      svg: `<svg viewBox="0 0 320 230" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="120,150 180,150 180,110" fill="rgba(76,201,240,0.15)" stroke="var(--p1)" stroke-width="2"/>
+        <rect x="120" y="150" width="60" height="60" fill="rgba(244,162,89,0.12)" stroke="var(--amber)" stroke-width="1.6"/>
+        <rect x="180" y="70" width="40" height="40" fill="rgba(244,162,89,0.12)" stroke="var(--amber)" stroke-width="1.6"/>
+        <polygon points="120,150 180,110 240,170 180,210" fill="rgba(128,237,153,0.12)" stroke="var(--ok)" stroke-width="1.6"/>
+        <rect x="170" y="140" width="10" height="10" fill="none" stroke="var(--p1)" stroke-width="1.2"/>
+        <text x="150" y="184" fill="var(--amber)" font-size="12" font-family="monospace" text-anchor="middle">3²=9</text>
+        <text x="200" y="94" fill="var(--amber)" font-size="12" font-family="monospace" text-anchor="middle">4²=16</text>
+        <text x="200" y="166" fill="var(--ok)" font-size="12" font-family="monospace" text-anchor="middle">5²=25</text>
+        <text x="160" y="224" fill="var(--chalk-dim)" font-size="13" font-family="monospace" text-anchor="middle">a² + b² = c²</text>
+      </svg>`
+    }
+  },
+  archimedes: {
+    epithet: 'The Genius of Syracuse',
+    tags: ['Eureka!', 'Pi', 'War Machines'],
+    body: [
+      "Archimedes of Syracuse, who lived around 250 BCE, is often called the greatest mathematician of the ancient world. He combined a mathematician's deep mind with an inventor's clever hands, and stories of his brilliance were told and retold for centuries after his death.",
+      "The most famous tale is of the golden crown. Asked to discover whether a king's crown was pure gold without melting it down, Archimedes puzzled over the problem until, climbing into a bath, he noticed the water rise as his body sank in. He suddenly understood how to measure the crown's volume — and reportedly leapt out and ran through the streets shouting 'Eureka!', meaning 'I have found it!'",
+      "His mathematics was centuries ahead of its time. He pinned down the value of pi more precisely than anyone before him by trapping a circle between many-sided shapes, squeezing the answer from both directions. He worked out the area and volume of curved shapes using methods that came breathtakingly close to the calculus that Newton would invent almost two thousand years later.",
+      "He was also a master engineer. When Rome besieged his home city of Syracuse, Archimedes designed war machines that hurled stones and, by legend, great claws that lifted enemy ships clean out of the water. For a time, one old man's ingenuity held an entire army at bay.",
+      "When the city finally fell, a Roman soldier found Archimedes drawing geometric figures in the sand. Absorbed in a problem, the old mathematician told the soldier not to disturb his circles — and was killed on the spot. His tomb was carved, at his own wish, with a sphere inside a cylinder, the discovery he was proudest of."
+    ],
+    diagram: {
+      title: 'Archimedes: Sphere in a cylinder',
+      caption: 'Archimedes proved a sphere has exactly two-thirds the volume of the cylinder that wraps around it — the result carved on his tomb.',
+      svg: `<svg viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="160" cy="40" rx="60" ry="18" fill="none" stroke="var(--p1)" stroke-width="1.6"/>
+        <ellipse cx="160" cy="170" rx="60" ry="18" fill="none" stroke="var(--p1)" stroke-width="1.6"/>
+        <line x1="100" y1="40" x2="100" y2="170" stroke="var(--p1)" stroke-width="1.6"/>
+        <line x1="220" y1="40" x2="220" y2="170" stroke="var(--p1)" stroke-width="1.6"/>
+        <circle cx="160" cy="105" r="60" fill="rgba(244,162,89,0.12)" stroke="var(--amber)" stroke-width="2"/>
+        <ellipse cx="160" cy="105" rx="60" ry="16" fill="none" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3"/>
+        <text x="160" y="200" fill="var(--chalk-dim)" font-size="13" font-family="monospace" text-anchor="middle">sphere = ⅔ × cylinder</text>
+      </svg>`
+    }
+  },
+  gauss: {
+    epithet: 'The Prince of Mathematicians',
+    tags: ['Number Theory', 'Child Prodigy', 'The Sum 1 to 100'],
+    body: [
+      "Carl Friedrich Gauss was born in 1777 to a poor family in Germany, and his genius showed almost impossibly early. There is a famous story from his schooldays: a teacher, hoping for some quiet, told the class to add up all the numbers from 1 to 100. Within seconds little Gauss laid down his slate with the single correct answer — 5,050.",
+      "He had spotted a trick. Instead of adding the numbers one by one, he paired them up: 1 with 100, 2 with 99, 3 with 98, and so on. Each pair added to 101, and there were exactly 50 such pairs, so the total was 50 times 101. In one flash of insight he had turned a long slog into a single multiplication.",
+      "As a young man he made a discovery that decided his whole career: a way to construct a perfect 17-sided shape using only a compass and straightedge, something the ancient Greeks had never managed. He was so delighted that he asked for such a shape to be carved on his gravestone.",
+      "Gauss became a giant of the subject, making deep discoveries in number theory — the study of whole numbers — which he lovingly called 'the queen of mathematics.' He also calculated the orbit of a newly discovered dwarf planet, Ceres, when it vanished behind the Sun, telling astronomers exactly where to look to find it again. They did.",
+      "He was a perfectionist who published only work he considered flawless, leaving behind notebooks full of ideas decades ahead of everyone else. Known in his lifetime as the 'Prince of Mathematicians,' Gauss showed that the patterns hiding inside ordinary numbers could be as deep and beautiful as anything in the heavens."
+    ],
+    diagram: {
+      title: "Gauss's pairing trick",
+      caption: 'Pairing 1+100, 2+99, 3+98… each pair makes 101. Fifty pairs give 50 × 101 = 5,050, in one step instead of ninety-nine additions.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <text x="30" y="50" fill="var(--p1)" font-size="15" font-family="monospace">1   2   3  ...  98  99  100</text>
+        <path d="M 38 58 C 90 95, 250 95, 300 58" fill="none" stroke="var(--amber)" stroke-width="1.4"/>
+        <path d="M 62 58 C 100 85, 235 85, 276 58" fill="none" stroke="var(--amber)" stroke-width="1.4"/>
+        <path d="M 86 58 C 110 76, 215 76, 250 58" fill="none" stroke="var(--amber)" stroke-width="1.4"/>
+        <text x="160" y="120" fill="var(--amber)" font-size="13" font-family="monospace" text-anchor="middle">each pair = 101</text>
+        <text x="160" y="155" fill="var(--ok)" font-size="16" font-family="monospace" text-anchor="middle">50 × 101 = 5050</text>
+      </svg>`
+    }
+  },
+  lovelace: {
+    epithet: 'The First Programmer',
+    tags: ['Computing', 'The Analytical Engine', 'Poetical Science'],
+    body: [
+      "Ada Lovelace was the only legitimate child of the wild Romantic poet Lord Byron, who left when she was an infant. Terrified that her daughter might inherit the poet's dangerous imagination, Ada's mother had her drilled relentlessly in mathematics and logic. The plan backfired wonderfully: Ada became a mathematician, but one who saw numbers with a poet's vision. She called her gift 'poetical science.'",
+      "As a teenager she met Charles Babbage, an inventor designing a fantastical mechanical calculator he called the Analytical Engine — a great clockwork machine of gears and punched cards that, had it ever been fully built, would have been the world's first computer. Where others saw only an elaborate adding machine, Ada saw something Babbage himself had not fully grasped.",
+      "In 1843 she translated an article about the engine and, in her own appended notes, wrote something visionary. Buried in those notes was a detailed step-by-step method for the machine to calculate a complex sequence of numbers — what we now recognise as the first published computer program, written a full century before any real computer existed.",
+      "But her deepest insight went further still. Ada realised that the engine need not be limited to numbers at all. If music or letters or any idea could be represented as symbols, she reasoned, then the machine could manipulate them too — it could compose music, produce graphics, do far more than mere arithmetic.",
+      "Ada Lovelace died of cancer at just thirty-six, her ideas far too early for her age. When the first electronic computers were built a century later, pioneers rediscovered her writing and were astonished by how clearly she had seen the future. Today a programming language bears her name."
+    ],
+    diagram: {
+      title: "Lovelace: A loop of instructions",
+      caption: 'Ada wrote the first algorithm — a list of steps a machine repeats. This simple loop is the heart of every program written since.',
+      svg: `<svg viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
+        <rect x="110" y="20" width="100" height="30" rx="4" fill="none" stroke="var(--p1)" stroke-width="1.6"/>
+        <text x="160" y="40" fill="var(--chalk)" font-size="11" font-family="monospace" text-anchor="middle">START</text>
+        <rect x="100" y="75" width="120" height="34" rx="4" fill="rgba(244,162,89,0.1)" stroke="var(--amber)" stroke-width="1.6"/>
+        <text x="160" y="96" fill="var(--amber)" font-size="11" font-family="monospace" text-anchor="middle">compute next term</text>
+        <polygon points="160,130 205,155 160,180 115,155" fill="none" stroke="var(--p1)" stroke-width="1.6"/>
+        <text x="160" y="159" fill="var(--chalk)" font-size="10" font-family="monospace" text-anchor="middle">done?</text>
+        <line x1="160" y1="50" x2="160" y2="75" stroke="var(--p1)" stroke-width="1.4" marker-end="url(#ar)"/>
+        <line x1="160" y1="109" x2="160" y2="130" stroke="var(--p1)" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M 115 155 C 50 155, 50 92, 100 92" fill="none" stroke="var(--ok)" stroke-width="1.4" marker-end="url(#ar)"/>
+        <text x="60" y="130" fill="var(--ok)" font-size="10" font-family="monospace">no → loop</text>
+        <defs><marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--chalk-dim)"/></marker></defs>
+      </svg>`
+    }
+  },
+  noether: {
+    epithet: 'The Mother of Modern Algebra',
+    tags: ['Symmetry', 'Abstract Algebra', 'Physics'],
+    body: [
+      "Emmy Noether was born in Germany in 1882, at a time when universities barely allowed women through their doors. She sat in on lectures only with each professor's special permission, and when she finally earned the right to teach, the rules still forbade a woman from holding the post — so for years she lectured under a male colleague's name, without pay.",
+      "Despite every obstacle, she became one of the most important mathematicians of the twentieth century. She transformed algebra from the study of solving equations into the study of deep underlying structures — the abstract patterns and symmetries that many different problems secretly share.",
+      "Her most celebrated result, now called Noether's theorem, revealed a stunning bridge between mathematics and physics. She proved that every symmetry in nature corresponds to a conservation law. Because the laws of physics stay the same over time, energy is conserved; because they're the same everywhere in space, momentum is conserved.",
+      "Einstein himself wrote that Noether was the most significant creative mathematical genius produced since women had begun receiving higher education. Her students, devoted to her warm and generous teaching, were affectionately known as the 'Noether boys' who carried her revolutionary methods around the world.",
+      "When the Nazis seized power, Noether, who was Jewish, was thrown out of her university and fled to the United States. She died there suddenly in 1935, only fifty-three years old. The abstract, structural way of thinking she pioneered is now simply how modern mathematics is done."
+    ],
+    diagram: {
+      title: "Noether: Symmetry and balance",
+      caption: 'Noether showed that symmetry — a shape that looks the same when flipped or turned — is deeply linked to the laws that keep nature in balance.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <line x1="160" y1="20" x2="160" y2="180" stroke="var(--chalk-dim)" stroke-width="1" stroke-dasharray="4 4"/>
+        <polygon points="160,50 120,150 200,150" fill="rgba(76,201,240,0.12)" stroke="var(--p1)" stroke-width="1.8"/>
+        <polygon points="160,50 200,150 120,150" fill="none" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3"/>
+        <circle cx="120" cy="150" r="3" fill="var(--p1)"/>
+        <circle cx="200" cy="150" r="3" fill="var(--amber)"/>
+        <text x="160" y="195" fill="var(--chalk-dim)" font-size="12" font-family="monospace" text-anchor="middle">symmetry ⟷ conservation</text>
+      </svg>`
+    }
+  },
+  ramanujan: {
+    epithet: 'The Man Who Knew Infinity',
+    tags: ['Infinite Series', 'Self-Taught', 'Number Patterns'],
+    body: [
+      "Srinivasa Ramanujan was born in 1887 in southern India, into a poor family and with almost no formal training in mathematics. As a teenager he got hold of a single dense book of mathematical results and taught himself from it, then went far beyond it, filling notebook after notebook with thousands of his own astonishing formulas.",
+      "He had almost no one to share his work with. He failed his other school subjects because he ignored everything but mathematics, lost his scholarship, and worked as a poor clerk while scribbling theorems in the margins of his life. Convinced his discoveries were important, he began writing letters to famous mathematicians in England.",
+      "One did not ignore him. G. H. Hardy at Cambridge opened the letter, saw formulas so wild and so brilliant that he said they 'must be true, because no one would have the imagination to invent them,' and arranged to bring Ramanujan to England in 1914. The two formed one of the most famous partnerships in the history of mathematics.",
+      "There is a beloved story from his time in England. Hardy visited the ailing Ramanujan and remarked that his taxi's number, 1729, was rather dull. Ramanujan instantly replied that it was not dull at all — it was the smallest number expressible as the sum of two cubes in two different ways. Numbers, to him, were personal friends.",
+      "Ramanujan fell gravely ill in England's cold climate and returned home, dying in 1920 at just thirty-two. He left behind notebooks so full of deep ideas that mathematicians are still proving his formulas correct a century later. A self-taught genius from a small Indian town had reached out and touched infinity."
+    ],
+    diagram: {
+      title: "The taxicab number 1729",
+      caption: 'Ramanujan saw instantly that 1729 is the smallest number that is a sum of two cubes in two different ways.',
+      svg: `<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
+        <text x="160" y="45" fill="var(--p1)" font-size="26" font-family="monospace" text-anchor="middle">1729</text>
+        <text x="160" y="95" fill="var(--amber)" font-size="15" font-family="monospace" text-anchor="middle">1³ + 12³ = 1 + 1728</text>
+        <text x="160" y="125" fill="var(--ok)" font-size="15" font-family="monospace" text-anchor="middle">9³ + 10³ = 729 + 1000</text>
+        <text x="160" y="160" fill="var(--chalk-dim)" font-size="12" font-family="monospace" text-anchor="middle">two ways to the same number</text>
+      </svg>`
+    }
+  },
+  euler: {
+    epithet: 'The Most Prolific Mathematician',
+    tags: ['Calculus', 'Notation', 'Blind Genius'],
+    body: [
+      "Leonhard Euler, born in Switzerland in 1707, was so productive that he is generally considered the most prolific mathematician who ever lived. He wrote so much that, even today, his collected works fill more than seventy thick volumes. If you have ever used the symbols for pi (π), for a function f(x), or the letter e for the special number near 2.718, you have used notation that Euler made standard.",
+      "His mind seemed to touch every corner of mathematics. He made foundational discoveries in calculus, geometry, number theory, and the study of motion. He solved a famous puzzle about whether one could walk through the city of Königsberg crossing each of its seven bridges exactly once — and in proving it impossible, he invented an entirely new branch of mathematics now used to map computer networks and the internet.",
+      "He also found what many call the most beautiful equation in all of mathematics, a single short line that ties together five of the most important numbers — 0, 1, pi, e, and the imaginary unit i — in one elegant relationship. Mathematicians still describe it as a kind of poetry written in symbols.",
+      "What makes his output almost unbelievable is that Euler gradually went blind, losing sight in one eye early and the other later in life. Yet he barely slowed down. He performed staggering calculations entirely in his head and dictated his discoveries to assistants, reportedly producing some of his finest work after losing his sight completely.",
+      "Euler worked until the very last day of his life in 1783. A kind and generous man with thirteen children, he carried mathematics lightly even as he reshaped it. Centuries later, his fingerprints are on nearly every page of the subject."
+    ],
+    diagram: {
+      title: "Euler's identity",
+      caption: 'Often called the most beautiful equation in math, it links five fundamental numbers — e, i, π, 1 and 0 — in a single line.',
+      svg: `<svg viewBox="0 0 320 170" xmlns="http://www.w3.org/2000/svg">
+        <text x="160" y="80" fill="var(--p1)" font-size="34" font-family="monospace" text-anchor="middle">e<tspan font-size="20" dy="-12">iπ</tspan><tspan dy="12"> + 1 = 0</tspan></text>
+        <text x="160" y="130" fill="var(--chalk-dim)" font-size="12" font-family="monospace" text-anchor="middle">five great constants, one equation</text>
+      </svg>`
+    }
+  },
+  hypatia: {
+    epithet: 'The Scholar of Alexandria',
+    tags: ['Conic Sections', 'Astronomy', 'Ancient Alexandria'],
+    body: [
+      "Hypatia lived in Alexandria around 400 CE and is the first woman mathematician whose life and work we know in real detail. Her father, Theon, was a respected scholar at the city's famous centre of learning, and he educated his daughter in mathematics, astronomy, and philosophy until she surpassed even him and became the leading thinker of the city.",
+      "She taught students who travelled from across the ancient world to hear her, and she wrote commentaries that explained and extended the great mathematical works of her age — including studies of conic sections, the elegant curves (the ellipse, parabola, and hyperbola) you get by slicing through a cone. These same curves describe the orbits of planets and the path of a thrown ball.",
+      "Hypatia was also a skilled astronomer and inventor. She is associated with instruments like the astrolabe, used to measure the positions of stars and tell time by the sky, and the hydrometer, used to measure the density of liquids. She was admired not only for her brilliance but for her gift at making difficult ideas clear.",
+      "But she lived in dangerous times, as old learning collided with bitter political and religious conflict in Alexandria. Caught up in those struggles through no fault of her own, Hypatia was killed by a mob in 415 CE. Her death is often remembered as a symbol of the violence that can extinguish reason and scholarship.",
+      "Though much of her writing was lost in the centuries that followed, Hypatia was never forgotten. She stands as one of history's great teachers, and a reminder that the love of mathematics has always belonged to everyone."
+    ],
+    diagram: {
+      title: "Hypatia: Slicing a cone",
+      caption: 'Cut a cone at different angles and you get the conic sections — circle, ellipse, parabola — the same curves that trace planet orbits.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="160,25 110,160 210,160" fill="rgba(76,201,240,0.08)" stroke="var(--p1)" stroke-width="1.6"/>
+        <ellipse cx="160" cy="160" rx="50" ry="12" fill="none" stroke="var(--p1)" stroke-width="1.4"/>
+        <ellipse cx="160" cy="95" rx="22" ry="7" fill="none" stroke="var(--ok)" stroke-width="1.6" transform="rotate(-12 160 95)"/>
+        <line x1="120" y1="80" x2="205" y2="110" stroke="var(--amber)" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="225" y="112" fill="var(--amber)" font-size="11" font-family="monospace">cut</text>
+        <text x="160" y="190" fill="var(--chalk-dim)" font-size="12" font-family="monospace" text-anchor="middle">circle · ellipse · parabola</text>
+      </svg>`
+    }
+  },
+  fibonacci: {
+    epithet: 'The Bringer of Numbers',
+    tags: ['The Sequence', 'Hindu-Arabic Numerals', "Nature's Pattern"],
+    body: [
+      "Leonardo of Pisa, nicknamed Fibonacci, was born in Italy around 1170. As a boy he travelled with his merchant father along the coast of North Africa, and there he learned something that would change Europe forever: the Hindu-Arabic number system — the very digits 0 through 9 that you use every day.",
+      "At the time, Europeans still struggled with clumsy Roman numerals, where writing a number like 1888 was a nightmare and doing arithmetic with them was harder still. Fibonacci saw at once that the new system, with its all-important zero and its place values, was vastly better. In 1202 he wrote a book to teach it to Europe.",
+      "That same book contained a playful puzzle about breeding rabbits that gave us the sequence now named after him. You start with 0 and 1, then each new number is simply the sum of the two before it: 0, 1, 1, 2, 3, 5, 8, 13, 21, and on forever. It looks almost too simple to matter.",
+      "Yet that humble sequence turns up all over the living world. The spirals of a sunflower's seeds, the bumps on a pineapple, the petals of many flowers, the branching of trees — astonishingly often, they follow Fibonacci's numbers. The pattern is tied to a special ratio, the 'golden ratio,' that has fascinated artists for centuries.",
+      "Fibonacci did far more serious mathematics in his life, but it is this gentle ladder of numbers, and the digits he helped carry across the sea, for which he is remembered. He gave Europe both the tools to calculate and a glimpse of the hidden patterns that nature loves to repeat."
+    ],
+    diagram: {
+      title: "The Fibonacci spiral",
+      caption: 'Each number is the sum of the two before it. Squares of those sizes spiral outward — the same curve seen in shells and sunflowers.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="150" y="90" width="13" height="13" fill="none" stroke="var(--p1)" stroke-width="1.3"/>
+        <rect x="163" y="90" width="13" height="13" fill="none" stroke="var(--p1)" stroke-width="1.3"/>
+        <rect x="150" y="103" width="26" height="26" fill="none" stroke="var(--p1)" stroke-width="1.3"/>
+        <rect x="176" y="90" width="39" height="39" fill="none" stroke="var(--amber)" stroke-width="1.3"/>
+        <rect x="150" y="129" width="65" height="65" fill="none" stroke="var(--amber)" stroke-width="1.3"/>
+        <rect x="85" y="90" width="65" height="104" fill="none" stroke="var(--ok)" stroke-width="1.3"/>
+        <path d="M 163 90 A 13 13 0 0 1 176 103 A 26 26 0 0 1 150 129 A 39 39 0 0 1 215 129 A 65 65 0 0 1 150 194 A 65 65 0 0 1 85 129" fill="none" stroke="var(--chalk)" stroke-width="2"/>
+        <text x="40" y="40" fill="var(--chalk-dim)" font-size="12" font-family="monospace">1 1 2 3 5 8 13 ...</text>
+      </svg>`
+    }
+  },
+  johnson: {
+    epithet: 'The Human Computer',
+    tags: ['Orbital Mechanics', 'NASA', 'Hidden Figures'],
+    body: [
+      "Katherine Johnson was born in 1918 in West Virginia, and her hunger for numbers showed early — she counted everything, the steps to church, the dishes she washed, the stars if she could. She was so far ahead of her age that she started high school at ten and finished college at eighteen, at a time when few Black Americans, and fewer Black women, were given any such chance.",
+      "She joined the space agency that became NASA as one of a group of Black women mathematicians known as 'human computers,' who performed the enormous calculations of spaceflight by hand, working in a segregated section apart from their white colleagues. Johnson's sheer skill made her impossible to keep in the background.",
+      "Her specialty was the mathematics of orbits — the precise, unforgiving geometry of getting a spacecraft up, around the Earth, and safely back down. She calculated the path for the first American to fly in space, and the trajectory for the first American to orbit the Earth, John Glenn.",
+      "There is a famous moment that captures her reputation. Before his historic orbit, the new electronic computers had worked out Glenn's flight path, but Glenn did not fully trust the machines. He asked engineers to 'get the girl' to check the numbers by hand — meaning Katherine Johnson — and said that if she confirmed they were right, he was ready to fly. She did, and he went.",
+      "Johnson's calculations later helped send astronauts to the Moon and bring the Apollo 13 crew home alive after disaster struck. For decades her story was little known, until books and a film called Hidden Figures finally celebrated her. She received the nation's highest civilian honour and lived to 101."
+    ],
+    diagram: {
+      title: "Johnson: Plotting an orbit",
+      caption: 'An orbit is a careful balance — fast enough sideways that the craft keeps "falling past" the Earth instead of crashing into it.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="160" cy="100" r="34" fill="rgba(76,201,240,0.15)" stroke="var(--p1)" stroke-width="1.6"/>
+        <text x="160" y="105" fill="var(--p1)" font-size="11" font-family="monospace" text-anchor="middle">Earth</text>
+        <ellipse cx="160" cy="100" rx="120" ry="70" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="5 4"/>
+        <circle cx="280" cy="100" r="5" fill="var(--ok)"/>
+        <line x1="280" y1="100" x2="280" y2="70" stroke="var(--ok)" stroke-width="1.4" marker-end="url(#ar2)"/>
+        <text x="160" y="190" fill="var(--chalk-dim)" font-size="12" font-family="monospace" text-anchor="middle">speed + gravity = orbit</text>
+        <defs><marker id="ar2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ok)"/></marker></defs>
+      </svg>`
+    }
+  },
+  newton: {
+    epithet: 'The Inventor of Calculus',
+    tags: ['Calculus', 'The Plague Years', 'Motion'],
+    body: [
+      "Isaac Newton was born in England on Christmas Day in 1642, so small and frail that his mother said he could have fit inside a quart mug. A quiet, inventive boy, he filled his hours building windmills, sundials, and clever models — a sign of the relentless, curious mind that would one day rewrite both physics and mathematics.",
+      "In 1665 the plague swept through England and closed the University of Cambridge. Newton, barely in his twenties, retreated to his family farm and spent two solitary years thinking harder than perhaps anyone ever had. In that single stretch he laid the foundations of calculus, split sunlight into a rainbow with a prism, and began to wonder whether the force pulling an apple down might also hold the Moon in the sky.",
+      "Calculus was his great mathematical gift to the world. It is the mathematics of change — of speeds that vary, curves that bend, quantities that grow and shrink smoothly. With it, Newton could describe a falling apple, a planet's orbit, and the swing of a tide all with the same powerful tools. The German mathematician Leibniz invented calculus independently around the same time, sparking one of history's most bitter feuds.",
+      "In 1687 Newton published the Principia, in which he laid down his three laws of motion and his law of universal gravitation. Using his new mathematics, he showed that the same simple rules governed both the heavens and the Earth, turning the wandering lights in the sky into predictable clockwork.",
+      "Newton was famously prickly, guarding his work and quarrelling with rivals. Yet when asked how he had seen so far, he answered that he had stood on the shoulders of giants. The mathematics he built became the shoulders on which nearly all of modern science would stand."
+    ],
+    diagram: {
+      title: "Newton: The slope of a curve",
+      caption: 'Calculus finds the exact steepness of a curve at any point — the key to describing how anything moving speeds up or slows down.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <line x1="40" y1="170" x2="290" y2="170" stroke="var(--chalk-dim)" stroke-width="1"/>
+        <line x1="50" y1="180" x2="50" y2="30" stroke="var(--chalk-dim)" stroke-width="1"/>
+        <path d="M 55 165 Q 150 160 260 50" fill="none" stroke="var(--p1)" stroke-width="2"/>
+        <circle cx="180" cy="118" r="4" fill="var(--amber)"/>
+        <line x1="120" y1="150" x2="240" y2="86" stroke="var(--amber)" stroke-width="1.6"/>
+        <text x="200" y="150" fill="var(--amber)" font-size="11" font-family="monospace">slope here</text>
+        <text x="160" y="195" fill="var(--chalk-dim)" font-size="12" font-family="monospace" text-anchor="middle">calculus = rate of change</text>
+      </svg>`
+    }
+  }
+};
+
+
+/* ─────────── QUESTION BANKS ───────────
+   Four tiers: g13 (Grade 1-3), g45 (Grade 4-5), g68 (Grade 6-8), hs (High School)
+   type 'mc'  -> multiple choice (opts[] + ans index)
+   type 'num' -> typed numeric (accept[] of valid strings)
+   Every fact teaches the *why*, written for a smart child.
+*/
+const QUESTIONS = {
+  g13: [
+    {type:'num', cat:'Addition', q:'What is 3 + 4?', accept:['7'], fact:'3 and 4 make 7. If you hold up 3 fingers and 4 fingers, you can count them all to get 7.'},
+    {type:'mc', cat:'Counting', q:'What number comes after 19?', opts:['18','20','21','29'], ans:1, fact:'After 19 comes 20. When you reach a 9 at the end, the next number rolls over to a new ten — like a tiny odometer.'},
+    {type:'num', cat:'Subtraction', q:'What is 9 − 5?', accept:['4'], fact:'Take 5 away from 9 and 4 are left. Subtraction is counting backwards: 9, then down to 8, 7, 6, 5… that\'s 4 steps.'},
+    {type:'mc', cat:'Shapes', q:'How many sides does a triangle have?', opts:['2','3','4','5'], ans:1, fact:'A triangle has 3 sides and 3 corners. "Tri" means three — like a tricycle\'s three wheels.'},
+    {type:'num', cat:'Addition', q:'What is 5 + 5?', accept:['10'], fact:'5 plus 5 makes 10 — a whole hand of fingers plus the other hand. Doubles like this are worth memorising.'},
+    {type:'mc', cat:'Counting', q:'Which number is the biggest?', opts:['12','21','9','19'], ans:1, fact:'21 is biggest. With two-digit numbers, look at the tens first: 21 has 2 tens, more than 12, 19, or single-digit 9.'},
+    {type:'num', cat:'Subtraction', q:'What is 10 − 3?', accept:['7'], fact:'10 take away 3 leaves 7. You can check by adding back: 7 + 3 = 10.'},
+    {type:'mc', cat:'Even/Odd', q:'Which number is even?', opts:['3','5','8','7'], ans:2, fact:'8 is even because it splits into two equal groups of 4. Even numbers end in 0, 2, 4, 6, or 8.'},
+    {type:'num', cat:'Addition', q:'What is 6 + 2?', accept:['8'], fact:'6 and 2 make 8. A trick: start at the bigger number, 6, and count up two — 7, 8.'},
+    {type:'mc', cat:'Money', q:'How many cents are in one dime?', opts:['1','5','10','25'], ans:2, fact:'A dime is 10 cents. It\'s small but worth more than the bigger penny or nickel — size doesn\'t equal value with coins!'},
+    {type:'num', cat:'Counting', q:'Count by tens: 10, 20, 30, ___?', accept:['40'], fact:'Counting by tens, after 30 comes 40. Each jump adds one more ten, so only the tens digit changes.'},
+    {type:'mc', cat:'Shapes', q:'What shape is a ball?', opts:['Square','Circle','Sphere','Triangle'], ans:2, fact:'A ball is a sphere — round in every direction. A circle is flat, but a sphere is solid like a real ball.'},
+    {type:'num', cat:'Addition', q:'What is 7 + 3?', accept:['10'], fact:'7 and 3 are a "10 friend" pair — they add up to a tidy 10. Knowing the pairs that make 10 helps with bigger sums later.'},
+    {type:'mc', cat:'Comparing', q:'Which is more: 8 or 5?', opts:['8','5','Same','Neither'], ans:0, fact:'8 is more than 5. On a number line, 8 sits further to the right, and further right always means more.'},
+    {type:'num', cat:'Subtraction', q:'What is 6 − 6?', accept:['0'], fact:'Take all 6 away and nothing is left — zero. Any number minus itself is always 0.'},
+    {type:'mc', cat:'Time', q:'How many days are in one week?', opts:['5','6','7','10'], ans:2, fact:'A week has 7 days. The names come from the Sun, Moon, and old gods of the sky.'},
+    {type:'num', cat:'Addition', q:'What is 4 + 4 + 4?', accept:['12'], fact:'Three 4s make 12. Adding the same number again and again is the very start of multiplication: 3 × 4 = 12.'},
+    {type:'mc', cat:'Patterns', q:'What comes next: 2, 4, 6, ___?', opts:['7','8','9','10'], ans:1, fact:'The pattern adds 2 each time, so after 6 comes 8. These are the even numbers in order.'},
+    {type:'num', cat:'Counting', q:'How many fingers on two hands?', accept:['10'], fact:'Two hands have 10 fingers — which is exactly why our whole number system counts in tens!'},
+    {type:'mc', cat:'Shapes', q:'How many corners does a square have?', opts:['2','3','4','5'], ans:2, fact:'A square has 4 corners and 4 equal sides. Every corner is a perfect "square" right angle.'},
+    {type:'num', cat:'Addition', q:'What is 8 + 1?', accept:['9'], fact:'Adding 1 just means the next number up: after 8 comes 9. Adding one is the same as counting on by one.'},
+    {type:'mc', cat:'Subtraction', q:'What is 7 − 2?', opts:['4','5','6','9'], ans:1, fact:'7 take away 2 is 5. Count back from 7 two steps: 6, then 5.'},
+    {type:'num', cat:'Doubles', q:'What is double 4?', accept:['8'], fact:'Double 4 means 4 + 4 = 8. Doubling is adding a number to itself.'},
+    {type:'mc', cat:'Counting', q:'What number is missing: 1, 2, ___, 4, 5?', opts:['2','3','6','0'], ans:1, fact:'3 fits between 2 and 4. Counting in order, each number is one more than the last.'},
+    {type:'num', cat:'Subtraction', q:'What is 8 − 4?', accept:['4'], fact:'8 split into two equal parts gives 4 and 4, so 8 − 4 = 4. Half of 8 is 4.'},
+    {type:'mc', cat:'Fractions', q:'If you cut a pizza into 2 equal pieces, each piece is one…', opts:['Whole','Half','Third','Quarter'], ans:1, fact:'Two equal pieces means each is one half. Half means one of two equal parts.'},
+    {type:'num', cat:'Addition', q:'What is 10 + 5?', accept:['15'], fact:'10 and 5 make 15. Adding to 10 is easy — just put the other number right after the 1: fif-teen.'},
+    {type:'mc', cat:'Money', q:'How many pennies make a nickel?', opts:['1','5','10','25'], ans:1, fact:'5 pennies equal a nickel, because a nickel is worth 5 cents.'},
+    {type:'num', cat:'Counting', q:'Count by fives: 5, 10, 15, ___?', accept:['20'], fact:'Counting by 5s, after 15 comes 20. Every number you say ends in 5 or 0 — a handy pattern.'},
+    {type:'mc', cat:'Shapes', q:'A shape with no corners and perfectly round is a…', opts:['Square','Circle','Triangle','Rectangle'], ans:1, fact:'A circle is perfectly round with no corners at all. Every point on its edge is the same distance from the centre.'},
+    {type:'num', cat:'Addition', q:'What is 9 + 9?', accept:['18'], fact:'Double 9 is 18. A trick: 9 + 9 is like 10 + 10 (20) minus 2, which gives 18.'},
+    {type:'mc', cat:'Bigger', q:'Which is the smallest number?', opts:['7','3','9','5'], ans:1, fact:'3 is smallest. On a number line it sits furthest to the left, and left means less.'},
+    {type:'num', cat:'Subtraction', q:'What is 15 − 5?', accept:['10'], fact:'Take 5 from 15 and you land back on 10. Subtracting the ones digit from a teen number is a quick way to reach 10.'},
+    {type:'mc', cat:'Patterns', q:'What comes next: 5, 10, 15, 20, ___?', opts:['21','25','30','24'], ans:1, fact:'This counts by fives, so after 20 comes 25. Skip-counting by 5 builds the 5 times table.'},
+    {type:'num', cat:'Addition', q:'What is 2 + 3 + 4?', accept:['9'], fact:'2 + 3 is 5, then 5 + 4 is 9. With a list of numbers, add two at a time from left to right.'},
+    {type:'mc', cat:'Time', q:'How many months are in a year?', opts:['10','11','12','7'], ans:2, fact:'A year has 12 months. The word "month" comes from "moon," since each is roughly one moon cycle.'},
+    {type:'num', cat:'Subtraction', q:'What is 12 − 7?', accept:['5'], fact:'12 take away 7 leaves 5. You can think: 7 plus what makes 12? The answer is 5.'},
+    {type:'mc', cat:'Multiplication', q:'What is 2 × 3?', opts:['5','6','8','9'], ans:1, fact:'2 groups of 3 (or 3 groups of 2) make 6. Multiplication is fast adding of equal groups.'},
+    {type:'num', cat:'Counting', q:'What is 1 more than 29?', accept:['30'], fact:'One more than 29 is 30. The 9 rolls over, bumping the tens up to make a fresh thirty.'},
+    {type:'mc', cat:'Shapes', q:'How many sides does a rectangle have?', opts:['3','4','5','6'], ans:1, fact:'A rectangle has 4 sides — two long and two short. A square is a special rectangle with all four sides equal.'},
+    {type:'num', cat:'Addition', q:'What is 20 + 30?', accept:['50'], fact:'2 tens plus 3 tens makes 5 tens, which is 50. Adding the tens is just like adding 2 + 3.'},
+    {type:'mc', cat:'Even/Odd', q:'Which number is odd?', opts:['4','6','7','8'], ans:2, fact:'7 is odd because it can\'t split into two equal whole groups — one is always left over. Odd numbers end in 1, 3, 5, 7, or 9.'},
+    {type:'num', cat:'Multiplication', q:'What is 5 × 2?', accept:['10'], fact:'5 times 2 is 10 — two groups of five, like two hands of fingers.'},
+    {type:'mc', cat:'Fractions', q:'A shape split into 4 equal parts — each part is one…', opts:['Half','Third','Quarter','Whole'], ans:2, fact:'Four equal parts means each is a quarter (one fourth). Four quarters make the whole back again.'},
+    {type:'num', cat:'Subtraction', q:'What is 20 − 10?', accept:['10'], fact:'20 minus 10 is 10. Taking away one ten from two tens leaves a single ten.'},
+    {type:'mc', cat:'Counting', q:'How do you write the number "fifteen"?', opts:['51','15','105','50'], ans:1, fact:'Fifteen is 15 — one ten and five ones. The 1 means a ten, the 5 means five ones.'},
+    {type:'num', cat:'Addition', q:'What is 11 + 11?', accept:['22'], fact:'Double 11 is 22. Adding 11 to a number bumps both digits up by one, so 11 becomes 22.'},
+    {type:'mc', cat:'Comparing', q:'Which sign goes here: 9 ___ 4?', opts:['<','>','=','+'], ans:1, fact:'9 is greater than 4, so we use >. The wide open mouth always points at the bigger number.'},
+    {type:'num', cat:'Multiplication', q:'What is 3 × 3?', accept:['9'], fact:'Three groups of three make 9. A 3-by-3 square of dots has 9 dots in it.'},
+    {type:'num', cat:'Subtraction', q:'What is 14 − 6?', accept:['8'], fact:'14 take away 6 leaves 8. Try it in steps: 14 down to 10 is 4, then 4 more down to 8.'},
+    {type:'mc', cat:'Shapes', q:'Which shape has 6 sides?', opts:['Pentagon','Hexagon','Triangle','Square'], ans:1, fact:'A hexagon has 6 sides. Bees build six-sided cells in their honeycomb because they fit together with no gaps.'},
+    {type:'num', cat:'Addition', q:'What is 25 + 25?', accept:['50'], fact:'Two 25s make 50 — like two quarters making half a dollar. Doubling 25 always gives 50.'},
+    {type:'mc', cat:'Time', q:'How many hours are in one day?', opts:['12','24','30','60'], ans:1, fact:'A day has 24 hours — 12 of daytime hours on a clock, counted around twice.'},
+    {type:'num', cat:'Multiplication', q:'What is 4 × 2?', accept:['8'], fact:'4 times 2 is 8 — two groups of four. It\'s the same as 4 + 4.'},
+    {type:'mc', cat:'Counting', q:'What is ten more than 40?', opts:['41','50','30','60'], ans:1, fact:'Ten more than 40 is 50. Only the tens digit changes when you add a ten.'},
+    {type:'num', cat:'Subtraction', q:'What is 18 − 9?', accept:['9'], fact:'18 is double 9, so taking 9 away leaves 9. Halving 18 gives 9 too.'},
+    {type:'mc', cat:'Fractions', q:'Which is bigger: a half or a whole?', opts:['Half','Whole','Same','Neither'], ans:1, fact:'A whole is bigger — a half is only one of two equal parts. Two halves are needed to make one whole.'},
+    {type:'num', cat:'Addition', q:'What is 30 + 30 + 30?', accept:['90'], fact:'Three 30s make 90. It\'s the same as 3 × 30 — three groups of thirty.'},
+    {type:'mc', cat:'Patterns', q:'What comes next: 10, 20, 30, 40, ___?', opts:['41','45','50','60'], ans:2, fact:'Counting by tens, after 40 comes 50. The ones stay at zero while the tens climb.'},
+    {type:'num', cat:'Multiplication', q:'What is 2 × 10?', accept:['20'], fact:'2 times 10 is 20. Multiplying by 10 just adds a zero, turning 2 into 20.'},
+    {type:'mc', cat:'Money', q:'How many quarters make 50 cents?', opts:['1','2','3','4'], ans:1, fact:'Two quarters make 50 cents, since each quarter is 25 cents and 25 + 25 = 50.'},
+    {type:'num', cat:'Subtraction', q:'What is 100 − 50?', accept:['50'], fact:'100 minus 50 is 50 — exactly half. Fifty is the halfway point on the way to 100.'},
+    {type:'mc', cat:'Counting', q:'Which comes between 56 and 58?', opts:['55','57','59','60'], ans:1, fact:'57 sits right between 56 and 58, one more than 56 and one less than 58.'},
+    {type:'num', cat:'Addition', q:'What is 12 + 8?', accept:['20'], fact:'12 and 8 make a neat 20. Spotting pairs that reach a round number makes adding much faster.'},
+    {type:'mc', cat:'Multiplication', q:'What is 3 × 2?', opts:['5','6','7','8'], ans:1, fact:'Three twos make 6. Multiplication can be done in any order — 3 × 2 and 2 × 3 both give 6.'},
+    {type:'num', cat:'Doubles', q:'What is double 12?', accept:['24'], fact:'Double 12 is 24 — like the hours in a day. Doubling means adding the number to itself.'},
+  ],
+
+  g45: [
+    {type:'num', cat:'Multiplication', q:'What is 7 × 8?', accept:['56'], fact:'7 × 8 = 56. A memory trick: the digits 5, 6, 7, 8 run in order — "56 = 7 × 8."'},
+    {type:'mc', cat:'Place Value', q:'In 4,827, what does the 8 stand for?', opts:['8','80','800','8,000'], ans:2, fact:'The 8 is in the hundreds place, so it means 800. Each place is ten times bigger than the one to its right.'},
+    {type:'num', cat:'Division', q:'What is 72 ÷ 9?', accept:['8'], fact:'72 ÷ 9 = 8, because 9 × 8 = 72. Division asks how many equal groups fit inside.'},
+    {type:'mc', cat:'Fractions', q:'Which fraction equals one half?', opts:['2/3','4/8','3/5','5/9'], ans:1, fact:'4/8 equals one half, because 4 is exactly half of 8. Any fraction with the top half of the bottom is ½.'},
+    {type:'num', cat:'Multiplication', q:'What is 12 × 6?', accept:['72'], fact:'Split it: 10 × 6 = 60 and 2 × 6 = 12, then 60 + 12 = 72. Breaking a number apart makes multiplying easier.'},
+    {type:'mc', cat:'Rounding', q:'What is 367 rounded to the nearest hundred?', opts:['300','350','400','370'], ans:2, fact:'367 is closer to 400 than 300, because 67 is past the halfway mark of 50, so we round up.'},
+    {type:'num', cat:'Addition', q:'What is 458 + 367?', accept:['825'], fact:'Add by place: 400+300 = 700, 50+60 = 110, 8+7 = 15, then 700+110+15 = 825.'},
+    {type:'mc', cat:'Geometry', q:'How many degrees are in a right angle?', opts:['45°','90°','180°','360°'], ans:1, fact:'A right angle is 90° — a perfect square corner. The little square mark in a diagram always means a right angle.'},
+    {type:'num', cat:'Division', q:'What is 96 ÷ 8?', accept:['12'], fact:'96 ÷ 8 = 12. Check it backwards: 8 × 12 = 96. Multiplying to check catches mistakes.'},
+    {type:'mc', cat:'Decimals', q:'What is 0.5 as a fraction?', opts:['1/5','5/100','1/2','5/1'], ans:2, fact:'0.5 means five tenths, 5/10, which simplifies to ½. The first spot after the point is the tenths place.'},
+    {type:'num', cat:'Multiplication', q:'What is 25 × 4?', accept:['100'], fact:'25 × 4 = 100 — like four quarters making a dollar. Spotting this pair speeds up lots of math.'},
+    {type:'mc', cat:'Fractions', q:'Which is larger: 2/3 or 1/3?', opts:['2/3','1/3','Equal','Cannot tell'], ans:0, fact:'With the same bottom number, more pieces on top means more: 2/3 beats 1/3.'},
+    {type:'num', cat:'Subtraction', q:'What is 803 − 547?', accept:['256'], fact:'803 − 547 = 256. Counting up helps: from 547 to 600 is 53, then to 803 is 203, total 256.'},
+    {type:'mc', cat:'Measurement', q:'How many centimetres are in 1 metre?', opts:['10','100','1000','12'], ans:1, fact:'A metre is 100 cm. "Centi" means one hundredth, so 100 centimetres make the whole metre.'},
+    {type:'num', cat:'Area', q:'A rectangle is 7 cm by 4 cm. What is its area in square cm?', accept:['28'], fact:'Area = length × width = 7 × 4 = 28. Area counts the unit squares that tile the inside.'},
+    {type:'mc', cat:'Number Theory', q:'Which is a prime number?', opts:['9','15','11','21'], ans:2, fact:'11 is prime — only 1 and 11 divide it. The others split: 9 = 3×3, 15 = 3×5, 21 = 3×7.'},
+    {type:'num', cat:'Multiplication', q:'What is 9 × 6?', accept:['54'], fact:'9 × 6 = 54. A 9s trick: the digits of 54 add up to 9, true for every multiple of nine.'},
+    {type:'mc', cat:'Fractions', q:'What is 1/4 + 1/4?', opts:['1/8','2/8','1/2','2/4'], ans:2, fact:'Two quarters make a half. With the same bottom number, just add the tops: 1 + 1 = 2 quarters = ½.'},
+    {type:'num', cat:'Perimeter', q:'A square has sides of 9 cm. What is its perimeter in cm?', accept:['36'], fact:'Perimeter is the distance all around: 4 equal sides × 9 = 36 cm.'},
+    {type:'mc', cat:'Place Value', q:'Which number is largest?', opts:['3,099','3,199','3,091','3,190'], ans:1, fact:'Compare left to right: all share 3,0 or 3,1, and 3,199 has the biggest hundreds digit, so it wins.'},
+    {type:'num', cat:'Division', q:'What is 144 ÷ 12?', accept:['12'], fact:'144 ÷ 12 = 12, since 12 × 12 = 144. Knowing your squares speeds up dividing.'},
+    {type:'mc', cat:'Time', q:'How many minutes are in a quarter of an hour?', opts:['10','15','20','25'], ans:1, fact:'A quarter of 60 minutes is 15 — which is why "quarter past" means 15 minutes after the hour.'},
+    {type:'num', cat:'Multiplication', q:'What is 8 × 25?', accept:['200'], fact:'Eight quarters make $2.00, so 8 × 25 = 200. Thinking in money helps with the 25 times table.'},
+    {type:'mc', cat:'Geometry', q:'A triangle with all sides equal is called…', opts:['Scalene','Isosceles','Equilateral','Right'], ans:2, fact:'"Equilateral" means equal sides. When all sides match, all three angles are equal too — each is 60°.'},
+    {type:'num', cat:'Addition', q:'What is 1,250 + 1,750?', accept:['3000'], fact:'250 + 750 makes a clean 1,000, plus 1,000 + 1,000 = 2,000, giving 3,000 in total.'},
+    {type:'mc', cat:'Fractions', q:'How many eighths are in one whole?', opts:['4','6','8','16'], ans:2, fact:'Eight eighths make one whole: 8/8 = 1. Any fraction where top equals bottom is exactly one.'},
+    {type:'num', cat:'Division', q:'What is 250 ÷ 5?', accept:['50'], fact:'250 ÷ 5 = 50. Dividing by 5 is the same as dividing by 10 then doubling: 250÷10 = 25, doubled is 50.'},
+    {type:'mc', cat:'Decimals', q:'Which is largest: 0.4, 0.04, 0.44?', opts:['0.4','0.04','0.44','Equal'], ans:2, fact:'0.44 has 4 tenths AND 4 hundredths, beating 0.4 (just tenths) and 0.04 (just hundredths).'},
+    {type:'num', cat:'Multiplication', q:'What is 15 × 12?', accept:['180'], fact:'15 × 10 = 150 and 15 × 2 = 30, so 150 + 30 = 180. Splitting the 12 into 10 and 2 makes it simple.'},
+    {type:'mc', cat:'Measurement', q:'How many grams are in 2 kilograms?', opts:['200','2,000','20','20,000'], ans:1, fact:'A kilogram is 1,000 grams, so 2 kg = 2,000 g. "Kilo" always means a thousand.'},
+    {type:'num', cat:'Fractions', q:'What is 3/4 of 20?', accept:['15'], fact:'One quarter of 20 is 5, and three quarters is 3 × 5 = 15. "Of" means multiply in fraction problems.'},
+    {type:'mc', cat:'Rounding', q:'What is 6.7 rounded to the nearest whole number?', opts:['6','7','6.5','8'], ans:1, fact:'6.7 is past the halfway point of 6.5, so it rounds up to 7.'},
+    {type:'num', cat:'Multiplication', q:'What is 100 × 12?', accept:['1200'], fact:'Multiplying by 100 adds two zeros, turning 12 into 1,200 — each digit shifts two places up.'},
+    {type:'mc', cat:'Geometry', q:'How many faces does a cube have?', opts:['4','6','8','12'], ans:1, fact:'A cube has 6 square faces, like a dice. It also has 8 corners and 12 edges.'},
+    {type:'num', cat:'Word Problem', q:'A bus holds 40 people. How many fit on 6 full buses?', accept:['240'], fact:'40 × 6 = 240. Multiplication is fast repeated addition — six forties.'},
+    {type:'mc', cat:'Number Theory', q:'What is the greatest common factor of 8 and 12?', opts:['2','4','6','8'], ans:1, fact:'4 divides both 8 and 12 and is the largest that does. It helps simplify 8/12 down to 2/3.'},
+    {type:'num', cat:'Division', q:'What is 84 ÷ 7?', accept:['12'], fact:'84 ÷ 7 = 12, because 7 × 12 = 84. Splitting 84 into 70 + 14 (each divisible by 7) confirms it.'},
+    {type:'mc', cat:'Fractions', q:'Which fraction is closest to 1?', opts:['1/2','2/3','5/6','3/4'], ans:2, fact:'5/6 is only one sixth away from a whole, the smallest gap of the four — so it\'s closest to 1.'},
+    {type:'num', cat:'Multiplication', q:'What is 11 × 11?', accept:['121'], fact:'11 × 11 = 121. For 11 times a small number the digit just doubles up: 11×3 = 33, 11×4 = 44.'},
+    {type:'mc', cat:'Measurement', q:'How many millilitres are in 1 litre?', opts:['10','100','1,000','500'], ans:2, fact:'A litre holds 1,000 millilitres. "Milli" means one thousandth, just like millimetres in a metre.'},
+    {type:'num', cat:'Addition', q:'What is 99 + 99 + 99?', accept:['297'], fact:'Think of each 99 as 100 − 1. Three hundreds is 300, minus 3, gives 297.'},
+    {type:'mc', cat:'Data', q:'In 4, 8, 8, 10, 15, what is the mode?', opts:['8','9','10','15'], ans:0, fact:'The mode is the value that appears most often — here 8 shows up twice. "Mode" and "most" both start with "mo."'},
+    {type:'num', cat:'Multiplication', q:'What is 6 × 7?', accept:['42'], fact:'6 × 7 = 42. It equals 6 × 6 (36) plus one more 6, which gives 42.'},
+    {type:'mc', cat:'Geometry', q:'What do we call an 8-sided shape?', opts:['Pentagon','Hexagon','Octagon','Heptagon'], ans:2, fact:'"Oct" means eight, like an octopus\'s arms. A stop sign is an octagon.'},
+    {type:'num', cat:'Word Problem', q:'A pencil costs 30¢. How many can you buy with $2.10?', accept:['7'], fact:'$2.10 is 210¢, and 210 ÷ 30 = 7. Turning dollars into cents lets you divide with whole numbers.'},
+    {type:'mc', cat:'Fractions', q:'Which equals a whole number? 8/4, 7/4, 5/4, 3/4', opts:['8/4','7/4','5/4','3/4'], ans:0, fact:'8/4 = 2, a whole number, because 4 divides evenly into 8. The others leave a leftover.'},
+    {type:'num', cat:'Division', q:'What is 120 ÷ 4?', accept:['30'], fact:'120 ÷ 4 = 30. Halve it twice: 120 → 60 → 30, since dividing by 4 is halving two times.'},
+    {type:'mc', cat:'Patterns', q:'What comes next: 3, 6, 12, 24, ___?', opts:['30','36','48','27'], ans:2, fact:'Each number doubles the one before, so 24 × 2 = 48. This grows by multiplying, not adding.'},
+    {type:'num', cat:'Multiplication', q:'What is 13 × 5?', accept:['65'], fact:'13 × 5 = 65. Multiplying by 5 is half of multiplying by 10: 13 × 10 = 130, halved is 65.'},
+    {type:'mc', cat:'Measurement', q:'Which is longer: 1 metre or 90 centimetres?', opts:['1 metre','90 cm','Equal','Cannot tell'], ans:0, fact:'1 metre is 100 cm, which beats 90 cm. Always convert to the same unit before comparing.'},
+    {type:'num', cat:'Area', q:'A square garden is 6 m on each side. What is its area in square metres?', accept:['36'], fact:'Area of a square is side × side = 6 × 6 = 36. The unit is "square" metres because we count squares.'},
+    {type:'mc', cat:'Number Theory', q:'Which number is divisible by 3?', opts:['16','22','27','25'], ans:2, fact:'27 is divisible by 3 (3 × 9). A quick test: its digits 2 + 7 = 9, and 9 is divisible by 3.'},
+    {type:'num', cat:'Division', q:'What is 200 ÷ 8?', accept:['25'], fact:'200 ÷ 8 = 25. Since 8 × 25 = 200, this is the same pairing as four quarters in a dollar, doubled.'},
+    {type:'mc', cat:'Decimals', q:'What is 0.3 × 10?', opts:['0.03','3','30','0.3'], ans:1, fact:'Multiplying by 10 shifts the decimal point one place right, turning 0.3 into 3.'},
+    {type:'num', cat:'Word Problem', q:'A book has 180 pages. Reading 20 a day, how many days to finish?', accept:['9'], fact:'180 ÷ 20 = 9 days. Division answers "how many groups of 20 fit into 180?"'},
+    {type:'mc', cat:'Fractions', q:'What is 1/2 of 16?', opts:['4','6','8','12'], ans:2, fact:'Half of 16 is 8, since 8 + 8 = 16. Halving is the same as dividing by 2.'},
+    {type:'num', cat:'Multiplication', q:'What is 14 × 50?', accept:['700'], fact:'×50 is ×100 then halve: 14 × 100 = 1,400, halved is 700. Fifty is just half of a hundred.'},
+    {type:'mc', cat:'Geometry', q:'How many lines of symmetry does a square have?', opts:['1','2','4','8'], ans:2, fact:'A square folds onto itself 4 ways: two diagonals and two through the middle of opposite sides.'},
+    {type:'num', cat:'Addition', q:'What is 365 + 365?', accept:['730'], fact:'Double 365 (days in a year) is 730 — the days in two years. Doubling is fast: 360+360 = 720, plus 5+5 = 10.'},
+    {type:'mc', cat:'Number Theory', q:'What are all the factors of 8?', opts:['1, 8','2, 4','1, 2, 4, 8','1, 2, 8'], ans:2, fact:'8 has four factors that divide it evenly: 1, 2, 4, and 8.'},
+    {type:'num', cat:'Multiplication', q:'What is 12 × 12?', accept:['144'], fact:'12 × 12 = 144, called a "gross" by old merchants — a dozen dozens.'},
+    {type:'mc', cat:'Time', q:'How many seconds are in 2 minutes?', opts:['100','120','60','200'], ans:1, fact:'Each minute has 60 seconds, so 2 minutes is 60 × 2 = 120 seconds.'},
+    {type:'num', cat:'Division', q:'What is 63 ÷ 9?', accept:['7'], fact:'63 ÷ 9 = 7. The 9 times table check works: the digits of 63 add to 9.'},
+    {type:'mc', cat:'Fractions', q:'Which is bigger: 1/2 or 1/4?', opts:['1/2','1/4','Equal','Cannot tell'], ans:0, fact:'A bigger bottom number means smaller pieces, so 1/4 pieces are smaller. Therefore 1/2 is bigger.'},
+    {type:'num', cat:'Word Problem', q:'There are 6 rows of 8 chairs. How many chairs in total?', accept:['48'], fact:'6 × 8 = 48. An array of rows and columns is a perfect picture of multiplication.'},
+  ],
+
+  g68: [
+    {type:'num', cat:'Order of Operations', q:'What is 3 + 4 × 2?', accept:['11'], fact:'Multiply before adding: 4 × 2 = 8, then + 3 = 11. The rule (PEMDAS/BODMAS) keeps everyone agreeing on one answer.'},
+    {type:'mc', cat:'Integers', q:'What is −5 + 8?', opts:['3','−3','13','−13'], ans:0, fact:'Starting at −5 and moving up 8 lands on +3. Adding a positive always moves right on the number line.'},
+    {type:'num', cat:'Percentages', q:'What is 25% of 80?', accept:['20'], fact:'25% means one quarter, and a quarter of 80 is 20. Turning a percent into a simple fraction makes it quick.'},
+    {type:'mc', cat:'Geometry', q:'The angles in any triangle add up to…', opts:['90°','180°','270°','360°'], ans:1, fact:'Always 180°. Tear off a triangle\'s three corners, line them up, and they form a straight line — which is 180°.'},
+    {type:'num', cat:'Algebra', q:'If x + 7 = 12, what is x?', accept:['5'], fact:'Subtract 7 from both sides: x = 5. Keeping both sides balanced is the golden rule of equations.'},
+    {type:'mc', cat:'Fractions', q:'What is 2/3 + 1/6?', opts:['3/9','5/6','1/2','3/6'], ans:1, fact:'Rewrite 2/3 as 4/6, then 4/6 + 1/6 = 5/6. You can only add fractions once the bottoms match.'},
+    {type:'num', cat:'Exponents', q:'What is 2⁵?', accept:['32'], fact:'2⁵ = 2×2×2×2×2 = 32. Powers of 2 double each step and are the backbone of how computers store data.'},
+    {type:'mc', cat:'Ratios', q:'In a 2:3 ratio of girls to boys, what fraction are girls?', opts:['2/3','2/5','3/5','1/2'], ans:1, fact:'2 + 3 = 5 children per group, so girls are 2 out of every 5, or 2/5.'},
+    {type:'num', cat:'Order of Operations', q:'What is (6 + 2) × 3?', accept:['24'], fact:'Brackets first: 6 + 2 = 8, then × 3 = 24. Without brackets it would mean 6 + 6 = 12.'},
+    {type:'mc', cat:'Integers', q:'What is 4 − 10?', opts:['6','−6','14','−14'], ans:1, fact:'Going below zero gives −6. From 4, stepping back 10 lands you 6 places past zero into the negatives.'},
+    {type:'num', cat:'Percentages', q:'What is 15% of 200?', accept:['30'], fact:'10% of 200 is 20, and 5% is half of that (10), so 15% is 30. Building from 10% chunks is a pro trick.'},
+    {type:'mc', cat:'Number Theory', q:'What is the next prime after 13?', opts:['14','15','16','17'], ans:3, fact:'17 is next. 14, 15, 16 all split into smaller factors. Primes thin out but never run out, as Euclid proved.'},
+    {type:'num', cat:'Algebra', q:'If 3x = 21, what is x?', accept:['7'], fact:'Divide both sides by 3: x = 7. Division undoes multiplication, just as subtraction undoes addition.'},
+    {type:'mc', cat:'Geometry', q:'What is the distance around a circle called?', opts:['Diameter','Radius','Circumference','Area'], ans:2, fact:'The circumference is the circle\'s perimeter, always about 3.14 times the diameter — the number pi.'},
+    {type:'num', cat:'Averages', q:'What is the mean of 4, 8, and 12?', accept:['8'], fact:'Add them (24) and divide by 3 to get 8. The mean spreads the total evenly across all the values.'},
+    {type:'mc', cat:'Fractions', q:'What is 2/3 × 3/4?', opts:['5/7','6/12','1/2','6/7'], ans:2, fact:'Multiply tops and bottoms: 6/12 = 1/2. Multiplying fractions is easier than adding — no common bottom needed.'},
+    {type:'num', cat:'Percentages', q:'What is 75% of 40?', accept:['30'], fact:'75% is three quarters. One quarter of 40 is 10, so three quarters is 30.'},
+    {type:'mc', cat:'Integers', q:'What is −6 × −4?', opts:['−24','24','−10','10'], ans:1, fact:'A negative times a negative is positive: 24. Think of it as removing six debts of 4 — you end up 24 better off.'},
+    {type:'num', cat:'Area', q:'A triangle has base 10 and height 6. What is its area?', accept:['30'], fact:'Area = ½ × base × height = ½ × 10 × 6 = 30. A triangle is half the rectangle that boxes it in.'},
+    {type:'mc', cat:'Decimals', q:'What is 1 ÷ 8 as a decimal?', opts:['0.125','0.18','0.8','0.0125'], ans:0, fact:'1 ÷ 8 = 0.125. Since 8 = 2×2×2, eighths always give clean decimals — unlike thirds, which repeat.'},
+    {type:'num', cat:'Order of Operations', q:'What is 2 + 3 × 4 − 5?', accept:['9'], fact:'Multiply first: 3 × 4 = 12, then 2 + 12 − 5 = 9. Multiplication takes priority over add and subtract.'},
+    {type:'mc', cat:'Algebra', q:'Solve: 2x + 3 = 11', opts:['3','4','5','7'], ans:1, fact:'Subtract 3 (2x = 8), then divide by 2: x = 4. Undo operations in reverse order.'},
+    {type:'num', cat:'Exponents', q:'What is 10³?', accept:['1000'], fact:'10³ = 10×10×10 = 1,000. With base 10, the exponent tells you how many zeros follow the 1.'},
+    {type:'mc', cat:'Pythagoras', q:'A right triangle has legs 3 and 4. How long is the hypotenuse?', opts:['5','6','7','12'], ans:0, fact:'3² + 4² = 9 + 16 = 25, and √25 = 5. The 3-4-5 triangle is the most famous right triangle in math.'},
+    {type:'num', cat:'Percentages', q:'A $60 jacket is 20% off. What is the sale price in dollars?', accept:['48'], fact:'20% of 60 is 12, so 60 − 12 = 48. Or pay 80% directly: 0.8 × 60 = 48.'},
+    {type:'mc', cat:'Number Theory', q:'What is the lowest common multiple of 4 and 6?', opts:['10','12','24','2'], ans:1, fact:'12 is the smallest number both 4 and 6 divide into. You need the LCM to add fractions with different bottoms.'},
+    {type:'num', cat:'Fractions', q:'What is 7/8 − 3/8? (as a fraction a/b)', accept:['1/2','4/8'], fact:'Same bottom, so subtract tops: 4/8 = 1/2. Always simplify the final fraction when you can.'},
+    {type:'mc', cat:'Geometry', q:'How many degrees in a full circle?', opts:['90°','180°','270°','360°'], ans:3, fact:'A full turn is 360°. The Babylonians likely chose 360 because it divides so neatly by many numbers.'},
+    {type:'num', cat:'Algebra', q:'If y − 6 = 10, what is y?', accept:['16'], fact:'Add 6 to both sides: y = 16. Solving equations is about undoing each operation in reverse.'},
+    {type:'mc', cat:'Decimals', q:'Which is largest: 0.7, 0.07, 0.77, 0.707?', opts:['0.7','0.07','0.77','0.707'], ans:2, fact:'0.77 has 7 tenths AND 7 hundredths. Line up the decimal points to compare fairly.'},
+    {type:'num', cat:'Squares', q:'What is 9 squared (9²)?', accept:['81'], fact:'9² = 9 × 9 = 81. "Squared" comes from area: a square 9 units wide holds 81 unit squares.'},
+    {type:'mc', cat:'Ratios', q:'A recipe needs 2 cups flour for 12 cookies. How much for 24?', opts:['3','4','6','12'], ans:1, fact:'Double the cookies, double the flour: 2 × 2 = 4 cups. Recipes scale by keeping the same ratio.'},
+    {type:'num', cat:'Order of Operations', q:'What is 100 ÷ (2 + 3) × 2?', accept:['40'], fact:'Brackets first: 5. Then left to right: 100 ÷ 5 = 20, × 2 = 40. ÷ and × share a rank, so go left to right.'},
+    {type:'mc', cat:'Integers', q:'Which is colder: −5°C or −12°C?', opts:['−5°C','−12°C','Equal','Cannot tell'], ans:1, fact:'On the negative side, a bigger number is colder. −12 is further below zero than −5.'},
+    {type:'num', cat:'Percentages', q:'What percent is 18 out of 24?', accept:['75','75%'], fact:'18/24 simplifies to 3/4, which is 75%. Turning the fraction into quarters reveals the percentage.'},
+    {type:'mc', cat:'Geometry', q:'The longest side of a right triangle is the…', opts:['Base','Leg','Hypotenuse','Vertex'], ans:2, fact:'The hypotenuse sits opposite the right angle and is always the longest side. The word means "stretched under."'},
+    {type:'num', cat:'Algebra', q:'If 5x − 4 = 26, what is x?', accept:['6'], fact:'Add 4 (5x = 30), then divide by 5: x = 6. Undo the subtraction before the multiplication.'},
+    {type:'mc', cat:'Fractions', q:'What is 3/4 ÷ 1/2?', opts:['3/8','1/2','3/2','6/4'], ans:2, fact:'Dividing by a fraction means multiplying by its flip: 3/4 × 2/1 = 6/4 = 3/2. "Keep, flip, multiply."'},
+    {type:'num', cat:'Averages', q:'Four numbers have a mean of 10. What is their total?', accept:['40'], fact:'Mean 10 across 4 numbers means total 10 × 4 = 40. The mean is the total shared equally.'},
+    {type:'mc', cat:'Number Patterns', q:'What is the 10th triangular number? (1, 3, 6, 10, 15…)', opts:['45','50','55','60'], ans:2, fact:'Triangular numbers add 1+2+3+…; the 10th is 1+…+10 = 55. Young Gauss used pairing to add these fast.'},
+    {type:'num', cat:'Percentages', q:'If 30% of a number is 24, what is the number?', accept:['80'], fact:'30% is 24, so 10% is 8, and 100% is 80. Working back to 10% first unlocks the whole.'},
+    {type:'mc', cat:'Exponents', q:'Which is bigger: 3⁴ or 4³?', opts:['3⁴','4³','Equal','Cannot tell'], ans:0, fact:'3⁴ = 81 while 4³ = 64, so 3⁴ wins. Swapping base and exponent usually changes the answer.'},
+    {type:'num', cat:'Geometry', q:'A circle has radius 10. What is its diameter?', accept:['20'], fact:'Diameter is twice the radius: 2 × 10 = 20. The radius goes centre to edge; the diameter crosses the whole circle.'},
+    {type:'mc', cat:'Integers', q:'What is −15 ÷ 3?', opts:['5','−5','−45','45'], ans:1, fact:'A negative divided by a positive is negative: −5. Division follows the same sign rules as multiplication.'},
+    {type:'num', cat:'Squares & Roots', q:'What is the square root of 144?', accept:['12'], fact:'√144 = 12, because 12 × 12 = 144. A square root reverses squaring.'},
+    {type:'mc', cat:'Geometry', q:'Each angle of an equilateral triangle is…', opts:['45°','60°','90°','120°'], ans:1, fact:'Three equal angles summing to 180° means each is 180 ÷ 3 = 60°. Equal sides force equal angles.'},
+    {type:'num', cat:'Word Problem', q:'A train goes 60 km in 1 hour. How far in 3.5 hours?', accept:['210'], fact:'60 × 3.5 = 210 km. Speed × time = distance, one of the most useful formulas in math.'},
+    {type:'mc', cat:'Number Theory', q:'Which number is divisible by both 3 and 4?', opts:['14','18','24','22'], ans:2, fact:'24 = 3×8 and 4×6. Any number divisible by both 3 and 4 is divisible by 12, their lowest common multiple.'},
+    {type:'num', cat:'Fractions', q:'What is 5/6 − 1/3? (as fraction a/b)', accept:['1/2','3/6'], fact:'Rewrite 1/3 as 2/6, then 5/6 − 2/6 = 3/6 = 1/2. Find a common bottom before subtracting.'},
+    {type:'mc', cat:'Percentages', q:'A price rises from $50 to $60. What percent increase is that?', opts:['10%','15%','20%','25%'], ans:2, fact:'The rise is $10, and 10 out of the original 50 is 20%. Percent change is measured against the start.'},
+    {type:'num', cat:'Exponents', q:'What is 5³?', accept:['125'], fact:'5³ = 5×5×5 = 125. Cubing relates to volume: a cube 5 units wide holds 125 unit cubes.'},
+    {type:'mc', cat:'Algebra', q:'Simplify: 3a + 2a', opts:['5a','6a','5a²','23a'], ans:0, fact:'Like terms add: 3a + 2a = 5a, just as 3 apples plus 2 apples make 5 apples.'},
+    {type:'num', cat:'Geometry', q:'A rectangle has area 48 and width 6. What is its length?', accept:['8'], fact:'Area = length × width, so length = 48 ÷ 6 = 8. Knowing area and one side lets you divide for the other.'},
+    {type:'mc', cat:'Ratios', q:'If 5 pens cost $15, how much do 8 pens cost?', opts:['$20','$24','$25','$30'], ans:1, fact:'Each pen is $3, so 8 cost 8 × 3 = $24. Finding the cost of one cracks most ratio problems.'},
+    {type:'num', cat:'Squares', q:'What is 15²?', accept:['225'], fact:'15² = 225. Trick for numbers ending in 5: front digit (1) × next up (2) = 2, then add 25 → 225.'},
+    {type:'mc', cat:'Sequences', q:'Next in Fibonacci: 1, 1, 2, 3, 5, 8, ___?', opts:['11','13','15','16'], ans:1, fact:'Each is the sum of the two before: 5 + 8 = 13. This pattern shows up in sunflowers and seashells.'},
+    {type:'num', cat:'Percentages', q:'What is 12.5% of 64?', accept:['8'], fact:'12.5% is exactly one eighth, and 64 ÷ 8 = 8. Knowing 12.5% = 1/8 turns an awkward percent into easy division.'},
+    {type:'mc', cat:'Number Theory', q:'Which is a perfect square?', opts:['50','64','72','80'], ans:1, fact:'64 = 8 × 8, a perfect square. The others have no whole-number square root.'},
+    {type:'num', cat:'Order of Operations', q:'What is 5 + 5 × 5 − 5?', accept:['25'], fact:'Multiply first: 5 × 5 = 25, then 5 + 25 − 5 = 25. The middle multiplication quietly dominates.'},
+    {type:'mc', cat:'Integers', q:'What is the value of x² when x = −3?', opts:['−9','−6','6','9'], ans:3, fact:'(−3)² = (−3)(−3) = 9, positive because two negatives make a positive.'},
+    {type:'num', cat:'Geometry', q:'Two angles of a triangle are 90° and 35°. What is the third?', accept:['55'], fact:'All three add to 180°, so 180 − 90 − 35 = 55°. Two angles always fix the third.'},
+    {type:'mc', cat:'Fractions', q:'What is 5/6 ÷ 1/3?', opts:['5/18','5/2','2/5','15/6'], ans:1, fact:'Keep, flip, multiply: 5/6 × 3/1 = 15/6 = 5/2. Dividing by a third is the same as multiplying by three.'},
+    {type:'num', cat:'Word Problem', q:'A number doubled then increased by 5 equals 23. What is the number?', accept:['9'], fact:'Work backwards: 23 − 5 = 18, then 18 ÷ 2 = 9. Reverse each step to undo a "think of a number" puzzle.'},
+    {type:'mc', cat:'Pi & Circles', q:'Circumference of a circle with diameter 10? (π ≈ 3.14)', opts:['31.4','15.7','62.8','10'], ans:0, fact:'Circumference = π × diameter ≈ 3.14 × 10 = 31.4 — always a bit more than three diameters.'},
+    {type:'num', cat:'Exponents', q:'What is 7² + 3²?', accept:['58'], fact:'49 + 9 = 58. Square each first, then add — a small echo of the Pythagorean theorem.'},
+    {type:'mc', cat:'Number Theory', q:'How many factors does 12 have?', opts:['4','5','6','12'], ans:2, fact:'12 has six: 1, 2, 3, 4, 6, 12. Numbers rich in factors like 12 are why clocks and eggs come in twelves.'},
+  ],
+
+  hs: [
+    {type:'num', cat:'Algebra', q:'Solve for x: 3x − 7 = 14', accept:['7'], fact:'Add 7 (3x = 21), divide by 3: x = 7. Reverse the operations in opposite order to isolate x.'},
+    {type:'mc', cat:'Quadratics', q:'What are the solutions of x² = 49?', opts:['7 only','−7 only','7 and −7','None'], ans:2, fact:'Both 7 and −7 work, since (−7)² is also 49. Squaring hides the sign, so square-root equations usually have two answers.'},
+    {type:'num', cat:'Pythagoras', q:'A right triangle has legs 5 and 12. How long is the hypotenuse?', accept:['13'], fact:'5² + 12² = 25 + 144 = 169, and √169 = 13. The 5-12-13 triangle is another whole-number right triangle.'},
+    {type:'mc', cat:'Functions', q:'If f(x) = 2x + 3, what is f(4)?', opts:['8','11','14','24'], ans:1, fact:'Substitute x = 4: 2(4) + 3 = 11. A function is a machine — feed in 4, the rule gives back 11.'},
+    {type:'num', cat:'Exponents', q:'What is 2⁸?', accept:['256'], fact:'2⁸ = 256. Doubling eight times. It\'s why an 8-bit number can hold 256 different values in computing.'},
+    {type:'mc', cat:'Algebra', q:'Expand: (x + 3)(x + 2)', opts:['x² + 5x + 6','x² + 6x + 5','x² + 5x + 5','x² + 6'], ans:0, fact:'Multiply each pair (FOIL): x² + 2x + 3x + 6 = x² + 5x + 6. The middle term is the sum, the last is the product.'},
+    {type:'num', cat:'Percentages', q:'A $200 item rises 15%, then that price drops 10%. Final price in dollars?', accept:['207'], fact:'200 × 1.15 = 230, then 230 × 0.9 = 207. Percent changes multiply, so order and the new base matter.'},
+    {type:'mc', cat:'Trigonometry', q:'In a right triangle, sine of an angle equals…', opts:['adjacent/hypotenuse','opposite/hypotenuse','opposite/adjacent','hypotenuse/opposite'], ans:1, fact:'Sine = opposite over hypotenuse — part of SOH-CAH-TOA. Trig links a triangle\'s angles to the ratios of its sides.'},
+    {type:'num', cat:'Quadratics', q:'Solve x² − 5x + 6 = 0 for the larger root.', accept:['3'], fact:'It factors as (x − 2)(x − 3) = 0, so x = 2 or 3. The larger is 3. Factoring finds the values that make each bracket zero.'},
+    {type:'mc', cat:'Probability', q:'Rolling one fair die, what is P(rolling a 4)?', opts:['1/4','1/6','1/2','4/6'], ans:1, fact:'One favourable face out of six equally likely faces gives 1/6. Probability is favourable outcomes over total outcomes.'},
+    {type:'num', cat:'Algebra', q:'If 2(x − 4) = 10, what is x?', accept:['9'], fact:'Divide by 2 (x − 4 = 5), then add 4: x = 9. You could also expand first — both routes agree.'},
+    {type:'mc', cat:'Lines', q:'What is the slope of the line through (0,0) and (2,6)?', opts:['2','3','1/3','6'], ans:1, fact:'Slope = rise/run = 6/2 = 3. Slope measures how steeply a line climbs for each step it takes sideways.'},
+    {type:'num', cat:'Exponents', q:'What is 3⁴?', accept:['81'], fact:'3⁴ = 3×3×3×3 = 81. Each power of 3 triples the last: 3, 9, 27, 81.'},
+    {type:'mc', cat:'Functions', q:'What is the y-intercept of y = 4x − 5?', opts:['4','−5','5','0'], ans:1, fact:'The y-intercept is where x = 0, giving y = −5. In y = mx + b, the b is always the y-intercept.'},
+    {type:'num', cat:'Roots', q:'What is √225?', accept:['15'], fact:'√225 = 15, since 15 × 15 = 225. Recognising perfect squares makes roots instant.'},
+    {type:'mc', cat:'Algebra', q:'Simplify: x⁵ ÷ x²', opts:['x³','x⁷','x²·⁵','x¹⁰'], ans:0, fact:'When dividing powers with the same base, subtract exponents: 5 − 2 = 3, giving x³.'},
+    {type:'num', cat:'Percentages', q:'A shirt costs $80 after a 20% discount. What was the original price?', accept:['100'], fact:'$80 is 80% of the original, so original = 80 ÷ 0.8 = $100. Work back from the percentage that was actually paid.'},
+    {type:'mc', cat:'Quadratics', q:'How many real solutions does x² + 1 = 0 have?', opts:['0','1','2','Infinite'], ans:0, fact:'No real number squared gives −1, so there are zero real solutions. This is exactly why imaginary numbers were invented.'},
+    {type:'num', cat:'Geometry', q:'A circle has radius 7. What is its area? (use π ≈ 22/7)', accept:['154'], fact:'Area = πr² ≈ (22/7) × 49 = 154. The radius-7 circle is a classic because 22/7 cancels the 7 so neatly.'},
+    {type:'mc', cat:'Trigonometry', q:'What is sin(30°)?', opts:['1/2','√3/2','1','0'], ans:0, fact:'sin(30°) = 1/2, a value worth memorising. In a 30-60-90 triangle the side opposite 30° is exactly half the hypotenuse.'},
+    {type:'num', cat:'Algebra', q:'Solve the system: x + y = 10, x − y = 4. What is x?', accept:['7'], fact:'Add the equations: 2x = 14, so x = 7 (and y = 3). Adding cancels y, leaving x alone — the elimination method.'},
+    {type:'mc', cat:'Sequences', q:'What is the next term: 2, 6, 18, 54, ___?', opts:['108','162','216','270'], ans:1, fact:'Each term is multiplied by 3, so 54 × 3 = 162. This is a geometric sequence with common ratio 3.'},
+    {type:'num', cat:'Exponents', q:'What is 4⁰?', accept:['1'], fact:'Any non-zero number to the power 0 is 1. Here\'s why: 4¹ ÷ 4¹ = 4⁰, and anything divided by itself is 1.'},
+    {type:'mc', cat:'Functions', q:'If g(x) = x² − 1, what is g(−3)?', opts:['8','−8','10','−10'], ans:0, fact:'g(−3) = (−3)² − 1 = 9 − 1 = 8. Square first (giving a positive), then subtract.'},
+    {type:'num', cat:'Probability', q:'Two coins are flipped. What is the probability of two heads? (as a fraction a/b)', accept:['1/4'], fact:'Each coin is 1/2 for heads, and ½ × ½ = ¼. The four equally likely outcomes are HH, HT, TH, TT.'},
+    {type:'mc', cat:'Algebra', q:'Factor: x² − 9', opts:['(x−3)(x+3)','(x−3)²','(x+3)²','(x−9)(x+1)'], ans:0, fact:'This is a difference of squares: a² − b² = (a−b)(a+b), so x² − 9 = (x−3)(x+3).'},
+    {type:'num', cat:'Lines', q:'A line has slope 2 and passes through (0, 3). What is y when x = 5?', accept:['13'], fact:'Using y = 2x + 3: y = 2(5) + 3 = 13. The slope tells you the line rises 2 for each step right.'},
+    {type:'mc', cat:'Geometry', q:'The interior angles of a pentagon sum to…', opts:['360°','540°','720°','900°'], ans:1, fact:'Use (n−2) × 180°: (5−2) × 180 = 540°. Any pentagon can be split into 3 triangles, each contributing 180°.'},
+    {type:'num', cat:'Quadratics', q:'For x² − 7x + 12 = 0, what is the sum of the two roots?', accept:['7'], fact:'It factors as (x−3)(x−4), giving roots 3 and 4 that sum to 7 — matching the 7 in the middle term (with sign flipped).'},
+    {type:'mc', cat:'Exponents', q:'Simplify: (2³)²', opts:['2⁵','2⁶','2⁹','2¹'], ans:1, fact:'A power raised to a power multiplies exponents: 3 × 2 = 6, giving 2⁶ = 64.'},
+    {type:'num', cat:'Percentages', q:'If 40% of a number is 26, what is the number?', accept:['65'], fact:'40% is 26, so 10% is 6.5, and 100% is 65. Scaling down to 10% then up to 100% is reliable.'},
+    {type:'mc', cat:'Trigonometry', q:'What is cos(60°)?', opts:['1/2','√3/2','1','√2/2'], ans:0, fact:'cos(60°) = 1/2. Notice cos(60°) equals sin(30°) — the two angles are complementary, adding to 90°.'},
+    {type:'num', cat:'Algebra', q:'Solve for x: x/4 + 2 = 5', accept:['12'], fact:'Subtract 2 (x/4 = 3), then multiply by 4: x = 12. Multiplying undoes the division.'},
+    {type:'mc', cat:'Functions', q:'Which is the equation of a straight line?', opts:['y = x²','y = 2x + 1','y = 1/x','y = √x'], ans:1, fact:'y = 2x + 1 is linear — a constant slope gives a straight line. The others curve or bend.'},
+    {type:'num', cat:'Roots', q:'Simplify √72 to the form a√2. What is a?', accept:['6'], fact:'√72 = √(36 × 2) = 6√2, so a = 6. Pull out the largest perfect square factor to simplify a radical.'},
+    {type:'mc', cat:'Probability', q:'A bag has 3 red and 2 blue marbles. P(drawing red)?', opts:['2/5','3/5','1/2','3/2'], ans:1, fact:'3 red out of 5 total gives 3/5. Probability counts favourable outcomes over all equally likely outcomes.'},
+    {type:'num', cat:'Exponents', q:'What is 2⁻²? (as a decimal)', accept:['0.25','1/4'], fact:'A negative exponent means reciprocal: 2⁻² = 1/2² = 1/4 = 0.25. The minus flips it to a fraction.'},
+    {type:'mc', cat:'Algebra', q:'Solve: x² = 64', opts:['8','−8','8 and −8','16'], ans:2, fact:'Both 8 and −8 square to 64. Remember the ± whenever you take a square root to solve an equation.'},
+    {type:'num', cat:'Geometry', q:'A cylinder has radius 3 and height 10. What is its volume? (π ≈ 3.14)', accept:['282.6','282.60'], fact:'Volume = πr²h ≈ 3.14 × 9 × 10 = 282.6. A cylinder is just its circular base area stacked up its height.'},
+    {type:'mc', cat:'Sequences', q:'In an arithmetic sequence starting 4 with common difference 5, what is the 6th term?', opts:['24','29','34','30'], ans:1, fact:'Term = 4 + 5×(6−1) = 4 + 25 = 29. Arithmetic sequences add the same step each time.'},
+    {type:'num', cat:'Algebra', q:'If 3(2x − 1) = 21, what is x?', accept:['4'], fact:'Divide by 3 (2x − 1 = 7), add 1 (2x = 8), divide by 2: x = 4.'},
+    {type:'mc', cat:'Lines', q:'Lines y = 2x + 1 and y = 2x − 3 are…', opts:['Parallel','Perpendicular','Intersecting once','The same'], ans:0, fact:'Same slope (2) but different intercepts means parallel — they never meet, like railway tracks.'},
+    {type:'num', cat:'Percentages', q:'A population grows 10% per year. Starting at 200, what is it after 2 years?', accept:['242'], fact:'200 × 1.1 × 1.1 = 242. Growth compounds: the second year\'s 10% is taken on the already-larger 220.'},
+    {type:'mc', cat:'Quadratics', q:'The graph of y = x² is called a…', opts:['Line','Parabola','Circle','Hyperbola'], ans:1, fact:'A parabola — the U-shaped curve. It\'s also the path of a thrown ball, which is why it appears in sports and physics.'},
+    {type:'num', cat:'Trigonometry', q:'In a right triangle, the angle whose tan is 1 measures how many degrees?', accept:['45'], fact:'tan(45°) = 1, because at 45° the opposite and adjacent sides are equal, so their ratio is exactly 1.'},
+    {type:'mc', cat:'Exponents', q:'Simplify: x³ · x⁴', opts:['x⁷','x¹²','x¹','x⁻¹'], ans:0, fact:'Multiplying powers with the same base adds exponents: 3 + 4 = 7, so x⁷.'},
+    {type:'num', cat:'Algebra', q:'The product of two consecutive integers is 56. What is the smaller one?', accept:['7'], fact:'7 × 8 = 56, so the smaller is 7. Consecutive-integer puzzles often solve as x(x+1) = number.'},
+    {type:'mc', cat:'Geometry', q:'How many degrees is each interior angle of a regular hexagon?', opts:['108°','120°','135°','144°'], ans:1, fact:'Interior angles sum to (6−2)×180 = 720°, so each of six is 720 ÷ 6 = 120°.'},
+    {type:'num', cat:'Roots', q:'What is the cube root of 27?', accept:['3'], fact:'∛27 = 3, since 3 × 3 × 3 = 27. A cube root reverses cubing, just as a square root reverses squaring.'},
+    {type:'mc', cat:'Functions', q:'For f(x) = x² + 2x, what is f(3)?', opts:['11','15','9','12'], ans:1, fact:'f(3) = 9 + 6 = 15. Substitute carefully: square the 3, then add twice the 3.'},
+    {type:'num', cat:'Percentages', q:'What is 35% of 140?', accept:['49'], fact:'10% is 14, so 30% is 42, and 5% is 7, giving 49. Stacking 10% and 5% chunks handles any percent.'},
+    {type:'mc', cat:'Probability', q:'You roll two dice. What is P(sum of 7)?', opts:['1/6','1/8','5/36','7/36'], ans:0, fact:'Six combos make 7 out of 36 total, so 6/36 = 1/6. Seven is the most likely dice sum of all.'},
+    {type:'num', cat:'Algebra', q:'Solve for x: 4x + 3 = 2x + 11', accept:['4'], fact:'Subtract 2x (2x + 3 = 11), subtract 3 (2x = 8), divide by 2: x = 4. Gather the x\'s on one side first.'},
+    {type:'mc', cat:'Sequences', q:'What is the sum 1 + 2 + 3 + … + 100?', opts:['5,000','5,050','5,100','10,000'], ans:1, fact:'Gauss\'s trick: 50 pairs each summing to 101 gives 50 × 101 = 5,050.'},
+    {type:'num', cat:'Geometry', q:'An equilateral triangle has perimeter 24. What is the length of one side?', accept:['8'], fact:'Three equal sides, so 24 ÷ 3 = 8. "Equilateral" means all sides are equal.'},
+    {type:'mc', cat:'Exponents', q:'What is 10⁻²?', opts:['0.1','0.01','−100','100'], ans:1, fact:'10⁻² = 1/100 = 0.01. A negative exponent means how many times to divide by the base.'},
+    {type:'num', cat:'Algebra', q:'If the average of x and 12 is 20, what is x?', accept:['28'], fact:'Average 20 means (x + 12)/2 = 20, so x + 12 = 40, and x = 28. Undo the "divide by 2" by multiplying.'},
+    {type:'mc', cat:'Trigonometry', q:'The longest side opposite the right angle relates the others by…', opts:['a + b = c','a² + b² = c²','ab = c','a² − b² = c²'], ans:1, fact:'The Pythagorean theorem, a² + b² = c², is the foundation that all of right-triangle trig is built upon.'},
+    {type:'num', cat:'Quadratics', q:'Solve x² − 10x + 25 = 0.', accept:['5'], fact:'This is a perfect square: (x − 5)² = 0, so x = 5 (a repeated root). Perfect-square trinomials have one doubled solution.'},
+    {type:'mc', cat:'Functions', q:'The domain of y = 1/x excludes which value?', opts:['0','1','−1','10'], ans:0, fact:'x = 0 is excluded because dividing by zero is undefined. Every other number is allowed.'},
+    {type:'num', cat:'Percentages', q:'A jacket is marked up 25% to $75. What was the cost before markup?', accept:['60'], fact:'$75 is 125% of the cost, so cost = 75 ÷ 1.25 = $60. The selling price includes the original 100% plus 25%.'},
+    {type:'mc', cat:'Geometry', q:'The volume of a cube with side 4 is…', opts:['16','48','64','12'], ans:2, fact:'Volume = side³ = 4 × 4 × 4 = 64. Cubing a length gives the space inside a cube.'},
+    {type:'num', cat:'Algebra', q:'Solve for x: 5 − 2x = 1', accept:['2'], fact:'Subtract 5 (−2x = −4), divide by −2: x = 2. Dividing by a negative keeps the answer positive here.'},
+    {type:'mc', cat:'Sequences', q:'What kind of sequence is 3, 6, 12, 24, 48?', opts:['Arithmetic','Geometric','Fibonacci','Random'], ans:1, fact:'Each term is multiplied by 2 — a constant ratio makes it geometric, unlike arithmetic which adds a constant.'},
+  ]
+};
+
+
+/* ─────────── TIER CONFIG ─────────── */
+const TIERS = [
+  { id:'g13', name:'Grade 1-3', desc:'Counting, +/−, shapes, simple ×' },
+  { id:'g45', name:'Grade 4-5', desc:'×, ÷, decimals, fractions, area' },
+  { id:'g68', name:'Grade 6-8', desc:'Integers, %, algebra, exponents' },
+  { id:'hs',  name:'High School', desc:'Equations, quadratics, trig' },
+];
+const TIER_INDEX = { g13:0, g45:1, g68:2, hs:3 };
+const HP_MAX = 100;
+const DMG_HOME = 11;
+const DMG_REACH = 15;
+
+let state = {};
+function resetState(){
+  state = {
+    p1:null, p2:null,            // chosen mathematician ids
+    tier1:null, tier2:null,      // each player's HOME tier id
+    hp1:HP_MAX, hp2:HP_MAX,
+    turn:1, answered:false,
+    pools:{}, poolIdx:{},        // keyed by tier id
+    currentQ:null, currentTier:null, currentReach:false,
+    turns:0, correct1:0, correct2:0, asked1:0, asked2:0
+  };
+}
+
+const $ = id => document.getElementById(id);
+
+/* ─────────── SETUP: SCIENTIST GRIDS ─────────── */
+function renderGrids(){
+  [1,2].forEach(p=>{
+    const grid = $('sci-grid-'+p);
+    grid.innerHTML='';
+    const mine  = p===1 ? state.p1 : state.p2;
+    const other = p===1 ? state.p2 : state.p1;
+    SCIENTISTS.forEach(s=>{
+      const taken = other===s.id;
+      const selected = mine===s.id;
+      const card=document.createElement('div');
+      card.className='sci-card'+(selected?' selected'+(p===2?' p2sel':''):'')+(taken?' taken':'');
+      const body=document.createElement('div');
+      body.innerHTML=`<span class="icon">${s.icon}</span><div class="sname">${s.name}</div><div class="sdomain">${s.domain}</div>`;
+      body.style.cursor='pointer';
+      if(!taken) body.onclick=()=>pickScientist(p,s.id);
+      const link=document.createElement('button');
+      link.className='story-link';
+      link.textContent='📖 Read their story';
+      link.onclick=(e)=>{e.stopPropagation();openStory(s.id,p);};
+      card.appendChild(body);
+      card.appendChild(link);
+      grid.appendChild(card);
+    });
+  });
+}
+function pickScientist(player,id){
+  const other = player===1 ? state.p2 : state.p1;
+  if(other===id) return;
+  if(player===1) state.p1=id; else state.p2=id;
+  renderGrids();
+  checkReady();
+}
+
+/* ─────────── SETUP: TIER GRIDS ─────────── */
+function renderTiers(){
+  [1,2].forEach(p=>{
+    const grid = $('tier-grid-'+p);
+    grid.innerHTML='';
+    const mine = p===1 ? state.tier1 : state.tier2;
+    TIERS.forEach(t=>{
+      const btn=document.createElement('button');
+      btn.className='tier-btn'+(mine===t.id?' selected'+(p===2?' p2sel':''):'');
+      btn.innerHTML=`<span class="tier-name">${t.name}</span><span class="tier-desc">${t.desc}</span>`;
+      btn.onclick=()=>pickTier(p,t.id);
+      grid.appendChild(btn);
+    });
+  });
+}
+function pickTier(player,id){
+  if(player===1) state.tier1=id; else state.tier2=id;
+  renderTiers();
+  checkReady();
+}
+
+function checkReady(){
+  $('start-btn').disabled = !(state.p1 && state.p2 && state.tier1 && state.tier2);
+}
+
+/* ─────────── STORY MODAL ─────────── */
+let storyContext = {id:null, player:null};
+function openStory(id,player){
+  const s = SCIENTISTS.find(x=>x.id===id);
+  const st = STORIES[id];
+  storyContext = {id, player};
+  $('story-icon').textContent=s.icon;
+  $('story-name').textContent=s.name;
+  $('story-epithet').textContent=st.epithet;
+  $('story-tags').innerHTML=st.tags.map(t=>`<span class="scroll-tag">${t}</span>`).join('');
+  // body + diagram
+  let bodyHtml = st.body.map((p,i)=>`<p${i===0?' class="lead"':''}>${p}</p>`).join('');
+  if(st.diagram){
+    bodyHtml += `<div class="diagram-box">
+        <div class="diagram-title">${st.diagram.title}</div>
+        <div class="diagram-svg">${st.diagram.svg}</div>
+        <div class="diagram-caption">${st.diagram.caption}</div>
+      </div>`;
+  }
+  $('story-body').innerHTML=bodyHtml;
+  const pick=$('story-pick');
+  if(player===null){
+    pick.style.display='none';
+  } else {
+    pick.style.display='block';
+    const other = player===1 ? state.p2 : state.p1;
+    if(other===id){
+      pick.disabled=true; pick.classList.add('taken');
+      pick.textContent='Already chosen by the other player';
+    } else {
+      pick.disabled=false; pick.classList.remove('taken');
+      pick.textContent=`Choose ${s.name} for Player ${player}`;
+      pick.onclick=()=>{ pickScientist(player,id); closeStory(); };
+    }
+  }
+  $('story-modal').classList.add('active');
+  $('story-modal').scrollTop=0;
+}
+function closeStory(){ $('story-modal').classList.remove('active'); }
+
+/* ─────────── QUESTION POOLS ─────────── */
+function buildPool(tier){
+  const base=[...QUESTIONS[tier]];
+  for(let i=base.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[base[i],base[j]]=[base[j],base[i]];}
+  state.pools[tier]=base; state.poolIdx[tier]=0;
+}
+function drawQuestion(tier){
+  if(!state.pools[tier] || state.poolIdx[tier]>=state.pools[tier].length) buildPool(tier);
+  return state.pools[tier][state.poolIdx[tier]++];
+}
+
+/* ─────────── ANSWER NORMALISATION (typed numeric) ─────────── */
+function normalizeAns(str){
+  if(str==null) return '';
+  let s = String(str).trim().toLowerCase();
+  s = s.replace(/\s+/g,'');
+  s = s.replace(/−/g,'-');
+  s = s.replace(/\$/g,'');
+  s = s.replace(/%$/,'');
+  s = s.replace(/,/g,'');
+  return s;
+}
+function checkNumeric(typed, accepts){
+  const t = normalizeAns(typed);
+  if(t==='') return false;
+  for(const a of accepts){
+    const na = normalizeAns(a);
+    if(t===na) return true;
+    const tv = toNumber(t), av = toNumber(na);
+    if(tv!==null && av!==null && Math.abs(tv-av) < 1e-9) return true;
+  }
+  return false;
+}
+function toNumber(s){
+  if(/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return parseFloat(s);
+  const m = s.match(/^(-?\d+)\/(\d+)$/);
+  if(m){ const d=parseInt(m[2],10); if(d!==0) return parseInt(m[1],10)/d; }
+  return null;
+}
+
+/* ─────────── BATTLE START ─────────── */
+function startBattle(){
+  if(!(state.p1&&state.p2&&state.tier1&&state.tier2)) return;
+  const s1=SCIENTISTS.find(x=>x.id===state.p1);
+  const s2=SCIENTISTS.find(x=>x.id===state.p2);
+  $('p1-icon').textContent=s1.icon; $('p1-label').textContent=s1.name;
+  $('p2-icon').textContent=s2.icon; $('p2-label').textContent=s2.name;
+  // pre-build the pools that will be used
+  const usedTiers = new Set([state.tier1, state.tier2]);
+  // also reach-up tiers
+  [state.tier1,state.tier2].forEach(t=>{ const up=reachUpTier(t); if(up) usedTiers.add(up); });
+  usedTiers.forEach(t=>buildPool(t));
+  updateHP();
+  showScreen('battle');
+  loadTurn();
+}
+
+function reachUpTier(tierId){
+  const idx = TIER_INDEX[tierId];
+  if(idx < TIERS.length-1) return TIERS[idx+1].id;
+  return null; // already at top
+}
+
+function updateHP(){
+  $('p1-bar').style.width=Math.max(0,state.hp1/HP_MAX*100)+'%';
+  $('p2-bar').style.width=Math.max(0,state.hp2/HP_MAX*100)+'%';
+  $('p1-hp-text').textContent=Math.max(0,state.hp1)+' HP';
+  $('p2-hp-text').textContent=Math.max(0,state.hp2)+' HP';
+}
+
+/* ─────────── TURN: show the choice (home vs reach up) ─────────── */
+function loadTurn(){
+  state.answered=false;
+  state.currentTier=null; state.currentReach=false;
+  const me = state.turn===1 ? state.p1 : state.p2;
+  const myTier = state.turn===1 ? state.tier1 : state.tier2;
+  const s = SCIENTISTS.find(x=>x.id===me);
+  const banner=$('turn-banner');
+  banner.textContent=`Player ${state.turn}'s turn — ${s.name}`;
+  banner.className='turn-banner '+(state.turn===1?'p1':'p2');
+  $('score-left').textContent=`P1 ✓ ${state.correct1}`;
+  $('score-right').textContent=`✓ ${state.correct2} P2`;
+
+  // build the choice buttons
+  const homeTierObj = TIERS[TIER_INDEX[myTier]];
+  const upId = reachUpTier(myTier);
+  const wrap=$('choice-row'); wrap.innerHTML='';
+
+  const homeBtn=document.createElement('button');
+  homeBtn.className='choice-btn home';
+  homeBtn.innerHTML=`<span class="choice-label">Play my level</span>
+    <span class="choice-tier">${homeTierObj.name}</span>
+    <span class="choice-dmg">${DMG_HOME} damage</span>`;
+  homeBtn.onclick=()=>chooseQuestion(myTier,false);
+  wrap.appendChild(homeBtn);
+
+  if(upId){
+    const upObj = TIERS[TIER_INDEX[upId]];
+    const upBtn=document.createElement('button');
+    upBtn.className='choice-btn reach';
+    upBtn.innerHTML=`<span class="choice-label">⬆ Reach up!</span>
+      <span class="choice-tier">${upObj.name}</span>
+      <span class="choice-dmg">${DMG_REACH} damage</span>`;
+    upBtn.onclick=()=>chooseQuestion(upId,true);
+    wrap.appendChild(upBtn);
+  }
+
+  $('choice-wrap').style.display='block';
+  $('question-area').style.display='none';
+  $('feedback-card').classList.remove('show','hit','miss');
+  $('next-btn').classList.remove('show');
+}
+
+/* player chose home or reach-up -> show a question from that tier */
+function chooseQuestion(tier, isReach){
+  state.currentTier=tier;
+  state.currentReach=isReach;
+  const q=drawQuestion(tier);
+  state.currentQ=q;
+  $('choice-wrap').style.display='none';
+  $('question-area').style.display='block';
+
+  const tierObj = TIERS[TIER_INDEX[tier]];
+  const dmg = isReach ? DMG_REACH : DMG_HOME;
+  const cls = isReach ? 'reach' : 'home';
+  $('q-category').innerHTML=`${q.cat}<span class="diff-tag ${cls}">${tierObj.name} · ${dmg} dmg${isReach?' ⬆':''}</span>`;
+  $('q-text').textContent=q.q;
+
+  const grid=$('options-grid');
+  const numWrap=$('num-answer-wrap');
+  grid.innerHTML='';
+
+  if(q.type==='num'){
+    grid.style.display='none';
+    numWrap.style.display='flex';
+    const input=$('num-input');
+    input.value=''; input.disabled=false; input.className='';
+    $('num-submit').disabled=false;
+    input.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); submitNumeric(); } };
+    setTimeout(()=>input.focus(),50);
+  } else {
+    numWrap.style.display='none';
+    grid.style.display='grid';
+    const keys=['A','B','C','D'];
+    q.opts.forEach((o,i)=>{
+      const b=document.createElement('button');
+      b.className='opt-btn';
+      b.innerHTML=`<span class="opt-key">${keys[i]}</span> ${o}`;
+      b.onclick=()=>answerMC(i,b);
+      grid.appendChild(b);
+    });
+  }
+}
+
+function answerMC(idx,btn){
+  if(state.answered) return;
+  const q=state.currentQ;
+  const correct = idx===q.ans;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.ans) b.classList.add('correct');
+    else if(i===idx && !correct) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  resolveAnswer(correct, q.opts[q.ans]);
+}
+
+function submitNumeric(){
+  if(state.answered) return;
+  const q=state.currentQ;
+  const typed=$('num-input').value;
+  if(normalizeAns(typed)===''){ $('num-input').focus(); return; }
+  const correct = checkNumeric(typed, q.accept);
+  $('num-input').disabled=true;
+  $('num-submit').disabled=true;
+  $('num-input').className = correct?'ok':'bad';
+  resolveAnswer(correct, q.accept[0]);
+}
+
+function resolveAnswer(correct, correctText){
+  state.answered=true;
+  state.turns++;
+  if(state.turn===1) state.asked1++; else state.asked2++;
+  const dmg = state.currentReach ? DMG_REACH : DMG_HOME;
+  const q=state.currentQ;
+  const fb=$('feedback-card');
+  fb.classList.add('show');
+  if(correct){
+    const target = SCIENTISTS.find(x=>x.id===(state.turn===1?state.p2:state.p1));
+    if(state.turn===1){ state.hp2-=dmg; state.correct1++; }
+    else { state.hp1-=dmg; state.correct2++; }
+    fb.classList.add('hit');
+    const reachNote = state.currentReach ? ' (reach-up bonus!)' : '';
+    $('fb-head').textContent=`✓ Correct! −${dmg} HP to ${target.name}${reachNote}`;
+  } else {
+    fb.classList.add('miss');
+    $('fb-head').textContent=`✗ Wrong — the answer was ${correctText}. No damage dealt.`;
+  }
+  $('fb-body').textContent=q.fact;
+  updateHP();
+  if(state.hp1<=0 || state.hp2<=0){
+    setTimeout(showWinner,950);
+  } else {
+    $('next-btn').classList.add('show');
+  }
+}
+
+function nextTurn(){
+  state.turn = state.turn===1?2:1;
+  loadTurn();
+}
+
+/* ─────────── WINNER ─────────── */
+function showWinner(){
+  const winnerNum = state.hp1>0?1:2;
+  const w=SCIENTISTS.find(x=>x.id===(winnerNum===1?state.p1:state.p2));
+  const l=SCIENTISTS.find(x=>x.id===(winnerNum===1?state.p2:state.p1));
+  $('winner-icon').textContent=w.icon;
+  $('winner-title').textContent=`Player ${winnerNum} wins — ${w.name}!`;
+  $('winner-sub').textContent=`${w.name} outcalculates ${l.name} in the battle of the great minds.`;
+  $('stat-turns').textContent=state.turns;
+  const asked = winnerNum===1?state.asked1:state.asked2;
+  const corr  = winnerNum===1?state.correct1:state.correct2;
+  $('stat-acc').textContent = asked? Math.round(corr/asked*100)+'%' : '—';
+  const btn=$('winner-story-btn');
+  btn.onclick=()=>openStory(w.id,null);
+  showScreen('winner');
+}
+
+/* ─────────── NAV ─────────── */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetGame(){
+  resetState();
+  renderGrids();
+  renderTiers();
+  checkReady();
+  showScreen('setup');
+}
+
+/* ─────────── INIT ─────────── */
+resetState();
+renderGrids();
+renderTiers();
+showScreen('setup');
+
+</script>
+</body>
+</html>

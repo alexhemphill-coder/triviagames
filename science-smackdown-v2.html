@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Smackdown — The Apothecary's Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─────────── VICTORIAN APOTHECARY THEME ─────────── */
+:root{
+  --paper:#f0e6d2;          /* aged label paper */
+  --paper-2:#e7dac0;
+  --paper-edge:#d8c7a6;
+  --ink:#3a2a1a;            /* dark sepia ink */
+  --ink2:#7a6a52;          /* faded ink */
+  --bottle:#1f3a2e;        /* deep apothecary green */
+  --bottle-2:#2c4a3a;
+  --bottle-deep:#152a20;
+  --amber:#9c5a2a;         /* amber tincture */
+  --amber-2:#c2783c;
+  --oxblood:#6e2b2b;
+  --brass:#b08d57;         /* brass fittings */
+  --brass-2:#cda968;
+  --accent:#9c5a2a;
+  --ok:#3f7d4f;
+  --ok-bg:#cfe4cf;
+  --err:#9a3b35;
+  --err-bg:#ecccc8;
+  /* roles used across components */
+  --p1:#2f5d4a;            /* player 1 green */
+  --p1-deep:#1f3a2e;
+  --p2:#9c5a2a;            /* player 2 amber */
+  --p2-deep:#6e3a16;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Spectral','Georgia',serif;
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.55;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(176,141,87,0.10), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(110,43,43,0.08), transparent 45%),
+    repeating-linear-gradient(0deg, rgba(120,90,50,0.025) 0 2px, transparent 2px 4px),
+    var(--paper);
+}
+/* faint aged texture overlay via mottling */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(circle at 12% 30%, rgba(60,40,20,0.05) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 22%, rgba(60,40,20,0.04) 0 2px, transparent 3px),
+    radial-gradient(circle at 45% 70%, rgba(60,40,20,0.05) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 60%, rgba(60,40,20,0.04) 0 2px, transparent 3px);
+  background-size:140px 140px, 180px 180px, 160px 160px, 200px 200px;
+}
+.screen{display:none; position:relative; z-index:1; animation:fade .4s ease;}
+.screen.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+#screen-setup{max-width:760px;margin:0 auto;padding:1.5rem 1rem 3rem;}
+
+/* TITLE BLOCK — an apothecary label */
+.title-block{
+  text-align:center; position:relative; margin-bottom:1.8rem;
+  padding:1.6rem 1rem 1.3rem;
+  background:linear-gradient(var(--paper-2),var(--paper));
+  border:2px solid var(--ink);
+  border-radius:3px;
+  box-shadow:inset 0 0 0 4px var(--paper-2), inset 0 0 0 5px var(--brass), 0 4px 14px rgba(40,25,10,0.25);
+}
+.title-block::before{
+  content:"❦  EST. MDCCCXLII  ❦";
+  position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+  background:var(--paper); padding:0 12px;
+  font-size:.6rem; letter-spacing:.22em; color:var(--amber); font-weight:600;
+}
+.game-title{
+  font-family:'Playfair Display','Georgia',serif; font-weight:900;
+  font-size:2.5rem; line-height:1; color:var(--bottle);
+  letter-spacing:.01em; text-shadow:1px 1px 0 var(--brass);
+}
+.game-sub{
+  font-style:italic; font-size:1rem; color:var(--ink2); margin-top:.6rem;
+  font-family:'Spectral',serif;
+}
+
+.setup-section{margin-bottom:1.7rem;}
+.setup-section h2{
+  font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700;
+  letter-spacing:.02em; color:var(--bottle);
+  border-bottom:2px solid var(--brass); padding-bottom:6px; margin-bottom:5px;
+  display:flex; align-items:center; gap:8px;
+}
+.setup-section h2::before{content:"⚗"; font-size:1rem; color:var(--amber);}
+.setup-section h2.p1c{color:var(--p1-deep);}
+.setup-section h2.p2c{color:var(--p2-deep);}
+.setup-hint{font-size:.78rem;color:var(--ink2);margin-bottom:.9rem;font-style:italic;}
+
+.sci-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media (max-width:560px){.sci-grid{grid-template-columns:repeat(2,1fr);}.game-title{font-size:1.9rem;}}
+
+.sci-card{
+  border:1.5px solid var(--paper-edge); border-radius:3px;
+  background:linear-gradient(var(--paper),var(--paper-2));
+  padding:12px 10px 10px; text-align:center; position:relative;
+  box-shadow:0 2px 6px rgba(40,25,10,0.12);
+  transition:transform .12s, border-color .12s, box-shadow .12s;
+}
+.sci-card .icon{font-size:1.7rem;line-height:1;}
+.sci-card .sname{font-family:'Playfair Display',serif;font-weight:700;font-size:.92rem;margin-top:6px;color:var(--bottle);}
+.sci-card .sdomain{font-size:.64rem;color:var(--ink2);margin-top:2px;font-style:italic;}
+.sci-card>div:first-child:hover{transform:translateY(-2px);}
+.sci-card.selected{border-color:var(--p1);box-shadow:0 0 0 1px var(--p1),0 0 12px rgba(47,93,74,.3);}
+.sci-card.selected.p2sel{border-color:var(--p2);box-shadow:0 0 0 1px var(--p2),0 0 12px rgba(156,90,42,.3);}
+.sci-card.taken{opacity:.4;}
+
+.story-link{
+  margin-top:9px;width:100%;background:transparent;
+  border:1px solid var(--paper-edge); color:var(--ink2);
+  font-family:'Spectral',serif;font-size:.66rem;font-style:italic;letter-spacing:.04em;
+  padding:5px;border-radius:3px;cursor:pointer;transition:all .12s;
+}
+.story-link:hover{color:var(--amber);border-color:var(--amber);}
+
+/* TIER PICKER */
+.tier-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media (max-width:560px){.tier-grid{grid-template-columns:1fr;}}
+.tier-btn{
+  text-align:left;background:linear-gradient(var(--paper),var(--paper-2));
+  border:1.5px solid var(--paper-edge);border-radius:3px;color:var(--ink);
+  font-family:'Spectral',serif;padding:12px 14px;cursor:pointer;transition:all .12s;
+  display:flex;flex-direction:column;gap:3px;box-shadow:0 2px 6px rgba(40,25,10,0.1);
+}
+.tier-btn .tier-name{font-family:'Playfair Display',serif;font-weight:700;font-size:.92rem;color:var(--bottle);}
+.tier-btn .tier-desc{font-size:.66rem;color:var(--ink2);font-style:italic;}
+.tier-btn:hover{transform:translateY(-1px);border-color:var(--amber);}
+.tier-btn.selected{border-color:var(--p1);box-shadow:0 0 0 1px var(--p1),0 0 12px rgba(47,93,74,.3);}
+.tier-btn.selected .tier-name{color:var(--p1-deep);}
+.tier-btn.selected.p2sel{border-color:var(--p2);box-shadow:0 0 0 1px var(--p2),0 0 12px rgba(156,90,42,.3);}
+.tier-btn.selected.p2sel .tier-name{color:var(--p2-deep);}
+
+.rules-box{
+  border:1.5px solid var(--brass);border-radius:3px;
+  background:linear-gradient(var(--paper-2),var(--paper));
+  padding:14px 16px;font-size:.86rem;color:var(--ink);line-height:1.7;
+  box-shadow:inset 0 0 0 3px var(--paper-2);
+}
+.rules-box b{color:var(--bottle);}
+.rules-box .m{color:var(--amber);font-weight:700;font-style:italic;}
+
+.start-btn{
+  width:100%;margin-top:.6rem;
+  background:linear-gradient(var(--bottle-2),var(--bottle-deep));
+  color:var(--brass-2);border:2px solid var(--brass);
+  font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;letter-spacing:.03em;
+  padding:15px;border-radius:3px;cursor:pointer;transition:all .15s;
+  box-shadow:0 3px 10px rgba(40,25,10,0.3);
+}
+.start-btn:disabled{background:#9c9384;color:#cabfa8;border-color:#b3a98f;cursor:not-allowed;box-shadow:none;}
+.start-btn:not(:disabled):hover{box-shadow:0 0 18px rgba(176,141,87,.5);transform:translateY(-1px);}
+
+/* BATTLE */
+#screen-battle{max-width:720px;margin:0 auto;padding:1rem 1rem 2rem;}
+.hp-strip{
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(var(--paper-2),var(--paper));
+  border:1.5px solid var(--brass);border-radius:3px;padding:12px 14px;margin-bottom:1rem;
+  box-shadow:inset 0 0 0 3px var(--paper-2);
+}
+.hp-player{flex:1;}
+.hp-player-name{font-family:'Playfair Display',serif;font-size:.78rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.hp-player-name.p1{color:var(--p1-deep);}
+.hp-player-name.p2{color:var(--p2-deep);justify-content:flex-end;}
+.hp-bar-bg{height:14px;background:var(--paper-edge);border:1px solid var(--ink2);border-radius:2px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(40,25,10,.3);}
+.hp-bar-fill{height:100%;transition:width .5s ease;}
+.hp-fill-p1{background:linear-gradient(90deg,var(--bottle-deep),var(--p1));}
+.hp-fill-p2{background:linear-gradient(90deg,var(--p2),var(--amber-2));}
+.hp-num{font-size:.68rem;color:var(--ink2);margin-top:4px;font-style:italic;}
+.hp-num.right{text-align:right;}
+.vs-mid{font-family:'Playfair Display',serif;font-weight:900;font-size:1rem;color:var(--oxblood);}
+
+.score-strip{display:flex;justify-content:space-between;font-size:.66rem;color:var(--ink2);margin-bottom:.8rem;padding:0 2px;font-style:italic;}
+
+.turn-banner{
+  text-align:center;padding:10px;border-radius:3px;
+  font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;letter-spacing:.02em;
+  margin-bottom:1rem;
+}
+.turn-banner.p1{background:rgba(47,93,74,.14);color:var(--p1-deep);border:1px solid var(--p1);}
+.turn-banner.p2{background:rgba(156,90,42,.14);color:var(--p2-deep);border:1px solid var(--p2);}
+
+/* CHOICE: home vs reach up */
+.choice-label-top{text-align:center;font-size:.78rem;color:var(--ink2);font-style:italic;margin-bottom:.7rem;}
+.choice-row{display:flex;gap:10px;margin-bottom:1rem;}
+@media (max-width:480px){.choice-row{flex-direction:column;}}
+.choice-btn{
+  flex:1;background:linear-gradient(var(--paper),var(--paper-2));
+  border:1.5px solid var(--paper-edge);border-radius:3px;color:var(--ink);
+  font-family:'Spectral',serif;padding:16px 12px;cursor:pointer;transition:all .12s;
+  display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;
+  box-shadow:0 2px 6px rgba(40,25,10,0.12);
+}
+.choice-btn .choice-label{font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;}
+.choice-btn .choice-tier{font-size:.68rem;color:var(--ink2);font-style:italic;}
+.choice-btn .choice-dmg{font-size:.82rem;font-weight:700;margin-top:2px;}
+.choice-btn.home:hover{border-color:var(--p1);box-shadow:0 0 12px rgba(47,93,74,.3);transform:translateY(-2px);}
+.choice-btn.home .choice-label{color:var(--p1-deep);}
+.choice-btn.home .choice-dmg{color:var(--p1);}
+.choice-btn.reach{border-color:var(--brass);background:linear-gradient(var(--paper-2),#ead9b8);}
+.choice-btn.reach:hover{border-color:var(--amber);box-shadow:0 0 14px rgba(156,90,42,.35);transform:translateY(-2px);}
+.choice-btn.reach .choice-label{color:var(--amber);}
+.choice-btn.reach .choice-dmg{color:var(--amber);}
+
+.diff-tag{display:inline-block;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:3px;font-weight:700;margin-left:8px;vertical-align:middle;}
+.diff-tag.home{background:var(--p1);color:var(--paper);}
+.diff-tag.reach{background:var(--amber);color:var(--paper);}
+
+/* QUESTION CARD — a prescription slip */
+.question-card{
+  background:
+    repeating-linear-gradient(transparent,transparent 27px,rgba(120,90,50,.14) 27px,rgba(120,90,50,.14) 28px),
+    linear-gradient(var(--paper),var(--paper-2));
+  color:var(--ink);border:1.5px solid var(--brass);border-radius:3px;
+  padding:1.2rem 1.4rem;margin-bottom:1rem;min-height:92px;display:flex;align-items:center;
+  box-shadow:inset 0 0 0 3px var(--paper-2),0 4px 12px rgba(40,25,10,.2);
+}
+.q-category{font-size:.62rem;font-weight:700;letter-spacing:.12em;color:var(--amber);margin-bottom:7px;text-transform:uppercase;}
+.q-text{font-family:'Playfair Display',serif;font-size:1.12rem;font-weight:600;line-height:1.4;color:var(--bottle);}
+
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+@media (max-width:480px){.options-grid{grid-template-columns:1fr;}}
+.opt-btn{
+  background:linear-gradient(var(--paper),var(--paper-2));color:var(--ink);
+  border:1.5px solid var(--paper-edge);border-radius:3px;padding:13px 14px;
+  font-family:'Spectral',serif;font-size:.92rem;text-align:left;cursor:pointer;transition:all .12s;
+  box-shadow:0 2px 5px rgba(40,25,10,.1);
+}
+.opt-btn:hover:not(:disabled){transform:translateY(-1px);border-color:var(--bottle);}
+.opt-btn:disabled{cursor:default;}
+.opt-btn.correct{background:var(--ok-bg);color:#1c3a24;border-color:var(--ok);font-weight:700;}
+.opt-btn.wrong{background:var(--err-bg);color:#3a1512;border-color:var(--err);}
+.opt-btn.dim{opacity:.45;}
+.opt-key{display:inline-block;min-width:1.1em;font-family:'Playfair Display',serif;font-weight:900;color:var(--amber);margin-right:.5em;}
+
+/* TYPED ANSWER */
+.num-answer-wrap{display:none;gap:10px;margin-bottom:1rem;align-items:stretch;}
+@media (max-width:480px){.num-answer-wrap{flex-direction:column;}}
+#num-input{
+  flex:1;min-width:0;background:var(--paper);color:var(--ink);
+  border:2px solid var(--bottle);border-radius:3px;
+  font-family:'Playfair Display',serif;font-size:1.15rem;
+  padding:13px 16px;text-align:center;
+}
+#num-input:focus{outline:none;box-shadow:0 0 12px rgba(31,58,46,.4);}
+#num-input.ok{border-color:var(--ok);background:var(--ok-bg);color:#1c3a24;}
+#num-input.bad{border-color:var(--err);background:var(--err-bg);color:#3a1512;}
+#num-input:disabled{opacity:1;}
+#num-submit{
+  background:linear-gradient(var(--bottle-2),var(--bottle-deep));color:var(--brass-2);
+  border:2px solid var(--brass);font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;
+  padding:13px 26px;border-radius:3px;cursor:pointer;transition:all .12s;white-space:nowrap;
+}
+#num-submit:hover:not(:disabled){box-shadow:0 0 14px rgba(176,141,87,.5);}
+#num-submit:disabled{background:#9c9384;color:#cabfa8;border-color:#b3a98f;cursor:default;}
+
+/* FEEDBACK */
+.feedback-card{
+  display:none;border-radius:3px;padding:1rem 1.2rem;margin-bottom:1rem;border-left:4px solid;
+  background:linear-gradient(var(--paper-2),var(--paper));box-shadow:0 2px 8px rgba(40,25,10,.15);
+}
+.feedback-card.hit{border-color:var(--ok);}
+.feedback-card.miss{border-color:var(--err);}
+.feedback-card.show{display:block;}
+.fb-head{font-family:'Playfair Display',serif;font-weight:700;font-size:.92rem;margin-bottom:6px;}
+.feedback-card.hit .fb-head{color:var(--ok);}
+.feedback-card.miss .fb-head{color:var(--err);}
+#fb-body{font-style:italic;font-size:.92rem;color:var(--ink);line-height:1.55;}
+
+.next-btn{
+  display:none;width:100%;
+  background:linear-gradient(var(--amber),var(--p2-deep));color:var(--paper);border:2px solid var(--brass);
+  font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;letter-spacing:.03em;
+  padding:13px;border-radius:3px;cursor:pointer;transition:all .12s;
+}
+.next-btn:hover{box-shadow:0 0 14px rgba(156,90,42,.5);}
+.next-btn.show{display:block;}
+
+/* WINNER */
+#screen-winner{max-width:580px;margin:0 auto;padding:2.5rem 1.2rem;text-align:center;}
+.winner-icon{font-size:4.5rem;line-height:1;filter:drop-shadow(0 0 14px rgba(176,141,87,.5));}
+.winner-laurel{font-family:'Spectral',serif;font-style:italic;font-size:.74rem;letter-spacing:.24em;color:var(--amber);margin:.8rem 0;}
+.winner-title{font-family:'Playfair Display',serif;font-weight:900;font-size:1.9rem;color:var(--bottle);line-height:1.15;}
+.winner-sub{font-style:italic;color:var(--ink2);margin-top:.6rem;font-size:1rem;}
+.stats-row{display:flex;gap:14px;justify-content:center;margin-top:1.8rem;flex-wrap:wrap;}
+.stat-box{border:1.5px solid var(--brass);border-radius:3px;padding:14px 22px;background:linear-gradient(var(--paper),var(--paper-2));box-shadow:inset 0 0 0 3px var(--paper-2);}
+.stat-val{font-family:'Playfair Display',serif;font-weight:900;font-size:1.7rem;color:var(--bottle);}
+.stat-lbl{font-size:.62rem;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin-top:4px;}
+.winner-story-btn{
+  background:transparent;border:1px solid var(--brass);color:var(--ink2);
+  font-family:'Spectral',serif;font-style:italic;font-size:.78rem;letter-spacing:.04em;
+  padding:9px 16px;border-radius:3px;cursor:pointer;margin-top:1.6rem;
+}
+.winner-story-btn:hover{color:var(--amber);border-color:var(--amber);}
+.play-again-btn{
+  display:block;margin:1.2rem auto 0;
+  background:linear-gradient(var(--bottle-2),var(--bottle-deep));color:var(--brass-2);border:2px solid var(--brass);
+  font-family:'Playfair Display',serif;font-weight:700;font-size:1.05rem;letter-spacing:.02em;
+  padding:13px 30px;border-radius:3px;cursor:pointer;
+}
+.play-again-btn:hover{box-shadow:0 0 16px rgba(176,141,87,.5);}
+
+/* STORY MODAL — an apothecary's notebook page */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:50;
+  background:rgba(25,15,8,.8);padding:1.2rem;overflow-y:auto;backdrop-filter:blur(2px);
+}
+.modal-overlay.active{display:flex;align-items:flex-start;justify-content:center;}
+.scroll{
+  background:
+    repeating-linear-gradient(transparent,transparent 31px,rgba(120,90,50,.12) 31px,rgba(120,90,50,.12) 32px),
+    linear-gradient(var(--paper),var(--paper-2));
+  color:var(--ink);max-width:600px;width:100%;border-radius:4px;
+  padding:2rem 1.9rem 1.7rem;position:relative;margin:1.5rem auto;
+  border:2px solid var(--ink);
+  box-shadow:inset 0 0 0 4px var(--paper-2),inset 0 0 0 5px var(--brass),0 20px 60px rgba(25,15,8,.6);
+}
+.scroll-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.3rem;color:var(--bottle);cursor:pointer;line-height:1;}
+.scroll-header{text-align:center;}
+.scroll-icon{font-size:3rem;line-height:1;}
+.scroll-name{font-family:'Playfair Display',serif;font-weight:900;font-size:1.6rem;color:var(--bottle);margin-top:6px;}
+.scroll-epithet{font-style:italic;font-size:.95rem;color:var(--amber);margin-top:3px;}
+.scroll-divider{text-align:center;color:var(--brass);margin:1rem 0;letter-spacing:.3em;font-size:.85rem;}
+.scroll-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:1.1rem;}
+.scroll-tag{font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;background:var(--bottle);color:var(--paper);padding:3px 9px;border-radius:3px;}
+.scroll-body p{font-size:1rem;line-height:1.7;margin-bottom:.9rem;color:var(--ink);}
+.scroll-body p.lead::first-letter{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;float:left;line-height:.8;padding:4px 8px 0 0;color:var(--amber);}
+
+/* STORY DIAGRAM */
+.diagram-box{margin:1.4rem 0 .5rem;padding:1rem;border-radius:4px;background:linear-gradient(var(--paper-2),#e2d4b6);border:1.5px solid var(--brass);}
+.diagram-title{font-family:'Playfair Display',serif;font-weight:700;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--bottle);text-align:center;margin-bottom:.6rem;}
+.diagram-svg{display:flex;justify-content:center;}
+.diagram-svg svg{width:100%;max-width:320px;height:auto;}
+.diagram-caption{font-style:italic;font-size:.82rem;color:var(--ink2);text-align:center;margin-top:.6rem;line-height:1.5;}
+
+.scroll-pick{
+  width:100%;margin-top:.6rem;
+  background:linear-gradient(var(--bottle-2),var(--bottle-deep));color:var(--brass-2);border:2px solid var(--brass);
+  font-family:'Playfair Display',serif;font-weight:700;font-size:.88rem;letter-spacing:.02em;
+  padding:12px;border-radius:3px;cursor:pointer;transition:all .12s;
+}
+.scroll-pick:hover{box-shadow:0 0 14px rgba(176,141,87,.5);}
+.scroll-pick.taken{background:#9c9384;color:#cabfa8;border-color:#b3a98f;cursor:not-allowed;}
+
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen active">
+  <div class="title-block">
+    <div class="game-title">Science Smackdown</div>
+    <div class="game-sub">The Apothecary's Duel — two great minds enter, one theory prevails.</div>
+  </div>
+
+  <div class="setup-section">
+    <h2 class="p1c">Player 1 — Choose your scientist</h2>
+    <p class="setup-hint">Tap a card to choose. Tap "Read their story" to learn the legend first.</p>
+    <div class="sci-grid" id="sci-grid-1"></div>
+  </div>
+  <div class="setup-section">
+    <h2 class="p1c">Player 1 — Choose your level</h2>
+    <p class="setup-hint">You'll answer questions at this level. On your turn you can also "reach up" one level for bonus damage.</p>
+    <div class="tier-grid" id="tier-grid-1"></div>
+  </div>
+
+  <div class="setup-section">
+    <h2 class="p2c">Player 2 — Choose your scientist</h2>
+    <p class="setup-hint">Tap a card to choose. Tap "Read their story" to learn the legend first.</p>
+    <div class="sci-grid" id="sci-grid-2"></div>
+  </div>
+  <div class="setup-section">
+    <h2 class="p2c">Player 2 — Choose your level</h2>
+    <p class="setup-hint">Each player can be a different level — perfect for siblings of different ages!</p>
+    <div class="tier-grid" id="tier-grid-2"></div>
+  </div>
+
+  <div class="setup-section">
+    <h2>How it works</h2>
+    <div class="rules-box">
+      Each player plays at their own grade level, so siblings of any age can battle fairly. On your turn, answer a question at <b>your level</b> for <b>11 damage</b>, or be brave and <span class="m">reach up</span> one level for <b>15 damage</b>. Some questions are multiple choice; others ask you to <b>type an answer</b> (spelling doesn't have to be perfect). Answer correctly to hurt your opponent — miss, and you deal nothing. First scientist to knock the other to <b>0 HP</b> wins.
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startBattle()" disabled>Begin the Experiment</button>
+</div>
+
+<!-- BATTLE -->
+<div id="screen-battle" class="screen">
+  <div class="hp-strip">
+    <div class="hp-player">
+      <div class="hp-player-name p1"><span id="p1-icon"></span><span id="p1-label"></span></div>
+      <div class="hp-bar-bg"><div class="hp-bar-fill hp-fill-p1" id="p1-bar" style="width:100%"></div></div>
+      <div class="hp-num" id="p1-hp-text">100 HP</div>
+    </div>
+    <div class="vs-mid">VS</div>
+    <div class="hp-player" style="text-align:right;">
+      <div class="hp-player-name p2"><span id="p2-label"></span><span id="p2-icon"></span></div>
+      <div class="hp-bar-bg"><div class="hp-bar-fill hp-fill-p2" id="p2-bar" style="width:100%"></div></div>
+      <div class="hp-num right" id="p2-hp-text">100 HP</div>
+    </div>
+  </div>
+
+  <div class="score-strip">
+    <span id="score-left"></span>
+    <span id="score-right"></span>
+  </div>
+
+  <div class="turn-banner p1" id="turn-banner">Player 1's turn</div>
+
+  <div class="choice-wrap" id="choice-wrap">
+    <div class="choice-label-top">Play it safe at your level, or reach up for more damage?</div>
+    <div class="choice-row" id="choice-row"></div>
+  </div>
+
+  <div id="question-area" style="display:none;">
+    <div class="question-card">
+      <div style="width:100%">
+        <div class="q-category" id="q-category"></div>
+        <div class="q-text" id="q-text">Loading...</div>
+      </div>
+    </div>
+
+    <div class="options-grid" id="options-grid"></div>
+
+    <div class="num-answer-wrap" id="num-answer-wrap">
+      <input type="text" id="num-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+      <button id="num-submit" onclick="submitTyped()">Submit</button>
+    </div>
+
+    <div class="feedback-card" id="feedback-card">
+      <div class="fb-head" id="fb-head"></div>
+      <div id="fb-body"></div>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="nextTurn()">Next Turn →</button>
+  </div>
+</div>
+
+<!-- WINNER -->
+<div id="screen-winner" class="screen">
+  <div class="winner-icon" id="winner-icon"></div>
+  <div class="winner-laurel">~ LAUREATE OF THE LABORATORY ~</div>
+  <div class="winner-title" id="winner-title"></div>
+  <div class="winner-sub" id="winner-sub"></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="stat-turns"></div><div class="stat-lbl">Turns played</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-acc"></div><div class="stat-lbl">Winner accuracy</div></div>
+  </div>
+  <button class="winner-story-btn" id="winner-story-btn">Read the champion's story</button>
+  <button class="play-again-btn" onclick="resetGame()">Play Again</button>
+</div>
+
+<!-- STORY MODAL -->
+<div class="modal-overlay" id="story-modal" onclick="if(event.target===this)closeStory()">
+  <div class="scroll">
+    <button class="scroll-close" onclick="closeStory()">✕</button>
+    <div class="scroll-header">
+      <div class="scroll-icon" id="story-icon"></div>
+      <div class="scroll-name" id="story-name"></div>
+      <div class="scroll-epithet" id="story-epithet"></div>
+    </div>
+    <div class="scroll-divider">❦ ⚗ ❦</div>
+    <div class="scroll-tags" id="story-tags"></div>
+    <div class="scroll-body" id="story-body"></div>
+    <button class="scroll-pick" id="story-pick"></button>
+  </div>
+</div>
+
+<script>
+const SCIENTISTS = [
+  { id:'newton',   name:'Newton',   domain:'Gravity & Motion',  icon:'🍎' },
+  { id:'einstein', name:'Einstein', domain:'Relativity',        icon:'🌌' },
+  { id:'curie',    name:'Curie',    domain:'Radioactivity',     icon:'☢️' },
+  { id:'darwin',   name:'Darwin',   domain:'Evolution',         icon:'🐢' },
+  { id:'tesla',    name:'Tesla',    domain:'Electricity',       icon:'⚡' },
+  { id:'galileo',  name:'Galileo',  domain:'Astronomy',         icon:'🔭' },
+  { id:'maxwell',  name:'Maxwell',  domain:'Electromagnetism',  icon:'🧲' },
+  { id:'hawking',  name:'Hawking',  domain:'Black Holes',       icon:'🕳️' },
+  { id:'mendel',   name:'Mendel',   domain:'Genetics',          icon:'🌱' },
+  { id:'lovelace', name:'Lovelace', domain:'Computing',         icon:'⚙️' },
+  { id:'faraday',  name:'Faraday',  domain:'Fields & Induction',icon:'🔋' },
+  { id:'pasteur',  name:'Pasteur',  domain:'Microbiology',      icon:'🦠' },
+];
+
+const STORIES = {
+  newton: {
+    epithet: 'The Lawgiver of the Heavens',
+    tags: ['Gravity', 'Calculus', 'The Plague Years'],
+    body: [
+      "Isaac Newton was born on Christmas Day in 1642, so small and frail that his mother said he could have fit inside a quart mug. His father had died before he was born, and when his mother remarried she left him to be raised by his grandmother. The lonely boy filled his hours building windmills, sundials, and tiny working models — a quiet apprenticeship for the mind that would one day rewrite the laws of the universe.",
+      "In 1665 the plague swept through England and shut down the University of Cambridge. Newton, barely in his twenties, retreated to his family farm and spent two solitary years thinking harder than perhaps anyone ever had. In that single stretch he invented calculus, broke sunlight apart into the colours of the rainbow with a prism, and began to suspect that the same force pulling an apple to the ground might reach all the way to the Moon.",
+      "That suspicion became his masterpiece. Newton showed that gravity was universal — that the planets, the tides, and a falling stone all obeyed the same precise mathematical rule. In 1687 he published the Principia, three books of iron logic in which he laid down his three laws of motion.",
+      "He was also famously difficult. Newton guarded his discoveries jealously, waged bitter feuds with rivals like Hooke and Leibniz, and spent as much energy on alchemy and secret theology as on physics. Late in life he ran England's Royal Mint, hunting down counterfeiters with the same relentlessness he had once aimed at the secrets of nature.",
+      "When asked how he had seen so far, Newton answered that he had stood on the shoulders of giants. Yet the giants who came after him stood on his. For more than two centuries, his clockwork universe was simply how the world worked — until a patent clerk in Switzerland began to wonder what would happen if you chased a beam of light."
+    ],
+    diagram: {
+      title: 'The apple and the Moon',
+      caption: 'Newton saw that the force pulling an apple to Earth is the same force holding the Moon in its orbit — gravity reaching across space.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="80" cy="150" r="32" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+        <text x="80" y="155" fill="var(--ink)" font-size="11" font-family="serif" text-anchor="middle">Earth</text>
+        <circle cx="80" cy="95" r="6" fill="var(--accent)"/>
+        <line x1="80" y1="101" x2="80" y2="116" stroke="var(--accent)" stroke-width="1.4" marker-end="url(#sar)"/>
+        <text x="92" y="100" fill="var(--accent)" font-size="10" font-family="serif">apple</text>
+        <circle cx="240" cy="80" r="10" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+        <text x="240" y="60" fill="var(--ink)" font-size="10" font-family="serif" text-anchor="middle">Moon</text>
+        <path d="M 80 150 Q 180 40 240 80" fill="none" stroke="var(--ink2)" stroke-width="1.2" stroke-dasharray="4 4"/>
+        <line x1="232" y1="74" x2="120" y2="140" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#sar)"/>
+        <defs><marker id="sar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--accent)"/></marker></defs>
+      </svg>`
+    }
+  },
+  einstein: {
+    epithet: 'The Clerk Who Bent Time',
+    tags: ['Relativity', 'E = mc²', 'The Speed of Light'],
+    body: [
+      "Albert Einstein did not look like a revolutionary. As a young man he failed to land a single academic job and ended up as a junior clerk in a Swiss patent office, examining other people's inventions. But in the quiet hours at his desk, his mind roamed across the universe, turning over a question he had carried since boyhood: what would the world look like if you could ride alongside a beam of light?",
+      "In 1905 — his 'miracle year' — the unknown clerk published four papers that shook physics to its foundations. He proved atoms were real, explained the photoelectric effect that would later power solar cells, and unveiled special relativity, which declared that space and time were not fixed but stretched and shrank depending on how you moved. Almost as an afterthought, he added that energy and mass were the same thing: E = mc².",
+      "He was not finished. For another decade he wrestled with gravity itself, and in 1915 produced general relativity — a breathtaking idea that mass bends the very fabric of space and time, the way a heavy ball curves a stretched sheet. When astronomers measured starlight bending around the Sun during a 1919 eclipse, exactly as he had predicted, Einstein became the most famous scientist on Earth overnight.",
+      "Yet he spent his later years as an outsider once more. He distrusted the strange randomness of quantum mechanics, insisting that 'God does not play dice,' and the field moved on without him. When the Nazis rose to power, the Jewish physicist fled Germany for America.",
+      "Einstein died in 1955, still scribbling equations, still chasing a single theory to unite all the forces of nature. He never found it. But he had already taught humanity that time, space, and light were stranger and more wonderful than anyone had ever dared to imagine."
+    ],
+    diagram: {
+      title: 'Mass bends spacetime',
+      caption: 'Einstein showed that heavy objects curve the fabric of space, like a bowling ball on a stretched sheet — and that curve is what we feel as gravity.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="var(--ink2)" stroke-width="1" fill="none">
+          <path d="M30 60 Q 160 130 290 60"/>
+          <path d="M30 90 Q 160 165 290 90"/>
+          <path d="M30 120 Q 160 195 290 120"/>
+          <path d="M60 45 Q 80 130 60 175"/>
+          <path d="M160 45 Q 160 135 160 185" stroke-dasharray="3 3"/>
+          <path d="M260 45 Q 240 130 260 175"/>
+        </g>
+        <circle cx="160" cy="135" r="16" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.4"/>
+        <text x="160" y="35" fill="var(--ink)" font-size="11" font-family="serif" text-anchor="middle">a star warps space</text>
+      </svg>`
+    }
+  },
+  curie: {
+    epithet: 'The Discoverer of New Elements',
+    tags: ['Radioactivity', 'Two Nobel Prizes', 'Polonium & Radium'],
+    body: [
+      "Maria Sklodowska grew up in Warsaw under Russian rule, where it was illegal for women to attend university. Undaunted, she studied in secret at a hidden 'Flying University' that moved from apartment to apartment to escape the authorities. To fund her dream of real study abroad, she worked for years as a governess, sending money home so her sister could train as a doctor first.",
+      "At last she reached Paris and the Sorbonne, so poor that she sometimes fainted from hunger while studying late into the night. There she met a quiet physicist named Pierre Curie, and the two fell in love over their shared obsession with the mysteries of matter. Together they began investigating a strange new phenomenon: certain rocks seemed to give off invisible rays all on their own. Marie named the effect 'radioactivity.'",
+      "The work was brutal. In a leaky shed with no proper ventilation, the Curies boiled down tons of a black mineral called pitchblende, stirring the steaming sludge with iron rods for years. From it they isolated two entirely new elements — polonium, which Marie named for her homeland, and radium, which glowed with an eerie blue light. They had no idea the same radiation was slowly poisoning them.",
+      "In 1903 the Curies shared the Nobel Prize in Physics, making Marie the first woman ever to win one. After Pierre was killed by a horse-drawn cart, she took over his professorship and in 1911 won a second Nobel, this time in Chemistry. To this day she remains the only person to win Nobel Prizes in two different sciences.",
+      "Marie Curie never patented her discoveries, believing science belonged to everyone. The radiation she had worked with for decades eventually took her life in 1934. Even now, her notebooks are so radioactive that they are kept in lead-lined boxes — still humming, a century later, with the energy she pulled out of the dark."
+    ],
+    diagram: {
+      title: 'Radioactive decay',
+      caption: 'Curie studied atoms that are unstable: they break down over time, shooting out invisible particles and rays of energy all on their own.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="120" cy="100" r="28" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.6"/>
+        <text x="120" y="104" fill="var(--paper)" font-size="11" font-family="serif" text-anchor="middle">nucleus</text>
+        <g stroke="var(--ink)" stroke-width="1.4">
+          <line x1="148" y1="80" x2="210" y2="50" marker-end="url(#sar3)"/>
+          <line x1="150" y1="100" x2="220" y2="100" marker-end="url(#sar3)"/>
+          <line x1="148" y1="120" x2="210" y2="150" marker-end="url(#sar3)"/>
+        </g>
+        <text x="234" y="48" fill="var(--ink)" font-size="11" font-family="serif">α</text>
+        <text x="234" y="104" fill="var(--ink)" font-size="11" font-family="serif">β</text>
+        <text x="234" y="153" fill="var(--ink)" font-size="11" font-family="serif">γ</text>
+        <text x="160" y="185" fill="var(--ink2)" font-size="10" font-family="serif" text-anchor="middle">unstable atoms give off radiation</text>
+        <defs><marker id="sar3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink)"/></marker></defs>
+      </svg>`
+    }
+  },
+  darwin: {
+    epithet: 'The Naturalist of the Beagle',
+    tags: ['Evolution', 'Natural Selection', 'The Galápagos'],
+    body: [
+      "Charles Darwin was, by his father's account, a disappointment. He flunked out of medical school because he couldn't stand the sight of surgery, then drifted toward becoming a country parson. What saved him was an obsession he could not shake — collecting beetles, watching birds, and asking endless questions about why living things were shaped the way they were.",
+      "In 1831, almost by chance, he was offered an unpaid spot as the naturalist aboard HMS Beagle, a survey ship bound for South America. The voyage was meant to last two years; it lasted nearly five. Seasick for much of it, Darwin nonetheless filled crate after crate with fossils, plants, and animals, and walked across landscapes that quietly dismantled everything he had been taught about an unchanging world.",
+      "The Galápagos Islands were the turning point. There Darwin noticed that finches and tortoises differed slightly from island to island, each suited to its own particular home. Back in England, turning the puzzle over for years, he arrived at a dangerous idea: that all living things share common ancestors, and that nature itself, by favouring the survival of the best-suited, slowly shapes new species. He called the mechanism natural selection.",
+      "Darwin knew the idea would cause an uproar, so he sat on it for two decades. He might have delayed forever, but in 1858 a letter arrived from a young naturalist named Alfred Russel Wallace, who had independently hit upon the very same theory. Spurred at last, Darwin rushed his great work into print. On the Origin of Species sold out on its first day in 1859.",
+      "The reaction was every bit the firestorm he had feared. But Darwin had given biology its single greatest unifying idea — the realisation that the dazzling variety of life is bound together in one vast, branching family tree, all of it descended, over countless ages, from the same humble beginnings."
+    ],
+    diagram: {
+      title: "Darwin's finches",
+      caption: 'On each island, finches had different beaks suited to their food. Over generations, nature favours the best-suited — the heart of natural selection.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="var(--ink)" stroke-width="1.6">
+          <ellipse cx="80" cy="70" rx="26" ry="18"/>
+          <path d="M 106 70 L 128 64 L 106 76 Z" fill="var(--accent)"/>
+          <ellipse cx="80" cy="140" rx="26" ry="18"/>
+          <path d="M 106 140 L 124 138 L 106 144 Z" fill="var(--accent)"/>
+          <ellipse cx="230" cy="105" rx="26" ry="18"/>
+          <path d="M 256 105 L 286 103 L 256 110 Z" fill="var(--accent)"/>
+        </g>
+        <text x="150" y="68" fill="var(--ink2)" font-size="9" font-family="serif">big seed-cracking beak</text>
+        <text x="150" y="142" fill="var(--ink2)" font-size="9" font-family="serif">short beak</text>
+        <text x="120" y="160" fill="var(--ink2)" font-size="9" font-family="serif" text-anchor="middle">long probing beak →</text>
+      </svg>`
+    }
+  },
+  tesla: {
+    epithet: 'The Master of Lightning',
+    tags: ['Alternating Current', 'Wireless Power', 'War of Currents'],
+    body: [
+      "Nikola Tesla was born during a fierce thunderstorm in a Croatian village, and his nurse reportedly called him a child of darkness — to which his mother answered that he would be a child of light. Tesla's mind crackled with ideas he could see fully formed in his imagination; he claimed he could build and test an entire engine in his head before ever touching a tool.",
+      "He sailed to America in 1884 with almost no money and a letter of introduction to Thomas Edison. The two titans soon clashed. Edison championed direct current, which could only travel short distances; Tesla believed the future belonged to alternating current, which could be sent for miles. Their rivalry exploded into the 'War of the Currents.' Tesla's AC won — and it still flows through the walls of nearly every home today.",
+      "His inventions seemed to leap from science into magic. He built the induction motor, designed the system that harnessed Niagara Falls for power, and demonstrated wireless transmission decades before radio became common. In his Colorado laboratory he created man-made lightning bolts that cracked like thunder for over a hundred feet.",
+      "But Tesla was a dreamer first and a businessman last. He imagined free wireless power for the whole planet and poured everything into a great tower to broadcast energy through the air. The money ran out, the tower was torn down, and his grandest vision collapsed.",
+      "Tesla died alone and nearly penniless in a hotel room in 1943, his notebooks full of inventions the world wasn't ready for. Today his name marks the unit of magnetic strength and stands for the lonely genius who saw the electric future so clearly that the rest of us are still catching up."
+    ],
+    diagram: {
+      title: 'Alternating current',
+      caption: 'Tesla\'s AC pushes electricity back and forth in a smooth wave, instead of one steady direction — which lets it travel for miles through wires.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="100" x2="290" y2="100" stroke="var(--ink2)" stroke-width="1" stroke-dasharray="3 3"/>
+        <path d="M 30 100 Q 62 40 94 100 T 158 100 T 222 100 T 286 100" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+        <text x="160" y="180" fill="var(--ink2)" font-size="11" font-family="serif" text-anchor="middle">current reverses smoothly, back and forth</text>
+        <text x="40" y="60" fill="var(--ink)" font-size="10" font-family="serif">+</text>
+        <text x="40" y="150" fill="var(--ink)" font-size="10" font-family="serif">−</text>
+      </svg>`
+    }
+  },
+  galileo: {
+    epithet: 'The Father of Modern Science',
+    tags: ['The Telescope', "Jupiter's Moons", 'The Trial'],
+    body: [
+      "Galileo Galilei was supposed to become a doctor. His father sent him to study medicine, but the young man kept sneaking away to mathematics lectures. Legend says that as a teenager, bored during a church service in Pisa, he watched a swinging lamp and timed its sway against his own pulse — discovering that a pendulum takes the same time to swing whether it travels far or near. He was already learning to trust what he could measure over what he was told.",
+      "In 1609 Galileo heard of a Dutch invention that made distant things look near, and within days he had built a better one himself. Then he did something no one had thought to do: he pointed it at the night sky. The Moon had mountains and craters, not a smooth perfect surface. The Milky Way dissolved into countless stars. And Jupiter had four little moons of its own, circling it night after night.",
+      "Those moons were dynamite. If things could orbit Jupiter, then not everything circled the Earth — and the old belief that our world sat motionless at the centre of creation began to crumble. Galileo became a passionate champion of the Copernican idea that the Earth and planets revolve around the Sun.",
+      "This put him on a collision course with the Catholic Church. In 1633 the aging Galileo was hauled before the Inquisition, threatened with torture, and forced to kneel and renounce the idea that the Earth moves. Legend has it that as he rose, he muttered under his breath, 'And yet it moves.'",
+      "Even confined under house arrest and going blind, Galileo produced his finest work on motion in those last years — laying groundwork that Newton would build upon a generation later. For his stubborn faith in observation and evidence, he is remembered as the father of modern science."
+    ],
+    diagram: {
+      title: "Jupiter's moons",
+      caption: 'Galileo saw four moons circling Jupiter — proof that not everything orbits the Earth, which overturned the ancient view of the cosmos.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="160" cy="100" r="30" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.6"/>
+        <text x="160" y="104" fill="var(--paper)" font-size="11" font-family="serif" text-anchor="middle">Jupiter</text>
+        <g fill="none" stroke="var(--ink2)" stroke-width="1">
+          <ellipse cx="160" cy="100" rx="55" ry="22"/>
+          <ellipse cx="160" cy="100" rx="80" ry="34"/>
+          <ellipse cx="160" cy="100" rx="105" ry="46"/>
+          <ellipse cx="160" cy="100" rx="130" ry="58"/>
+        </g>
+        <circle cx="215" cy="100" r="4" fill="var(--ink)"/>
+        <circle cx="80" cy="100" r="4" fill="var(--ink)"/>
+        <circle cx="160" cy="146" r="4" fill="var(--ink)"/>
+        <circle cx="160" cy="42" r="4" fill="var(--ink)"/>
+      </svg>`
+    }
+  },
+  maxwell: {
+    epithet: 'The Weaver of Light',
+    tags: ['Electromagnetism', 'Four Equations', 'First Colour Photo'],
+    body: [
+      "James Clerk Maxwell was a curious, playful child from the Scottish countryside who pestered everyone with the question 'But what's the go of it?' — meaning, how does it actually work? He scribbled his first scientific paper at the age of fourteen. Shy and devout, with a love of nonsense poetry, he would grow into perhaps the most underappreciated genius in the history of physics.",
+      "In Maxwell's time, electricity and magnetism were thought to be two separate curiosities. Faraday had sensed they were linked, picturing invisible 'lines of force,' but he lacked the mathematics to prove it. Maxwell took Faraday's intuition and gave it the language of equations, binding electricity and magnetism together into a single force: electromagnetism.",
+      "Then came the revelation. His equations predicted that a changing electric and magnetic field would ripple outward as a wave — and when he calculated how fast that wave would travel, the number came out exactly equal to the measured speed of light. In a flash, Maxwell realised that light itself is an electromagnetic wave.",
+      "His genius ranged far beyond that. He explained how the rings of Saturn could be stable only if made of countless separate particles, worked out the statistics of how gas molecules move, and in 1861 produced the world's first colour photograph by combining red, green, and blue images.",
+      "Maxwell died of cancer at just forty-eight, his name far less famous than Newton's or Einstein's. Yet Einstein kept a photograph of Maxwell on his study wall and said his life's work was built directly on Maxwell's foundation. Every radio, phone, and Wi-Fi signal is an echo of the waves this gentle Scotsman first found hidden inside his four short equations."
+    ],
+    diagram: {
+      title: 'Light as a wave',
+      caption: 'Maxwell proved light is an electromagnetic wave — an electric field and a magnetic field dancing together as they race through space.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="100" x2="295" y2="100" stroke="var(--ink2)" stroke-width="1" marker-end="url(#sar4)"/>
+        <path d="M 40 100 Q 70 50 100 100 T 160 100 T 220 100 T 280 100" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <path d="M 40 100 Q 70 150 100 100 T 160 100 T 220 100 T 280 100" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="4 3"/>
+        <text x="120" y="40" fill="var(--accent)" font-size="10" font-family="serif">electric field</text>
+        <text x="120" y="175" fill="var(--ink)" font-size="10" font-family="serif">magnetic field</text>
+        <defs><marker id="sar4" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink2)"/></marker></defs>
+      </svg>`
+    }
+  },
+  hawking: {
+    epithet: 'The Voice from the Edge of the Universe',
+    tags: ['Black Holes', 'Hawking Radiation', 'A Brief History of Time'],
+    body: [
+      "Stephen Hawking was an ordinary, somewhat lazy student at Oxford, more interested in rowing than studying, until the universe handed him a cruel and clarifying gift. At twenty-one he was diagnosed with motor neurone disease and told he had perhaps two years to live. Faced with the loss of everything, he discovered, to his own surprise, that he wanted to live — and that he had real work to do.",
+      "He turned his mind to the most extreme objects in existence: black holes, regions where gravity is so fierce that not even light can escape. Working with the mathematics of Einstein's relativity, the young Hawking helped prove that the universe must have begun in a single point of infinite density — the Big Bang.",
+      "Then he made his most startling discovery. Everyone believed nothing could ever come out of a black hole. But by combining gravity with quantum mechanics, Hawking showed in 1974 that black holes are not entirely black — they slowly leak particles and faintly glow, eventually evaporating away. This faint glow is now called Hawking radiation.",
+      "As the disease gradually stole his movement and finally his voice, Hawking kept thinking, doing his most intricate physics entirely in his head. Through a computer and a single twitching cheek muscle, he spoke in the famous robotic voice known around the world. In 1988 he distilled the cosmos into A Brief History of Time, a book that sold millions.",
+      "He defied his two-year prognosis by more than five decades, floated weightless on a zero-gravity flight, and became the most recognisable scientist alive. Stephen Hawking died in 2018, on the anniversary of Einstein's birth. He had spent a lifetime trapped in a failing body while his mind roamed freely to the very edge of the universe."
+    ],
+    diagram: {
+      title: 'A black hole',
+      caption: 'Past the "event horizon," gravity is so strong that not even light escapes. Hawking showed black holes still slowly leak a faint radiation.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="160" cy="100" r="40" fill="var(--ink)" stroke="var(--ink)" stroke-width="1"/>
+        <circle cx="160" cy="100" r="55" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="4 4"/>
+        <text x="160" y="104" fill="var(--paper)" font-size="9" font-family="serif" text-anchor="middle">no escape</text>
+        <text x="160" y="40" fill="var(--accent)" font-size="10" font-family="serif" text-anchor="middle">event horizon</text>
+        <g stroke="var(--ink2)" stroke-width="1.2">
+          <line x1="215" y1="100" x2="245" y2="90" marker-end="url(#sar5)"/>
+          <line x1="205" y1="140" x2="232" y2="158" marker-end="url(#sar5)"/>
+        </g>
+        <text x="250" y="160" fill="var(--ink2)" font-size="9" font-family="serif">faint glow</text>
+        <defs><marker id="sar5" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink2)"/></marker></defs>
+      </svg>`
+    }
+  },
+  mendel: {
+    epithet: 'The Monk Who Counted Peas',
+    tags: ['Genetics', 'Heredity', 'The Forgotten Discovery'],
+    body: [
+      "Gregor Mendel was a peasant's son who joined a monastery in what is now the Czech Republic — partly out of faith, and partly because it was the only way a poor but brilliant young man could afford an education. He twice failed the exam to become a certified teacher, yet the abbey gave him something far more valuable: a quiet garden, time to think, and the freedom to follow his curiosity.",
+      "In that monastery garden, Mendel began an experiment of astonishing patience. Over eight years he grew and crossbred some 28,000 pea plants, carefully tracking traits like flower colour, seed shape, and height. Where others saw only a tangle of variation, Mendel did something new for biology: he counted.",
+      "The patterns were there, and they were beautifully precise. Mendel found that traits were passed down in tidy mathematical ratios — that each plant carried two hidden 'factors' for each trait, one from each parent, and that some factors were dominant while others stayed recessive, lurking unseen until they reappeared.",
+      "In 1866 he published his findings. The world utterly ignored them. His paper sat unread while Mendel rose to become abbot, buried beneath administrative duties. He died in 1884 believing his great work had come to nothing, reportedly saying that his time would yet come.",
+      "It did. Around 1900, three separate scientists rediscovered Mendel's forgotten paper and realised that this humble monk had laid the entire foundation of genetics decades before anyone was ready. The 'factors' he deduced from peas are what we now call genes."
+    ],
+    diagram: {
+      title: 'Dominant and recessive',
+      caption: 'Each parent gives one factor (gene). A dominant one (T) hides a recessive one (t) — so tall can carry a hidden short, reappearing later.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <text x="40" y="40" fill="var(--ink)" font-size="13" font-family="serif">Tt</text>
+        <text x="265" y="40" fill="var(--ink)" font-size="13" font-family="serif">Tt</text>
+        <text x="48" y="55" fill="var(--ink2)" font-size="8" font-family="serif">parent</text>
+        <text x="270" y="55" fill="var(--ink2)" font-size="8" font-family="serif">parent</text>
+        <g stroke="var(--ink2)" stroke-width="1"><line x1="100" y1="80" x2="130" y2="100"/><line x1="100" y1="80" x2="190" y2="100"/><line x1="220" y1="80" x2="130" y2="100"/><line x1="220" y1="80" x2="190" y2="100"/></g>
+        <g font-family="serif" font-size="13" text-anchor="middle">
+          <rect x="110" y="105" width="40" height="34" fill="var(--accent)" stroke="var(--ink)" stroke-width="1"/><text x="130" y="127" fill="var(--paper)">TT</text>
+          <rect x="170" y="105" width="40" height="34" fill="rgba(176,141,87,0.4)" stroke="var(--ink)" stroke-width="1"/><text x="190" y="127" fill="var(--ink)">Tt</text>
+        </g>
+        <text x="160" y="170" fill="var(--ink2)" font-size="10" font-family="serif" text-anchor="middle">tall plants, some carrying hidden "short"</text>
+      </svg>`
+    }
+  },
+  lovelace: {
+    epithet: 'The First Programmer',
+    tags: ['Computing', 'The Analytical Engine', 'Poetical Science'],
+    body: [
+      "Ada Lovelace was the only legitimate child of the wild Romantic poet Lord Byron. Terrified that her daughter might inherit the poet's dangerous imagination, Ada's mother had her drilled relentlessly in mathematics and logic. The plan backfired wonderfully: Ada became a mathematician who saw numbers with a poet's vision. She called her gift 'poetical science.'",
+      "As a teenager she met Charles Babbage, an inventor designing a fantastical mechanical calculator he called the Analytical Engine — a great clockwork machine of gears and punched cards that, had it ever been fully built, would have been the world's first computer. Where others saw only an adding machine, Ada saw something Babbage himself had not fully grasped.",
+      "In 1843 she translated an article about the engine and, in her own appended notes, wrote something visionary. Buried in those notes was a detailed step-by-step method for the machine to calculate a complex sequence of numbers — what we now recognise as the first published computer program, written a century before any real computer existed.",
+      "But her deepest insight went further. Ada realised that the engine need not be limited to numbers at all. If music or letters could be represented as symbols, the machine could manipulate them too — it could compose music or produce graphics. She had glimpsed, alone in the 1840s, the essential idea of the general-purpose computer.",
+      "Ada Lovelace died at just thirty-six, her ideas far too early for her age. When the first electronic computers were built a century later, pioneers rediscovered her writing and were astonished by how clearly she had seen the future. Today a programming language bears her name."
+    ],
+    diagram: {
+      title: 'A program loop',
+      caption: 'Ada wrote the first algorithm — a list of steps a machine repeats until done. This simple loop is the heart of every program since.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="110" y="20" width="100" height="28" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+        <text x="160" y="38" fill="var(--ink)" font-size="10" font-family="serif" text-anchor="middle">START</text>
+        <rect x="100" y="72" width="120" height="32" rx="3" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.4"/>
+        <text x="160" y="92" fill="var(--paper)" font-size="10" font-family="serif" text-anchor="middle">compute step</text>
+        <polygon points="160,124 200,148 160,172 120,148" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+        <text x="160" y="152" fill="var(--ink)" font-size="9" font-family="serif" text-anchor="middle">done?</text>
+        <line x1="160" y1="48" x2="160" y2="72" stroke="var(--ink2)" stroke-width="1.2" marker-end="url(#sar6)"/>
+        <line x1="160" y1="104" x2="160" y2="124" stroke="var(--ink2)" stroke-width="1.2" marker-end="url(#sar6)"/>
+        <path d="M 120 148 C 55 148, 55 88, 100 88" fill="none" stroke="var(--ink2)" stroke-width="1.2" marker-end="url(#sar6)"/>
+        <text x="58" y="125" fill="var(--ink2)" font-size="9" font-family="serif">no → repeat</text>
+        <defs><marker id="sar6" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink2)"/></marker></defs>
+      </svg>`
+    }
+  },
+  faraday: {
+    epithet: 'The Bookbinder Who Caught the Field',
+    tags: ['Induction', 'The Electric Motor', 'Self-Taught Genius'],
+    body: [
+      "Michael Faraday was born into poverty in London and had almost no formal schooling. At fourteen he was apprenticed to a bookbinder — and there, surrounded by books he could not afford to own, he did the next best thing: he read them. An article on electricity in an encyclopedia he was binding lit a fire in him that would never go out.",
+      "His break came when a customer gave him tickets to lectures by the famous chemist Humphry Davy. Faraday took meticulous notes, bound them into a beautiful book, and sent it to Davy as a job application. Impressed, Davy eventually hired him — to wash bottles. From that lowly start, the self-taught bookbinder would rise to become one of the greatest experimental scientists who ever lived.",
+      "Faraday's hands seemed to coax secrets out of nature. In 1821 he built the first device to turn electricity into continuous motion — the ancestor of every electric motor. Then, in 1831, came his masterpiece: he discovered electromagnetic induction, showing that a moving magnet could generate an electric current in a nearby wire. This is the principle behind every electric generator that powers the modern world.",
+      "Weak in mathematics, Faraday thought in pictures instead. He imagined invisible 'lines of force' curving through the space around magnets — the idea of the field, one of the most powerful concepts in all of physics. It was his fields that Maxwell would later capture in equations.",
+      "Faraday remained humble to the end, turning down a knighthood and the presidency of the Royal Society. He was a beloved public lecturer who delighted children with science demonstrations at Christmas, a tradition that continues today."
+    ],
+    diagram: {
+      title: 'Electromagnetic induction',
+      caption: 'Faraday found that moving a magnet through a coil of wire creates an electric current — the principle behind every generator and power plant.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <g fill="none" stroke="var(--ink)" stroke-width="1.6">
+          <ellipse cx="180" cy="100" rx="10" ry="34"/>
+          <ellipse cx="200" cy="100" rx="10" ry="34"/>
+          <ellipse cx="220" cy="100" rx="10" ry="34"/>
+        </g>
+        <rect x="60" y="88" width="60" height="24" fill="var(--accent)" stroke="var(--ink)" stroke-width="1.4"/>
+        <text x="90" y="104" fill="var(--paper)" font-size="10" font-family="serif" text-anchor="middle">magnet</text>
+        <line x1="120" y1="100" x2="160" y2="100" stroke="var(--ink2)" stroke-width="1.4" marker-end="url(#sar7)"/>
+        <text x="135" y="92" fill="var(--ink2)" font-size="9" font-family="serif">move</text>
+        <path d="M 240 90 Q 270 90 270 120 L 270 150" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+        <circle cx="270" cy="155" r="10" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+        <text x="270" y="159" fill="var(--accent)" font-size="10" font-family="serif" text-anchor="middle">A</text>
+        <text x="160" y="185" fill="var(--ink2)" font-size="9" font-family="serif" text-anchor="middle">moving magnet → current in the coil</text>
+        <defs><marker id="sar7" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink2)"/></marker></defs>
+      </svg>`
+    }
+  },
+  pasteur: {
+    epithet: 'The Conqueror of Invisible Killers',
+    tags: ['Germ Theory', 'Vaccination', 'Pasteurization'],
+    body: [
+      "Louis Pasteur was an average student in his French village, better known in his youth for painting portraits than for any scientific brilliance. But he developed a ferocious work ethic and a stubborn refusal to accept easy answers. That stubbornness would lead him to overturn one of the oldest beliefs in biology and save more lives than perhaps any scientist in history.",
+      "For centuries people believed that life could spring spontaneously from nothing — that maggots simply appeared in meat and microbes arose from broth on their own. Pasteur proved them wrong with an elegant experiment using flasks with long, curved 'swan necks.' Broth in these flasks stayed clear and lifeless, because dust and germs from the air were trapped in the bends. Life came only from other life.",
+      "This was the birth of germ theory, and its consequences were enormous. Pasteur showed that gently heating liquids like milk and wine could kill the microbes that spoiled them — a process we still call pasteurization in his honour. His insights pushed surgeons to sterilise their instruments and wash their hands.",
+      "Then he turned to fighting disease directly. Building on the idea of vaccination, Pasteur developed vaccines for chicken cholera and anthrax, discovering that weakened germs could train the body to defend itself. In 1885 he faced his most dramatic test: a young boy named Joseph Meister, badly bitten by a rabid dog. Pasteur, who was not a licensed physician, risked everything and gave the boy his experimental rabies vaccine. The boy lived.",
+      "Pasteur became a national hero, and the institute that bears his name remains a world centre of medical research to this day. From the milk we drink safely to the vaccines that protect billions, the modern war against disease began with one determined Frenchman peering at the unseen world through his microscope."
+    ],
+    diagram: {
+      title: 'The swan-neck flask',
+      caption: 'Pasteur\'s curved-neck flask let air in but trapped germs in the bend. The broth stayed clear — proving life comes only from existing life.',
+      svg: `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 120 170 L 120 90 L 200 90 L 200 170 Z" fill="rgba(176,141,87,0.25)" stroke="var(--ink)" stroke-width="1.6"/>
+        <path d="M 160 90 L 160 60 Q 160 45 185 45 Q 215 45 215 70 Q 215 88 235 92" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+        <ellipse cx="160" cy="135" rx="40" ry="8" fill="var(--accent)" opacity="0.5"/>
+        <text x="160" y="160" fill="var(--ink)" font-size="9" font-family="serif" text-anchor="middle">broth stays clear</text>
+        <circle cx="205" cy="68" r="2.5" fill="var(--ink2)"/>
+        <circle cx="212" cy="78" r="2.5" fill="var(--ink2)"/>
+        <text x="250" y="72" fill="var(--ink2)" font-size="9" font-family="serif">germs</text>
+        <text x="255" y="84" fill="var(--ink2)" font-size="9" font-family="serif">trapped</text>
+      </svg>`
+    }
+  }
+};
+
+
+/* ─────────── QUESTION BANKS ───────────
+   Tiers: g13 (Grade 1-3), g45 (Grade 4-5), g68 (Grade 6-8), hs (High School)
+   type 'mc'  -> multiple choice (opts[] + ans index)
+   type 'num' -> typed numeric (accept[] of valid number strings)
+   type 'word'-> typed word answer (accept[] lists synonyms & spellings; matcher is fuzzy)
+   Every fact teaches the *why*, for a smart child.
+*/
+const QUESTIONS = {
+  g13: [
+    {type:'mc', cat:'Animals', q:'Which animal lays eggs and has feathers?', opts:['Dog','Bird','Cat','Frog'], ans:1, fact:'Birds are the only animals with feathers, which keep them warm and help them fly. They inherited feathers from dinosaurs long ago.'},
+    {type:'word', cat:'Body', q:'What body part do you use to smell?', accept:['nose','my nose','the nose'], fact:'Your nose catches tiny scent particles floating in the air, which is how you can smell dinner cooking from another room.'},
+    {type:'mc', cat:'Weather', q:'What falls from clouds when it rains?', opts:['Sand','Water','Smoke','Leaves'], ans:1, fact:'Rain is water that gathered in clouds and grew heavy enough to fall. The same water has been raining on Earth for billions of years.'},
+    {type:'word', cat:'Space', q:'What do we call the bright star we see in the daytime sky?', accept:['sun','the sun'], fact:'The Sun is really a star, just very close to us. Its light and warmth make life on Earth possible.'},
+    {type:'mc', cat:'Plants', q:'What part of a plant grows underground and drinks water?', opts:['Leaf','Flower','Roots','Petal'], ans:2, fact:'Roots soak up water from the soil and hold the plant firmly in place so the wind can\'t blow it over.'},
+    {type:'mc', cat:'Animals', q:'Which of these animals can fly?', opts:['Fish','Butterfly','Snake','Worm'], ans:1, fact:'Butterflies fly with four delicate wings covered in tiny scales. They taste food with their feet before landing!'},
+    {type:'word', cat:'Senses', q:'What do you use to see things?', accept:['eyes','my eyes','the eyes','eye'], fact:'Your eyes catch light bouncing off objects and send the picture to your brain, which is what lets you see colours and shapes.'},
+    {type:'mc', cat:'Day & Night', q:'What do we mostly see in the sky at night?', opts:['The Sun','Stars and the Moon','Rainbows','Clouds only'], ans:1, fact:'At night our side of Earth faces away from the Sun, so we can see the Moon and the distant stars instead.'},
+    {type:'mc', cat:'Materials', q:'Which of these is something you can drink?', opts:['Wood','Water','Rock','Plastic'], ans:1, fact:'Water is a liquid, which means it flows and takes the shape of its container. Your body is mostly made of water!'},
+    {type:'word', cat:'Animals', q:'What do we call a baby dog?', accept:['puppy','a puppy','pup'], fact:'A baby dog is a puppy. Puppies are born unable to see or hear, and only open their eyes after about two weeks.'},
+    {type:'mc', cat:'Plants', q:'What do plants need from the sky to grow?', opts:['Sunlight','Darkness','Snow','Wind'], ans:0, fact:'Plants use sunlight to make their own food in their leaves — a process called photosynthesis. Without light they would starve.'},
+    {type:'mc', cat:'Body', q:'How many legs does a person have?', opts:['One','Two','Three','Four'], ans:1, fact:'People have two legs and walk upright, which frees our two hands to carry things and use tools.'},
+    {type:'word', cat:'Weather', q:'What do we call frozen water that falls in winter?', accept:['snow'], fact:'Snow is water frozen into tiny ice crystals. Every snowflake has six sides, and no two are exactly alike.'},
+    {type:'mc', cat:'Animals', q:'Which animal lives in water and breathes with gills?', opts:['Cat','Fish','Bird','Rabbit'], ans:1, fact:'Fish use gills to pull oxygen straight out of the water, so they never need to come up for air like we do.'},
+    {type:'mc', cat:'Senses', q:'What do you use your ears for?', opts:['Smelling','Hearing','Tasting','Seeing'], ans:1, fact:'Your ears catch sounds travelling through the air as tiny vibrations and turn them into signals your brain understands.'},
+    {type:'word', cat:'Space', q:'What do we call the planet we live on?', accept:['earth','the earth','planet earth'], fact:'Earth is the only planet we know of with life. From space it looks blue because so much of it is covered in ocean.'},
+    {type:'mc', cat:'Plants', q:'What grows on a tree and can be red, green, or yellow?', opts:['A rock','An apple','A shoe','A cloud'], ans:1, fact:'Apples grow from a tree\'s flowers. The seeds inside can grow into a whole new apple tree if planted.'},
+    {type:'mc', cat:'Animals', q:'What do bees collect from flowers?', opts:['Water','Nectar','Sand','Leaves'], ans:1, fact:'Bees gather sweet nectar to make honey, and while they visit flowers they spread pollen, helping new plants grow.'},
+    {type:'word', cat:'Body', q:'What do we call the white things in your mouth used for chewing?', accept:['teeth','tooth','my teeth'], fact:'Teeth break food into small pieces so you can swallow it. Your hard tooth coating, enamel, is the toughest stuff your body makes.'},
+    {type:'mc', cat:'Weather', q:'What do you see in the sky after rain and sunshine together?', opts:['A rainbow','A snowman','A volcano','A river'], ans:0, fact:'A rainbow appears when sunlight shines through raindrops, which split the white light into all its hidden colours.'},
+    {type:'mc', cat:'Animals', q:'Which animal is known for hopping and has long ears?', opts:['Rabbit','Fish','Owl','Snake'], ans:0, fact:'Rabbits have powerful back legs built for hopping, and their long ears can swivel to listen for danger in any direction.'},
+    {type:'word', cat:'Day & Night', q:'What do we call it when the sky is dark and we sleep?', accept:['night','night time','nighttime'], fact:'Night happens when our part of Earth turns away from the Sun. Earth spins all the way around once every day.'},
+    {type:'mc', cat:'Plants', q:'What colour are most leaves in summer?', opts:['Blue','Green','Purple','Black'], ans:1, fact:'Leaves are green because of a substance called chlorophyll, which captures sunlight to make the plant\'s food.'},
+    {type:'mc', cat:'Materials', q:'Which of these is hard and used to build houses?', opts:['Water','Brick','Air','Milk'], ans:1, fact:'Bricks are made from clay baked hard in an oven. Stacked with mortar, they make strong walls that last for centuries.'},
+    {type:'num', cat:'Animals', q:'How many legs does a spider have?', accept:['8','eight'], fact:'Spiders have 8 legs, which makes them arachnids, not insects. Insects always have 6 legs.'},
+    {type:'mc', cat:'Body', q:'What part of your body do you think with?', opts:['Stomach','Brain','Foot','Elbow'], ans:1, fact:'Your brain controls everything you do — thinking, moving, remembering — by sending tiny electric signals through your body.'},
+    {type:'word', cat:'Weather', q:'What do we call the bright flash of light in a storm?', accept:['lightning'], fact:'Lightning is a giant electric spark jumping between clouds and the ground. It heats the air so fast it makes the boom we call thunder.'},
+    {type:'mc', cat:'Animals', q:'What do caterpillars turn into?', opts:['Spiders','Butterflies','Birds','Fish'], ans:1, fact:'A caterpillar wraps itself in a cocoon and completely rebuilds its body into a butterfly — an amazing change called metamorphosis.'},
+    {type:'mc', cat:'Space', q:'What lights up the Moon so we can see it?', opts:['The Moon\'s own fire','The Sun','Streetlights','Stars'], ans:1, fact:'The Moon makes no light of its own. It works like a mirror, reflecting the Sun\'s light back to us.'},
+    {type:'word', cat:'Plants', q:'What do we call the part of a plant that is colourful and attracts bees?', accept:['flower','the flower','flowers','blossom'], fact:'Flowers use bright colours and sweet smells to attract bees and butterflies, who help the plant make seeds.'},
+    {type:'mc', cat:'Animals', q:'Which animal says "moo" and gives us milk?', opts:['Pig','Cow','Horse','Sheep'], ans:1, fact:'Cows are mammals, which means they make milk to feed their babies. Humans drink cow\'s milk too, full of calcium for strong bones.'},
+    {type:'mc', cat:'Body', q:'What do we breathe in to stay alive?', opts:['Water','Air','Sand','Smoke'], ans:1, fact:'We breathe air to get oxygen, a gas our bodies need. Your lungs pull oxygen from the air every time you breathe in.'},
+    {type:'num', cat:'Senses', q:'How many senses do people usually have?', accept:['5','five'], fact:'We have 5 main senses: sight, hearing, smell, taste, and touch. They each send the brain different information about the world.'},
+    {type:'mc', cat:'Weather', q:'When water gets very cold, it turns into…', opts:['Steam','Ice','Sand','Smoke'], ans:1, fact:'Water freezes into solid ice when it gets cold enough. Ice floats because it is lighter than the same amount of liquid water.'},
+    {type:'word', cat:'Animals', q:'What do we call a baby cat?', accept:['kitten','a kitten','kitty'], fact:'A baby cat is a kitten. Kittens are born with their eyes shut and spend most of their first weeks sleeping and growing.'},
+    {type:'mc', cat:'Plants', q:'What do seeds need to start growing?', opts:['Water and sunlight','Only darkness','Only rocks','Nothing'], ans:0, fact:'Seeds need water, warmth, and light to sprout. Inside each seed is a tiny baby plant and a packed lunch to feed it at first.'},
+    {type:'mc', cat:'Animals', q:'Which of these animals has a shell it carries?', opts:['Turtle','Dog','Lion','Eagle'], ans:0, fact:'A turtle\'s shell is part of its skeleton — its ribs and backbone are fused right into it, so it can never crawl out.'},
+    {type:'word', cat:'Space', q:'What do we call the white round object in the night sky?', accept:['moon','the moon'], fact:'The Moon is Earth\'s closest neighbour in space. It takes about a month to travel all the way around our planet.'},
+    {type:'mc', cat:'Body', q:'What pumps blood around your body?', opts:['Brain','Heart','Lungs','Hands'], ans:1, fact:'Your heart is a muscle the size of your fist that squeezes to push blood all around your body, never stopping to rest.'},
+    {type:'mc', cat:'Materials', q:'Which of these will float on water?', opts:['A rock','A wooden boat','A coin','A brick'], ans:1, fact:'Wood floats because it is lighter than water for its size. Heavy, dense things like rocks and coins sink instead.'},
+    {type:'num', cat:'Animals', q:'How many legs does a dog have?', accept:['4','four'], fact:'Dogs have 4 legs, which helps them run fast. Animals with four legs are sometimes called "four-footed" or quadrupeds.'},
+    {type:'mc', cat:'Weather', q:'What season is usually the coldest?', opts:['Summer','Winter','Spring','Autumn'], ans:1, fact:'Winter is coldest because our part of Earth leans away from the Sun, so the days are shorter and the sunlight is weaker.'},
+    {type:'word', cat:'Plants', q:'What do we call a very tall plant with a trunk and branches?', accept:['tree','a tree','trees'], fact:'A tree is a tall plant with a woody trunk. Some trees live for thousands of years, growing a new ring inside for each year.'},
+    {type:'mc', cat:'Animals', q:'What do we call animals that eat only plants?', opts:['Meat-eaters','Plant-eaters','Rock-eaters','Air-eaters'], ans:1, fact:'Plant-eaters (herbivores) like cows and rabbits often have flat teeth perfect for grinding up tough leaves and grass.'},
+    {type:'mc', cat:'Senses', q:'What do you use to taste food?', opts:['Your ears','Your tongue','Your hair','Your knees'], ans:1, fact:'Your tongue is covered in tiny taste buds that sense sweet, salty, sour, and bitter flavours in your food.'},
+    {type:'word', cat:'Body', q:'What do we call the hard parts inside your body that hold you up?', accept:['bones','bone','my bones','skeleton'], fact:'Your bones make a strong frame called a skeleton. Adults have 206 bones holding their body up and protecting soft parts inside.'},
+    {type:'mc', cat:'Space', q:'What shape is the Earth?', opts:['Flat like a plate','Round like a ball','Square','Triangle'], ans:1, fact:'Earth is shaped like a giant ball, called a sphere. That\'s why ships seem to sink below the horizon as they sail away.'},
+    {type:'mc', cat:'Animals', q:'Where do most fish live?', opts:['In trees','In water','Underground','In the sky'], ans:1, fact:'Fish live in water — in oceans, lakes, and rivers. Their smooth, slippery bodies help them glide easily as they swim.'},
+    {type:'num', cat:'Weather', q:'How many seasons are there in a year?', accept:['4','four'], fact:'There are 4 seasons: spring, summer, autumn, and winter. They happen because Earth is tilted as it travels around the Sun.'},
+    {type:'mc', cat:'Plants', q:'Which part of the plant makes food using sunlight?', opts:['Roots','Leaves','Seeds','Bark'], ans:1, fact:'Leaves are like little food factories. They capture sunlight and use it to turn air and water into sugar for the plant.'},
+    {type:'mc', cat:'Body', q:'What covers and protects the outside of your body?', opts:['Skin','Bone','Hair only','Blood'], ans:0, fact:'Skin is your largest organ. It keeps germs out, holds water in, and senses heat, cold, and touch all over your body.'},
+    {type:'word', cat:'Animals', q:'What do we call animals that hunt other animals for food?', accept:['predators','predator','hunters','hunter'], fact:'Predators hunt other animals, called prey. Predators often have sharp eyes facing forward to judge exactly how far away their dinner is.'},
+    {type:'mc', cat:'Materials', q:'Ice is water that is…', opts:['Boiling hot','Frozen solid','A gas','On fire'], ans:1, fact:'Ice is the solid form of water. When water gets cold enough, its tiny parts lock together into a hard, frozen shape.'},
+    {type:'mc', cat:'Space', q:'Which is bigger?', opts:['The Earth','The Sun','They are equal','A cloud'], ans:1, fact:'The Sun is far bigger than Earth — over a million Earths could fit inside it! It only looks small because it is so far away.'},
+    {type:'word', cat:'Day & Night', q:'What do we call the time when the Sun is up and the sky is bright?', accept:['day','daytime','day time'], fact:'Daytime is when our part of Earth faces the Sun. As Earth spins, the Sun seems to rise in the morning and set at night.'},
+    {type:'mc', cat:'Animals', q:'What does a frog start life as?', opts:['A puppy','A tadpole','A chick','A kitten'], ans:1, fact:'Frogs hatch as tadpoles that live in water and breathe with gills, then slowly grow legs and lungs to hop onto land.'},
+    {type:'mc', cat:'Plants', q:'What do trees give off that we need to breathe?', opts:['Smoke','Oxygen','Sand','Steam'], ans:1, fact:'Trees release oxygen, the gas we breathe to live. In return they soak up carbon dioxide, helping keep our air clean.'},
+    {type:'num', cat:'Body', q:'How many eyes do most people have?', accept:['2','two'], fact:'People have 2 eyes. Having two slightly apart lets your brain judge distance, so you can tell how far away things are.'},
+    {type:'mc', cat:'Weather', q:'What tool tells us how hot or cold it is?', opts:['Ruler','Thermometer','Clock','Scale'], ans:1, fact:'A thermometer measures temperature. Many work because the liquid inside rises up the tube as it gets warmer.'},
+    {type:'word', cat:'Animals', q:'What do we call the home a bird builds for its eggs?', accept:['nest','a nest'], fact:'Birds build nests from twigs, grass, and mud to keep their eggs warm and safe until the chicks are ready to hatch.'},
+    {type:'mc', cat:'Materials', q:'Which of these is a liquid?', opts:['A rock','Milk','A chair','A book'], ans:1, fact:'Milk is a liquid — it flows and pours and takes the shape of its cup. Solids like rocks and chairs keep their own shape.'},
+    {type:'mc', cat:'Space', q:'How long does it take for one day and night?', opts:['One hour','One day','One week','One year'], ans:1, fact:'One full spin of the Earth takes a day — about 24 hours. That spin is what gives us daytime and nighttime.'},
+    {type:'word', cat:'Plants', q:'What do we call the yellow powder inside flowers that bees carry?', accept:['pollen'], fact:'Pollen is a fine powder flowers use to make seeds. Bees carry it from flower to flower, helping plants reproduce.'},
+    {type:'mc', cat:'Animals', q:'Which animal is the largest?', opts:['Mouse','Elephant','Cat','Rabbit'], ans:1, fact:'The elephant is the largest land animal. It uses its long trunk like a hand to grab food, drink water, and even greet friends.'},
+  ],
+
+  g45: [
+    {type:'mc', cat:'Solar System', q:'Which planet is known as the Red Planet?', opts:['Venus','Mars','Jupiter','Mercury'], ans:1, fact:'Mars looks red because its soil is full of iron that has rusted — the same chemistry as rust on an old bike left in the rain.'},
+    {type:'word', cat:'States of Matter', q:'What do we call water when it turns into a gas? (one word)', accept:['vapour','vapor','steam','water vapour','water vapor'], fact:'When water heats up it becomes an invisible gas called water vapour. The white cloud above a kettle is actually tiny droplets that have cooled again.'},
+    {type:'mc', cat:'Food Chains', q:'In a food chain, what do we call a plant that makes its own food?', opts:['Predator','Producer','Consumer','Decomposer'], ans:1, fact:'Plants are producers because they make their own food from sunlight. Every other creature in the chain depends on them to start it off.'},
+    {type:'mc', cat:'Forces', q:'What force pulls everything down toward the ground?', opts:['Magnetism','Gravity','Friction','Wind'], ans:1, fact:'Gravity pulls objects toward the Earth, giving them weight. The heavier something is, the harder gravity tugs on it.'},
+    {type:'word', cat:'Life Cycles', q:'What do we call a young frog that lives in water? (one word)', accept:['tadpole','a tadpole'], fact:'A tadpole breathes with gills like a fish and has a tail for swimming, before slowly growing legs and lungs to become a frog.'},
+    {type:'mc', cat:'Electricity', q:'Which material lets electricity flow through it easily?', opts:['Rubber','Copper wire','Wood','Plastic'], ans:1, fact:'Metals like copper are good conductors because their electrons move freely. Rubber and plastic block electricity, so we use them to coat wires.'},
+    {type:'mc', cat:'Solar System', q:'What is at the centre of our solar system?', opts:['The Earth','The Moon','The Sun','Jupiter'], ans:2, fact:'The Sun sits at the centre, and its enormous gravity keeps all eight planets circling around it in their orbits.'},
+    {type:'word', cat:'Plants', q:'What is the process called when plants make food from sunlight?', accept:['photosynthesis','photosynthesise','photosynthesize'], fact:'In photosynthesis, a green pigment called chlorophyll captures sunlight and uses its energy to turn air and water into sugar.'},
+    {type:'mc', cat:'States of Matter', q:'What are the three main states of matter?', opts:['Hot, warm, cold','Solid, liquid, gas','Big, small, medium','Hard, soft, runny'], ans:1, fact:'Matter comes as solid, liquid, or gas. Water shows all three: ice, water, and steam, depending only on its temperature.'},
+    {type:'mc', cat:'Body', q:'Which organ do you use to breathe in oxygen?', opts:['Stomach','Lungs','Kidneys','Brain'], ans:1, fact:'Your lungs pull oxygen from the air. If you spread out all their tiny air sacs, they\'d cover an area the size of a tennis court!'},
+    {type:'word', cat:'Animals', q:'What do we call an animal with no backbone? (one word)', accept:['invertebrate','invertebrates'], fact:'Invertebrates have no backbone. Insects, worms, and jellyfish are all invertebrates — and they make up most of the animals on Earth.'},
+    {type:'mc', cat:'Forces', q:'What slows down a sliding object by rubbing against a surface?', opts:['Gravity','Friction','Magnetism','Buoyancy'], ans:1, fact:'Friction is the force that resists sliding. It\'s why you can walk without slipping and why rubbing your hands makes them warm.'},
+    {type:'mc', cat:'Solar System', q:'What do we call a rock that orbits the Sun, smaller than a planet?', opts:['Asteroid','Galaxy','Comet star','Nebula'], ans:0, fact:'Asteroids are rocky leftovers from when the planets formed. Most circle the Sun in a band between Mars and Jupiter.'},
+    {type:'num', cat:'Solar System', q:'How many planets are in our solar system?', accept:['8','eight'], fact:'There are 8 planets. Pluto was once counted as the ninth, but in 2006 scientists reclassified it as a "dwarf planet."'},
+    {type:'word', cat:'Water Cycle', q:'What do we call rain, snow, and hail all together? (one word)', accept:['precipitation'], fact:'Precipitation is any water falling from clouds. Whether it lands as rain or snow depends on how cold the air is on the way down.'},
+    {type:'mc', cat:'Magnets', q:'How many poles does every magnet have?', opts:['One','Two','Three','Four'], ans:1, fact:'Every magnet has a north and south pole. Even if you snap one in half, each piece instantly has its own north and south.'},
+    {type:'mc', cat:'Food Chains', q:'What do we call living things, like mushrooms, that break down dead matter?', opts:['Producers','Decomposers','Predators','Herbivores'], ans:1, fact:'Decomposers recycle dead plants and animals back into the soil, making sure nutrients get used again and dead matter doesn\'t pile up.'},
+    {type:'word', cat:'Body', q:'What organ pumps blood around your body? (one word)', accept:['heart','the heart'], fact:'Your heart beats about 100,000 times a day, pushing blood through your body to deliver oxygen and food to every cell.'},
+    {type:'mc', cat:'States of Matter', q:'When ice melts, it becomes a…', opts:['Gas','Liquid','Solid','Powder'], ans:1, fact:'Melting turns a solid into a liquid. As ice warms, its locked-together parts break free and start to flow as water.'},
+    {type:'mc', cat:'Animals', q:'How do fish breathe underwater?', opts:['With lungs','With gills','With fins','With scales'], ans:1, fact:'Gills are full of tiny blood vessels that pull dissolved oxygen straight out of the water as it flows past them.'},
+    {type:'word', cat:'Plants', q:'What gas do plants take in from the air to make food?', accept:['carbon dioxide','co2','carbon-dioxide'], fact:'Plants breathe in carbon dioxide and breathe out oxygen — the exact opposite of what we do, which is why plants and animals need each other.'},
+    {type:'mc', cat:'Earth', q:'What is the hard, rocky outer layer of the Earth called?', opts:['The core','The crust','The mantle','The sky'], ans:1, fact:'The crust is the thin, rocky shell we live on — thin compared to the whole planet, a bit like the skin on an apple.'},
+    {type:'mc', cat:'Electricity', q:'What do we call a material that blocks electricity?', opts:['Conductor','Insulator','Magnet','Battery'], ans:1, fact:'Insulators like rubber and plastic block the flow of electricity. That\'s why electrical cords are wrapped in plastic — to keep you safe.'},
+    {type:'num', cat:'Body', q:'How many bones does an adult human have?', accept:['206'], fact:'Adults have 206 bones. Babies are born with about 300, but many fuse together as they grow up.'},
+    {type:'word', cat:'Light', q:'What do you see when sunlight passes through rain? (one word)', accept:['rainbow','a rainbow'], fact:'A rainbow forms when sunlight bends through raindrops, splitting white light into its hidden colours — red, orange, yellow, green, blue and violet.'},
+    {type:'mc', cat:'Solar System', q:'What do we call a natural object that orbits a planet, like our Moon?', opts:['A comet','A satellite','A star','A galaxy'], ans:1, fact:'A natural satellite orbits a planet. Earth has just one Moon, but Jupiter and Saturn each have dozens.'},
+    {type:'mc', cat:'Sound', q:'Sound travels by making the air do what?', opts:['Glow','Vibrate','Freeze','Disappear'], ans:1, fact:'Sound is a vibration rippling through the air to your ear. That\'s why space is silent — there\'s no air there to carry sound.'},
+    {type:'word', cat:'Animals', q:'What do we call an animal that eats both plants and meat? (one word)', accept:['omnivore','omnivores'], fact:'Omnivores like bears and humans eat both plants and meat. Their mixed teeth — flat grinders and sharp tearers — handle both kinds of food.'},
+    {type:'mc', cat:'Water Cycle', q:'When water turns into vapour and rises into the air, this is called…', opts:['Condensation','Evaporation','Freezing','Melting'], ans:1, fact:'Evaporation is the Sun\'s heat lifting water into the air as invisible vapour, which is how the water cycle begins all over again.'},
+    {type:'mc', cat:'Forces', q:'A ball at the top of a hill has stored energy called…', opts:['Kinetic energy','Potential energy','Heat','Sound'], ans:1, fact:'Potential energy is stored and waiting. The moment the ball rolls down, it changes into kinetic energy — the energy of motion.'},
+    {type:'word', cat:'Earth', q:'What do we call the gases that surround our planet?', accept:['atmosphere','the atmosphere'], fact:'The atmosphere is the blanket of gases around Earth. It traps just enough of the Sun\'s warmth to keep our planet cosy for life.'},
+    {type:'mc', cat:'Animals', q:'Animals with a backbone are called…', opts:['Invertebrates','Vertebrates','Insects','Mammals'], ans:1, fact:'Vertebrates have a backbone. Only about 3% of animals are vertebrates — the rest, like insects and worms, have no backbone at all.'},
+    {type:'num', cat:'Water Cycle', q:'About what percent of the Earth is covered by water? (just the number)', accept:['71','70'], fact:'About 71% of Earth\'s surface is water, which is why our planet looks like a blue marble from space.'},
+    {type:'mc', cat:'Life Cycles', q:'What is the change from caterpillar to butterfly called?', opts:['Evaporation','Metamorphosis','Erosion','Digestion'], ans:1, fact:'In metamorphosis, a caterpillar dissolves inside its cocoon into a kind of soup, then rebuilds itself completely into a butterfly.'},
+    {type:'word', cat:'Body', q:'What is the largest organ of the human body?', accept:['skin','the skin'], fact:'Your skin is your largest organ. It renews itself constantly, shedding millions of dead cells daily — much of household dust is old skin!'},
+    {type:'mc', cat:'Solar System', q:'What galaxy do we live in?', opts:['Andromeda','The Milky Way','The Big Dipper','Orion'], ans:1, fact:'We live in the Milky Way, a galaxy of hundreds of billions of stars. The faint band of light on a dark night is us looking into it edge-on.'},
+    {type:'mc', cat:'States of Matter', q:'What is it called when a gas cools and turns into a liquid?', opts:['Melting','Condensation','Evaporation','Freezing'], ans:1, fact:'Condensation happens when vapour cools into liquid — like the water droplets that form on the outside of a cold glass on a hot day.'},
+    {type:'word', cat:'Plants', q:'What part of the plant carries water up from the roots? (one word)', accept:['stem','the stem','stalk'], fact:'The stem holds the plant up and acts like a straw, carrying water and nutrients from the roots up to the leaves and flowers.'},
+    {type:'mc', cat:'Energy', q:'What do we call energy that comes from the Sun?', opts:['Nuclear','Solar','Wind','Coal'], ans:1, fact:'Solar energy comes from the Sun. So much reaches Earth each hour that, if we could catch it all, it would power the world for a year.'},
+    {type:'mc', cat:'Animals', q:'What do we call an animal active at night that sleeps in the day?', opts:['Diurnal','Nocturnal','Migratory','Extinct'], ans:1, fact:'Nocturnal animals like owls are active at night and often have huge eyes to gather as much of the faint moonlight as possible.'},
+    {type:'num', cat:'Body', q:'How many chambers does the human heart have?', accept:['4','four'], fact:'The heart has 4 chambers. Two collect blood coming in, and two pump it back out — one side to the lungs, one side to the body.'},
+    {type:'word', cat:'Earth', q:'What is melted rock under the ground called? (one word)', accept:['magma'], fact:'Melted rock underground is called magma. Once it erupts onto the surface from a volcano, we call it lava — same rock, different name.'},
+    {type:'mc', cat:'Forces', q:'What is the name for the bending of light when it enters water?', opts:['Reflection','Refraction','Absorption','Vibration'], ans:1, fact:'Refraction is light bending as it slows down entering water. It\'s why a straw looks broken where it dips into a glass of water.'},
+    {type:'mc', cat:'Food Chains', q:'A wolf hunting a deer makes the wolf the…', opts:['Prey','Predator','Producer','Plant'], ans:1, fact:'The wolf is the predator and the deer is the prey. Predators often have forward-facing eyes to judge distance when chasing.'},
+    {type:'word', cat:'Solar System', q:'What is the name of the star at the centre of our solar system?', accept:['sun','the sun','sol'], fact:'The Sun is our local star. It holds over 99% of all the mass in the solar system and could swallow more than a million Earths.'},
+    {type:'mc', cat:'Electricity', q:'What flows through a wire to make a bulb light up?', opts:['Water','Electric current','Air','Sound'], ans:1, fact:'An electric current is a flow of tiny charged particles called electrons. As they push through the bulb, they make it glow.'},
+    {type:'mc', cat:'Animals', q:'Which group do snakes and lizards belong to?', opts:['Mammals','Reptiles','Birds','Fish'], ans:1, fact:'Snakes and lizards are reptiles — cold-blooded animals with scaly skin. They often bask in the sun to warm up their bodies.'},
+    {type:'word', cat:'States of Matter', q:'What state of matter keeps its own fixed shape? (one word)', accept:['solid','a solid'], fact:'A solid keeps its shape because its tiny parts are locked tightly together. Liquids flow, and gases spread out to fill any space.'},
+    {type:'mc', cat:'Earth', q:'What causes day and night on Earth?', opts:['The Sun moving','Earth spinning','The Moon','Clouds'], ans:1, fact:'Earth spins on its axis once a day. The side facing the Sun has day, while the side turned away has night.'},
+    {type:'num', cat:'Solar System', q:'How many days does Earth take to orbit the Sun? (just the number)', accept:['365','365.25'], fact:'Earth takes about 365 days to circle the Sun once — which is exactly why a year is 365 days long, with a leap day added every four years.'},
+    {type:'mc', cat:'Plants', q:'Which part of the plant makes seeds?', opts:['Roots','Flower','Stem','Bark'], ans:1, fact:'Flowers make seeds after being pollinated. The seeds can then grow into brand-new plants, continuing the life cycle.'},
+    {type:'word', cat:'Body', q:'What carries oxygen and nutrients around your body? (one word)', accept:['blood','the blood'], fact:'Blood carries oxygen and food to every cell and takes away waste. An adult has about 5 litres of it flowing constantly.'},
+    {type:'mc', cat:'Energy', q:'Rubbing two sticks together can make heat and even fire. This is from…', opts:['Gravity','Friction','Magnetism','Sound'], ans:1, fact:'Friction turns movement into heat. Enough rubbing builds enough heat to start a fire — the oldest fire-making trick there is.'},
+    {type:'mc', cat:'Animals', q:'What do mammals feed their babies?', opts:['Seeds','Milk','Leaves','Rocks'], ans:1, fact:'Mammals feed their babies milk made by the mother\'s body. Humans, dogs, whales, and bats are all mammals.'},
+    {type:'word', cat:'Light', q:'What do we call it when light bounces off a mirror? (one word)', accept:['reflection','reflect','reflecting'], fact:'Reflection is light bouncing off a surface. A mirror is so smooth that it bounces light back evenly, showing you a clear image.'},
+    {type:'mc', cat:'Earth', q:'What do we call the path the Earth takes around the Sun?', opts:['A spin','An orbit','A bounce','A fall'], ans:1, fact:'Earth travels in an orbit — a curved path around the Sun. It\'s really falling toward the Sun forever but moving sideways fast enough to keep missing.'},
+    {type:'num', cat:'Body', q:'How many lungs does a person have?', accept:['2','two'], fact:'You have 2 lungs, one on each side of your chest. The left one is a little smaller to make room for your heart.'},
+    {type:'mc', cat:'Magnets', q:'Which metal is strongly attracted to a magnet?', opts:['Gold','Iron','Copper','Aluminium'], ans:1, fact:'Iron is strongly magnetic, along with nickel and cobalt. That\'s why a fridge magnet sticks to a steel door but not a gold ring.'},
+    {type:'word', cat:'States of Matter', q:'What do we call water that has frozen solid? (one word)', accept:['ice'], fact:'Ice is frozen water. Strangely, water expands as it freezes, so ice is lighter than water and floats — which is why ponds freeze from the top down.'},
+    {type:'mc', cat:'Food Chains', q:'Where does the energy in almost every food chain originally come from?', opts:['The soil','The Sun','The Moon','The wind'], ans:1, fact:'Nearly all food chains start with the Sun. Plants capture its energy, animals eat the plants, and so the Sun\'s energy passes along the chain.'},
+    {type:'mc', cat:'Animals', q:'What do we call animals that eat only meat?', opts:['Herbivores','Carnivores','Omnivores','Producers'], ans:1, fact:'Carnivores eat only meat. They usually have sharp, pointed teeth perfect for catching prey and tearing flesh.'},
+    {type:'word', cat:'Earth', q:'What do we call the shaking of the ground when rock plates move? (one word)', accept:['earthquake','earthquakes','quake'], fact:'An earthquake happens when Earth\'s giant rock plates suddenly slip past each other, sending shaking waves through the ground.'},
+    {type:'mc', cat:'Solar System', q:'Which is the closest planet to the Sun?', opts:['Earth','Mercury','Mars','Saturn'], ans:1, fact:'Mercury is closest to the Sun. It races around its orbit so fast that a year there lasts just 88 Earth days.'},
+    {type:'num', cat:'Light', q:'How many colours are usually counted in a rainbow?', accept:['7','seven'], fact:'A rainbow is usually counted as 7 colours: red, orange, yellow, green, blue, indigo, and violet — though really they blend smoothly together.'},
+  ],
+
+  g68: [
+    {type:'mc', cat:'Cells', q:'What is often called the "powerhouse" of the cell?', opts:['Nucleus','Mitochondria','Membrane','Ribosome'], ans:1, fact:'Mitochondria release energy by burning sugar with oxygen. They carry their own DNA — a clue they were once free-living bacteria billions of years ago.'},
+    {type:'word', cat:'Cells', q:'What is the control centre of a cell that holds its DNA? (one word)', accept:['nucleus','the nucleus'], fact:'The nucleus stores the cell\'s DNA, keeping the instructions for the whole organism safe. Almost every cell in your body carries a full copy.'},
+    {type:'mc', cat:'Chemistry', q:'What are the three main particles inside an atom?', opts:['Protons, neutrons, electrons','Cells, genes, atoms','Solids, liquids, gases','Waves, rays, beams'], ans:0, fact:'Protons and neutrons cluster in the tiny nucleus, while featherweight electrons whirl around it in a cloud.'},
+    {type:'word', cat:'Chemistry', q:'What is the most common gas in Earth\'s atmosphere? (one word)', accept:['nitrogen','nitrogin'], fact:'Nitrogen makes up about 78% of the air. The oxygen we actually breathe to live is only around 21% of it.'},
+    {type:'mc', cat:'Energy', q:'What kind of energy does a moving object have?', opts:['Potential energy','Kinetic energy','Chemical energy','Stored energy'], ans:1, fact:'Kinetic energy is the energy of motion. The faster and heavier something moves, the more it carries — which is why a fast car is so hard to stop.'},
+    {type:'mc', cat:'Body Systems', q:'Which body system includes the brain, spinal cord, and nerves?', opts:['Digestive','Nervous','Skeletal','Respiratory'], ans:1, fact:'The nervous system sends electric signals faster than 100 metres per second — quick enough to yank your hand off something hot before you even think.'},
+    {type:'word', cat:'Cells', q:'What process do plants use to make food from sunlight?', accept:['photosynthesis','photosynthesise','photosynthesize'], fact:'In photosynthesis, chlorophyll captures sunlight to combine carbon dioxide and water into sugar, releasing the oxygen we breathe as a by-product.'},
+    {type:'mc', cat:'Chemistry', q:'On the pH scale, what number is neutral?', opts:['0','7','10','14'], ans:1, fact:'Pure water is neutral at pH 7. Below 7 is acidic, like lemon juice; above 7 is basic, like soap. The scale runs from 0 to 14.'},
+    {type:'mc', cat:'Genetics', q:'What molecule carries genetic instructions in living things?', opts:['DNA','Salt','Water','Protein'], ans:0, fact:'DNA is shaped like a twisted ladder. The order of its rungs spells out the complete recipe for building and running a living thing.'},
+    {type:'word', cat:'Ecosystems', q:'What word means all the different kinds of living things in an area?', accept:['biodiversity','bio diversity'], fact:'Biodiversity is the variety of life in a place. Rainforests cover just 6% of land yet hold more than half of all plant and animal species.'},
+    {type:'mc', cat:'Physics', q:'Roughly how fast does light travel?', opts:['300,000 km/s','3,000 km/s','30 km/s','300 km/s'], ans:0, fact:'Light travels at nearly 300,000 km per second — fast enough to circle the entire Earth more than seven times in a single second.'},
+    {type:'word', cat:'Cells', q:'What is the name for the process where one cell splits into two identical cells?', accept:['mitosis'], fact:'Mitosis copies a cell\'s DNA perfectly and splits it into two identical cells. It\'s how you grew from a single cell and how your body heals.'},
+    {type:'mc', cat:'Chemistry', q:'What is the chemical symbol for gold?', opts:['Go','Gd','Au','Ag'], ans:2, fact:'Gold\'s symbol is Au, from its Latin name "aurum." Many element symbols come from old Latin names rather than English ones.'},
+    {type:'mc', cat:'Earth Science', q:'What causes the seasons on Earth?', opts:['Distance from the Sun','The tilt of Earth\'s axis','The Moon','Solar flares'], ans:1, fact:'Earth is tilted 23.5°, so each hemisphere leans toward the Sun for half the year (summer) and away for the other half (winter).'},
+    {type:'num', cat:'Genetics', q:'How many chromosomes are in a typical human body cell?', accept:['46'], fact:'Humans have 46 chromosomes in 23 pairs — one of each pair inherited from your mother, the other from your father.'},
+    {type:'word', cat:'Physics', q:'What do we call the bending of light as it passes from air into water?', accept:['refraction','refract','refracting'], fact:'Refraction is light bending because it slows down in water. It\'s why a pool looks shallower than it really is and a straw looks bent.'},
+    {type:'mc', cat:'Body Systems', q:'Which body system breaks down food into nutrients?', opts:['Digestive','Nervous','Skeletal','Circulatory'], ans:0, fact:'The digestive system is about 9 metres long, coiled up inside you so food has a long journey to be broken down and absorbed.'},
+    {type:'mc', cat:'Chemistry', q:'What do we call a reaction that releases heat and light, like wood burning?', opts:['Evaporation','Combustion','Condensation','Erosion'], ans:1, fact:'Combustion needs three things: fuel, oxygen, and heat. Remove any one and the fire goes out — exactly how a fire blanket works.'},
+    {type:'word', cat:'Cells', q:'What gas do animals breathe out that plants take in? (two words)', accept:['carbon dioxide','co2','carbon-dioxide'], fact:'Animals breathe out carbon dioxide, which plants use for photosynthesis. This neat swap links all animals and plants together.'},
+    {type:'mc', cat:'Energy', q:'What do we call energy stored in food, fuel, and batteries?', opts:['Chemical energy','Sound energy','Light energy','Nuclear energy'], ans:0, fact:'Chemical energy is locked in the bonds between atoms. Your body unlocks it from food the way an engine unlocks it from petrol.'},
+    {type:'mc', cat:'Earth Science', q:'What are Earth\'s slowly-moving surface plates called?', opts:['Crust slabs','Tectonic plates','Magma sheets','Rock rafts'], ans:1, fact:'Tectonic plates drift just a few centimetres a year — about as fast as your fingernails grow — yet over ages they build mountains and move continents.'},
+    {type:'word', cat:'Chemistry', q:'What element do all living things on Earth contain? (one word)', accept:['carbon'], fact:'Carbon atoms link into long chains and rings, building the huge variety of molecules life needs — which is why life is called "carbon-based."'},
+    {type:'mc', cat:'Genetics', q:'A trait that stays hidden when paired with a stronger version is called…', opts:['Dominant','Recessive','Mutant','Inherited'], ans:1, fact:'A recessive trait only appears if inherited from both parents. That\'s why some features, like certain eye colours, can skip a generation.'},
+    {type:'num', cat:'Physics', q:'What is the freezing point of water in degrees Celsius?', accept:['0','zero'], fact:'Water freezes at 0°C. The Celsius scale was cleverly built so that 0 is water freezing and 100 is water boiling.'},
+    {type:'word', cat:'Ecosystems', q:'What do we call an animal hunted and eaten by another? (one word)', accept:['prey'], fact:'Prey animals are hunted by predators. Many have eyes on the sides of their heads for a wide view, to spot danger coming from any direction.'},
+    {type:'mc', cat:'Chemistry', q:'What is the most abundant gas we breathe in to survive?', opts:['Carbon dioxide','Oxygen','Hydrogen','Helium'], ans:1, fact:'We breathe air for its oxygen, which our cells use to release energy from food. It makes up about 21% of the air.'},
+    {type:'mc', cat:'Cells', q:'What do we call living things made of just one cell?', opts:['Multicellular','Unicellular','Vertebrate','Mammal'], ans:1, fact:'Unicellular organisms, like bacteria, are a single cell doing everything needed for life. They were the first life on Earth.'},
+    {type:'word', cat:'Earth Science', q:'What protects Earth from most of the Sun\'s harmful UV rays? (two words)', accept:['ozone layer','the ozone layer','ozone'], fact:'The ozone layer high in the atmosphere absorbs dangerous ultraviolet light. Protecting it is why many old aerosol chemicals were banned worldwide.'},
+    {type:'mc', cat:'Physics', q:'Which travels faster: sound or light?', opts:['Sound','Light','They are equal','Neither moves'], ans:1, fact:'Light is about a million times faster than sound, which is why you see a lightning flash before you hear the thunder roll.'},
+    {type:'mc', cat:'Body Systems', q:'Red blood cells carry oxygen using which iron-rich molecule?', opts:['Insulin','Haemoglobin','Collagen','Keratin'], ans:1, fact:'Haemoglobin grabs oxygen in your lungs and releases it to your body. The iron in it is also what makes your blood red.'},
+    {type:'word', cat:'Chemistry', q:'What is H₂O better known as? (one word)', accept:['water'], fact:'H₂O is water. The formula tells you each molecule is two hydrogen atoms bonded to one oxygen atom.'},
+    {type:'mc', cat:'Genetics', q:'Mendel\'s "factors" that pass traits to offspring are now called…', opts:['Cells','Genes','Atoms','Enzymes'], ans:1, fact:'Mendel deduced genes purely by counting pea plants, decades before anyone could see DNA or even knew genes existed.'},
+    {type:'num', cat:'Physics', q:'At what temperature does water boil, in degrees Celsius?', accept:['100'], fact:'Water boils at 100°C at sea level. Up a tall mountain it boils at a lower temperature, because the air pressure pushing down on it is weaker.'},
+    {type:'word', cat:'Cells', q:'What is the green pigment in leaves that captures sunlight?', accept:['chlorophyll','chlorophyl'], fact:'Chlorophyll absorbs red and blue light but reflects green, which is why leaves look green. In autumn it breaks down, revealing hidden yellows and oranges.'},
+    {type:'mc', cat:'Earth Science', q:'Which type of rock forms from cooled magma or lava?', opts:['Sedimentary','Igneous','Metamorphic','Fossil'], ans:1, fact:'Igneous rock like granite forms as molten rock cools. The slower it cools underground, the larger its crystals can grow.'},
+    {type:'mc', cat:'Chemistry', q:'What do we call the smallest unit of an element?', opts:['A cell','An atom','A molecule','A crystal'], ans:1, fact:'An atom is the smallest piece of an element that still behaves like that element. Everything around you is built from about 90 kinds of atoms.'},
+    {type:'word', cat:'Ecosystems', q:'What do we call all the living and non-living things in an area working together? (one word)', accept:['ecosystem','an ecosystem'], fact:'An ecosystem includes living things plus their air, water, and soil. A change to one part — like removing a predator — can ripple through the whole system.'},
+    {type:'mc', cat:'Energy', q:'When you turn on a torch, electrical energy mostly changes into…', opts:['Sound and smell','Light and heat','Magnetism','Motion'], ans:1, fact:'A torch turns electrical energy into light, with some lost as heat. Energy is never destroyed — it just changes from one form into another.'},
+    {type:'mc', cat:'Body Systems', q:'What gas do your lungs take out of the air and pass into your blood?', opts:['Nitrogen','Oxygen','Helium','Hydrogen'], ans:1, fact:'Your lungs pass oxygen into the blood and collect carbon dioxide to breathe out. This swap happens across millions of tiny air sacs called alveoli.'},
+    {type:'word', cat:'Physics', q:'What force pulls objects toward each other based on their mass? (one word)', accept:['gravity'], fact:'Gravity pulls all objects with mass toward one another. It\'s strong for huge things like planets but far too weak to notice between everyday objects.'},
+    {type:'mc', cat:'Cells', q:'What surrounds a cell and controls what goes in and out?', opts:['The nucleus','The cell membrane','The mitochondria','The DNA'], ans:1, fact:'The cell membrane is a thin gatekeeper that lets food in and waste out, keeping the inside of the cell just right for life.'},
+    {type:'num', cat:'Chemistry', q:'How many elements are there roughly on the periodic table? (just the number, nearest ten)', accept:['118','120','110'], fact:'There are 118 known elements. About 90 occur naturally on Earth; the rest are made by scientists in labs and vanish in a flash.'},
+    {type:'word', cat:'Genetics', q:'What do we call different versions of the same gene? (one word)', accept:['alleles','allele'], fact:'Alleles are versions of a gene — like one for brown eyes and one for blue. You inherit one from each parent, and their combination shapes your traits.'},
+    {type:'mc', cat:'Earth Science', q:'What is the name for the supercontinent that broke apart long ago?', opts:['Atlantis','Pangaea','Europa','Antarctica'], ans:1, fact:'About 300 million years ago all land was joined as Pangaea. Matching coastlines and fossils on now-distant continents are the clues that revealed it.'},
+    {type:'mc', cat:'Physics', q:'What do we call the lowest possible temperature, where atoms barely move?', opts:['Freezing point','Absolute zero','Room temperature','Boiling point'], ans:1, fact:'Absolute zero is about −273°C. Scientists can get incredibly close but, by the laws of physics, can never quite reach it.'},
+    {type:'word', cat:'Body Systems', q:'What is the largest organ of the human body? (one word)', accept:['skin','the skin'], fact:'Your skin is the largest organ. It guards against germs, holds in water, and senses heat, cold, and touch across your whole body.'},
+    {type:'mc', cat:'Energy', q:'Which of these is a renewable energy source?', opts:['Coal','Oil','Wind','Natural gas'], ans:2, fact:'Wind is renewable — it never runs out, unlike coal and oil which take millions of years to form and are used up far faster than they\'re made.'},
+    {type:'mc', cat:'Cells', q:'What is the jelly-like substance that fills a cell called?', opts:['Cytoplasm','Nucleus','Membrane','Chlorophyll'], ans:0, fact:'Cytoplasm is the jelly inside a cell where its tiny parts float and most of its chemical reactions take place.'},
+    {type:'word', cat:'Chemistry', q:'What do we call a substance made of two or more elements joined together? (one word)', accept:['compound','a compound'], fact:'A compound is two or more elements chemically bonded, like water (hydrogen + oxygen). It has totally different properties from the elements alone.'},
+    {type:'mc', cat:'Genetics', q:'What is the name for a sudden change in a gene?', opts:['A mutation','A reaction','A fusion','A solution'], ans:0, fact:'A mutation is a change in DNA. Most do nothing, some cause problems, but a rare few are helpful — and those drive evolution forward.'},
+    {type:'num', cat:'Physics', q:'How many states of matter are commonly taught? (just the number)', accept:['3','three','4','four'], fact:'Usually 3: solid, liquid, and gas. Scientists also count a fourth — plasma — the superheated state that stars and lightning are made of.'},
+    {type:'word', cat:'Ecosystems', q:'What do we call an animal that eats only plants? (one word)', accept:['herbivore','herbivores'], fact:'Herbivores eat only plants and often have flat teeth for grinding tough leaves. Cows even have special stomachs to digest grass.'},
+    {type:'mc', cat:'Earth Science', q:'What do we call the study of weather over a long time in a place?', opts:['Forecast','Climate','Season','Temperature'], ans:1, fact:'Climate is the average weather of a place over many years. Weather is what\'s happening today; climate is the long-term pattern.'},
+    {type:'mc', cat:'Chemistry', q:'When salt dissolves in water, the water is the…', opts:['Solute','Solvent','Mixture','Residue'], ans:1, fact:'The solvent does the dissolving (water) and the solute gets dissolved (salt). Water dissolves so many things it\'s nicknamed the "universal solvent."'},
+    {type:'word', cat:'Body Systems', q:'What is the muscle that pumps blood through your body? (one word)', accept:['heart','the heart'], fact:'The heart is a powerful muscle that never tires, pumping about 7,000 litres of blood through your body every single day.'},
+    {type:'mc', cat:'Physics', q:'What unit measures electric current?', opts:['Volt','Ampere','Watt','Ohm'], ans:1, fact:'The ampere, or "amp," measures how much electric charge flows past a point each second. It\'s named after physicist André-Marie Ampère.'},
+    {type:'num', cat:'Cells', q:'How many cells, roughly, is the human body made of? (in trillions, just the number)', accept:['37','30','40'], fact:'Your body has roughly 37 trillion cells, each a tiny living unit with its own job. Laid in a line they\'d wrap around the Earth many times.'},
+    {type:'word', cat:'Genetics', q:'What is the full name for the molecule abbreviated DNA? (think "deoxyribo...")', accept:['deoxyribonucleic acid','deoxyribonucleic'], fact:'DNA stands for deoxyribonucleic acid. The "deoxyribo" part is the sugar that forms the backbone of its twisted-ladder shape.'},
+    {type:'mc', cat:'Energy', q:'A solar panel turns sunlight into…', opts:['Sound','Electricity','Sand','Water'], ans:1, fact:'Solar panels turn sunlight directly into electricity using the photoelectric effect — the very thing Einstein won his Nobel Prize for explaining.'},
+    {type:'mc', cat:'Earth Science', q:'What is the centre of the Earth called?', opts:['The crust','The core','The mantle','The plate'], ans:1, fact:'The core is Earth\'s hot centre, made mostly of iron. Its swirling, molten outer part generates Earth\'s magnetic field, which guides compasses.'},
+    {type:'word', cat:'Chemistry', q:'What do we call atoms of the same element with different numbers of neutrons? (one word)', accept:['isotopes','isotope'], fact:'Isotopes are versions of an element with different neutron counts. Carbon-14 is a radioactive isotope used to date ancient bones and wood.'},
+    {type:'mc', cat:'Physics', q:'What do we call the splitting of white light into its colours?', opts:['Reflection','Dispersion','Absorption','Vibration'], ans:1, fact:'Dispersion splits white light into a spectrum, because each colour bends by a different amount. Raindrops do this to make rainbows.'},
+    {type:'num', cat:'Body Systems', q:'How many main blood types are there in the ABO system? (just the number)', accept:['4','four'], fact:'There are 4 main blood types: A, B, AB, and O. Matching them matters in transfusions, because mixing the wrong ones makes blood clump dangerously.'},
+    {type:'word', cat:'Ecosystems', q:'What do we call a living thing\'s natural home? (one word)', accept:['habitat','its habitat'], fact:'A habitat is where a living thing naturally lives, providing the food, water, and shelter it needs. A polar bear\'s habitat is the icy Arctic.'},
+  ],
+
+  hs: [
+    {type:'mc', cat:'Atomic Structure', q:'What particle in an atom has a negative charge?', opts:['Proton','Neutron','Electron','Photon'], ans:2, fact:'Electrons carry negative charge and are nearly 2,000 times lighter than protons. Their flow through wires is what we call electricity.'},
+    {type:'word', cat:'Atomic Structure', q:'What is the positively charged centre of an atom called? (one word)', accept:['nucleus','the nucleus'], fact:'The nucleus holds protons and neutrons and almost all the atom\'s mass, yet it\'s tiny — if an atom were a stadium, the nucleus would be a pea at centre field.'},
+    {type:'mc', cat:'Chemistry', q:'What does the atomic number of an element tell you?', opts:['Number of neutrons','Number of protons','Number of atoms','The mass'], ans:1, fact:'The atomic number is the number of protons, and it defines the element. Change the protons and you literally change one element into another.'},
+    {type:'word', cat:'Genetics', q:'What is the name for the process where a cell copies its DNA and divides into two identical cells?', accept:['mitosis'], fact:'Mitosis produces two identical cells for growth and repair. A different process, meiosis, makes sex cells with half the DNA for reproduction.'},
+    {type:'mc', cat:'Physics', q:'In general relativity, gravity is described as the curvature of…', opts:['Magnetic fields','Spacetime','The ether','Electron clouds'], ans:1, fact:'Einstein showed mass curves spacetime like a ball on a stretched sheet. That curve is what we experience as the pull of gravity.'},
+    {type:'mc', cat:'Chemical Reactions', q:'In a chemical reaction, what is a substance that speeds it up without being used up?', opts:['A solvent','A catalyst','A reactant','A product'], ans:1, fact:'A catalyst speeds a reaction without being consumed. Enzymes are biological catalysts; without them, life\'s reactions would be far too slow to keep you alive.'},
+    {type:'word', cat:'Physics', q:'What is the term for a fast-moving clock running slow, predicted by Einstein? (two words)', accept:['time dilation'], fact:'Time dilation is real and measured: atomic clocks flown on fast jets return very slightly behind clocks left on the ground.'},
+    {type:'mc', cat:'Genetics', q:'What is the name for the molecule that carries a copy of a gene out of the nucleus?', opts:['DNA','RNA','ATP','Glucose'], ans:1, fact:'Messenger RNA carries gene copies to the ribosomes to build proteins. This very molecule is what some modern vaccines use to train your immune system.'},
+    {type:'word', cat:'Chemistry', q:'What is the name of the bond where atoms share electrons? (two words)', accept:['covalent bond','covalent'], fact:'In a covalent bond, atoms share a pair of electrons like clasped hands. This is how hydrogen and oxygen are held together in every water molecule.'},
+    {type:'mc', cat:'Cosmology', q:'What is the leftover faint glow from the Big Bang called?', opts:['Starlight','Cosmic microwave background','Solar wind','Aurora'], ans:1, fact:'The cosmic microwave background fills all of space — the oldest light we can detect, a baby photo of the universe from 380,000 years after it began.'},
+    {type:'num', cat:'Chemistry', q:'What is the atomic number of carbon? (just the number)', accept:['6','six'], fact:'Carbon\'s atomic number is 6, meaning every carbon atom has 6 protons. Its ability to form four bonds makes it the backbone of all life.'},
+    {type:'word', cat:'Physics', q:'What 1905 effect, where light knocks electrons off metal, won Einstein his Nobel? (two words)', accept:['photoelectric effect','photoelectric'], fact:'The photoelectric effect showed light comes in packets called photons. Surprisingly it, not relativity, won Einstein his Nobel — and it powers solar panels today.'},
+    {type:'mc', cat:'Biology', q:'What is the process by which cells make proteins from genetic instructions?', opts:['Translation','Digestion','Respiration','Fermentation'], ans:0, fact:'In translation, ribosomes read the genetic code three letters at a time and link amino acids into proteins — life\'s building and working molecules.'},
+    {type:'mc', cat:'Physics Laws', q:'Newton\'s third law states that every action has an equal and opposite…', opts:['Force','Reaction','Mass','Speed'], ans:1, fact:'This is how rockets fly: they hurl hot gas downward, and the equal opposite reaction pushes the rocket up — no air to push against needed.'},
+    {type:'word', cat:'Chemistry', q:'What do we call a charged atom that has lost or gained electrons? (one word)', accept:['ion','an ion','ions'], fact:'An ion is a charged atom. Ions flowing through liquids carry the signals along your nerves and produce the current inside batteries.'},
+    {type:'num', cat:'Chemistry', q:'How many protons does a hydrogen atom have? (just the number)', accept:['1','one'], fact:'Hydrogen has just 1 proton, making it the simplest and lightest element. It makes up about 75% of all ordinary matter in the universe.'},
+    {type:'mc', cat:'Cosmology', q:'What invisible substance is thought to make up most of the mass in galaxies?', opts:['Dark matter','Helium','Plasma','Antimatter'], ans:0, fact:'Galaxies spin so fast they should fly apart, yet they don\'t — the gravity of unseen "dark matter" seems to hold them together, though no one knows what it is.'},
+    {type:'word', cat:'Biology', q:'What is the name for an organism\'s complete set of genetic material? (one word)', accept:['genome','the genome'], fact:'The genome is all of an organism\'s DNA. The human genome holds about 3 billion letters of code — and was fully mapped for the first time in 2003.'},
+    {type:'mc', cat:'Physics', q:'What is the SI unit of force, named after a famous scientist?', opts:['The watt','The newton','The joule','The pascal'], ans:1, fact:'Force is measured in newtons. One newton is roughly the force you feel holding a small apple — a fitting tribute to Isaac Newton.'},
+    {type:'word', cat:'Chemistry', q:'What is the name for a row across the periodic table? (one word)', accept:['period','a period'], fact:'A row is called a period; elements in it share the same number of electron shells. The columns, called groups, share similar chemical behaviour.'},
+    {type:'mc', cat:'Genetics', q:'A section of DNA that codes for a particular trait is called a…', opts:['Cell','Gene','Protein','Ribosome'], ans:1, fact:'A gene is a stretch of DNA carrying the instructions for one trait or protein. Humans have around 20,000 genes packed into their chromosomes.'},
+    {type:'num', cat:'Physics', q:'Roughly how many minutes does sunlight take to reach Earth? (just the number)', accept:['8','eight'], fact:'Sunlight takes about 8 minutes to reach us. So you always see the Sun as it looked 8 minutes ago — never quite in the present.'},
+    {type:'word', cat:'Chemical Reactions', q:'What do we call the splitting of a heavy atomic nucleus, used in power plants? (one word)', accept:['fission','nuclear fission'], fact:'Fission splits a heavy nucleus, releasing energy and more neutrons that split more nuclei — a chain reaction a reactor carefully keeps under control.'},
+    {type:'mc', cat:'Biology', q:'What is the name for organisms whose cells have no nucleus, like bacteria?', opts:['Eukaryotes','Prokaryotes','Vertebrates','Fungi'], ans:1, fact:'Prokaryotes were the first life on Earth and ruled alone for billions of years. Their DNA floats freely rather than being packed inside a nucleus.'},
+    {type:'mc', cat:'Physics', q:'What particle carries the electromagnetic force, including light?', opts:['Electron','Photon','Proton','Neutron'], ans:1, fact:'The photon has no mass and always moves at light speed. Every colour of light, plus radio waves and X-rays, is just photons of different energy.'},
+    {type:'word', cat:'Chemistry', q:'What is the lightest and most abundant element in the universe? (one word)', accept:['hydrogen'], fact:'Hydrogen makes up about 75% of ordinary matter and fuels the stars, fusing into helium and releasing the energy that makes them shine.'},
+    {type:'mc', cat:'Cosmology', q:'What is the boundary of a black hole, beyond which nothing escapes?', opts:['Singularity','Event horizon','Accretion disk','Photon sphere'], ans:1, fact:'Cross the event horizon and escape becomes impossible, because you\'d need to travel faster than light — which nothing can do.'},
+    {type:'word', cat:'Biology', q:'What is the process called when living things keep a stable internal state? (one word)', accept:['homeostasis'], fact:'Homeostasis keeps conditions steady. Sweating to cool down and shivering to warm up both work to hold your body near 37°C whatever the weather.'},
+    {type:'num', cat:'Chemistry', q:'What is the pH of a neutral solution like pure water? (just the number)', accept:['7','seven'], fact:'Neutral is pH 7. The scale is logarithmic, so pH 4 is ten times more acidic than pH 5, and a hundred times more than pH 6.'},
+    {type:'mc', cat:'Physics Laws', q:'What law says energy cannot be created or destroyed, only changed?', opts:['Newton\'s first law','Conservation of energy','Ohm\'s law','Boyle\'s law'], ans:1, fact:'When you skid to a stop, your motion energy isn\'t lost — it becomes heat in the ground and tyres. The total amount of energy always stays the same.'},
+    {type:'word', cat:'Genetics', q:'What is the name for the X and Y that determine human biological sex? (think "sex...")', accept:['sex chromosomes','chromosomes','sex chromosome'], fact:'The sex chromosomes are X and Y. Two X\'s usually mean female; an X and a Y usually mean male. They\'re just one pair out of 23 in all.'},
+    {type:'mc', cat:'Chemistry', q:'What is the second most abundant element in the universe?', opts:['Oxygen','Helium','Carbon','Iron'], ans:1, fact:'Helium is second after hydrogen. It was first discovered in the Sun\'s light in 1868 — 27 years before it was found on Earth — and named after the Greek sun god.'},
+    {type:'word', cat:'Physics', q:'What is the name for the energy an object has due to its motion? (two words)', accept:['kinetic energy','kinetic'], fact:'Kinetic energy grows with the square of speed, so doubling your speed quadruples the energy — a key reason high-speed crashes are so dangerous.'},
+    {type:'mc', cat:'Cosmology', q:'What is the mysterious energy thought to be speeding up the universe\'s expansion?', opts:['Dark matter','Dark energy','Plasma','Radiation'], ans:1, fact:'Dark energy seems to make up about 70% of the universe and is pushing galaxies apart ever faster, yet no one knows what it actually is.'},
+    {type:'num', cat:'Biology', q:'How many pairs of chromosomes do humans have? (just the number)', accept:['23'], fact:'Humans have 23 pairs, 46 chromosomes in total. One chromosome of each pair comes from each parent, mixing their traits in every child.'},
+    {type:'word', cat:'Chemical Reactions', q:'What do we call the joining of light atomic nuclei that powers the Sun? (one word)', accept:['fusion','nuclear fusion'], fact:'Fusion joins light nuclei like hydrogen into helium, releasing enormous energy. It powers every star and is what scientists hope to harness for clean energy.'},
+    {type:'mc', cat:'Physics', q:'What is measured in units called hertz?', opts:['Mass','Frequency','Distance','Temperature'], ans:1, fact:'Hertz measures frequency — cycles per second. A musical note at 440 Hz means the air is vibrating back and forth 440 times every second.'},
+    {type:'word', cat:'Chemistry', q:'What do we call a substance that neutralises an acid and feels slippery? (one word)', accept:['base','a base','alkali'], fact:'A base neutralises acid, producing water and a salt. That reaction is exactly how an antacid tablet soothes an over-acidic stomach.'},
+    {type:'mc', cat:'Cosmology', q:'What is the name for the point of infinite density at a black hole\'s centre?', opts:['The singularity','The event horizon','The nucleus','The void'], ans:0, fact:'At the singularity our laws of physics break down completely — it remains one of the deepest unsolved mysteries in all of science.'},
+    {type:'word', cat:'Biology', q:'What is the powerhouse of the cell, where energy is released? (one word)', accept:['mitochondria','mitochondrion'], fact:'Mitochondria release energy from food using oxygen. They carry their own DNA, a clue they were once independent bacteria absorbed into our cells long ago.'},
+    {type:'mc', cat:'Chemistry', q:'An alpha particle is actually the nucleus of which atom?', opts:['Helium','Hydrogen','Carbon','Oxygen'], ans:0, fact:'An alpha particle is a helium nucleus — two protons and two neutrons. It\'s so easily stopped that a sheet of paper or your skin can block it.'},
+    {type:'num', cat:'Physics', q:'How fast does light travel, in km per second? (round number)', accept:['300000','299792','300,000'], fact:'Light travels about 300,000 km per second. This speed is the universe\'s ultimate speed limit — nothing with mass can ever reach it.'},
+    {type:'word', cat:'Genetics', q:'What shape describes the structure of a DNA molecule? (two words)', accept:['double helix','helix'], fact:'DNA is a double helix — a twisted ladder. Its 1953 discovery revealed how DNA could unzip and copy itself each time a cell divides.'},
+    {type:'mc', cat:'Physics Laws', q:'Newton\'s first law says an object stays at rest or in motion unless acted on by a…', opts:['Mass','Force','Speed','Shape'], ans:1, fact:'This tendency to resist change is called inertia. It\'s why you lurch forward when a car suddenly brakes — your body "wants" to keep moving.'},
+    {type:'word', cat:'Chemical Reactions', q:'What do we call a reaction that releases heat? (think "exo...") (one word)', accept:['exothermic','exo'], fact:'An exothermic reaction releases heat, like burning or an explosion. One that absorbs heat instead — making things feel cold — is called endothermic.'},
+    {type:'mc', cat:'Cosmology', q:'Which two great theories does physics still struggle to fully unite?', opts:['Gravity and quantum mechanics','Electricity and magnetism','Optics and acoustics','Biology and chemistry'], ans:0, fact:'Each works beautifully alone, but they clash at black holes and the Big Bang. A "theory of everything" would finally reconcile them — still unsolved.'},
+    {type:'word', cat:'Biology', q:'What is the name for the process plants use to release water vapour from leaves? (one word)', accept:['transpiration'], fact:'Transpiration pulls water up from the roots like a straw. A single large tree can release hundreds of litres of water into the air on a hot day.'},
+    {type:'mc', cat:'Chemistry', q:'What is Avogadro\'s number used to count?', opts:['Atoms or molecules in a mole','Stars in a galaxy','Cells in a body','Waves in light'], ans:0, fact:'Avogadro\'s number, about 6 × 10²³, counts particles in a mole. A spoonful of water holds more molecules than there are stars in the observable universe.'},
+    {type:'word', cat:'Physics', q:'What do we call materials that conduct electricity with no resistance when very cold? (one word)', accept:['superconductors','superconductor'], fact:'Superconductors carry current with zero resistance when chilled near absolute zero. They power the strongest magnets, like those inside MRI scanners.'},
+    {type:'mc', cat:'Genetics', q:'What did Mendel\'s pea experiments establish the basic laws of?', opts:['Gravity','Heredity','Electricity','Combustion'], ans:1, fact:'Mendel founded the laws of heredity — how traits pass from parents to offspring — purely by counting peas, long before DNA was discovered.'},
+    {type:'num', cat:'Chemistry', q:'How many electrons can the first electron shell of an atom hold? (just the number)', accept:['2','two'], fact:'The first shell holds just 2 electrons; the second holds 8. Atoms react with each other trying to fill their outer shell completely.'},
+    {type:'word', cat:'Cosmology', q:'What do we call a star that explodes violently at the end of its life? (one word)', accept:['supernova','supernovae'], fact:'A supernova can briefly outshine an entire galaxy. It forges heavy elements like gold and scatters them into space — so the gold on Earth was born in dying stars.'},
+    {type:'mc', cat:'Physics', q:'What happens to the wavelength of light from a galaxy moving away from us?', opts:['It stretches (redshift)','It shrinks (blueshift)','Nothing','It disappears'], ans:0, fact:'Light from receding galaxies stretches to redder wavelengths — "redshift." This is the key evidence that the whole universe is expanding.'},
+    {type:'word', cat:'Biology', q:'What is the basic structural and functional unit of all living things? (one word)', accept:['cell','the cell','cells'], fact:'The cell is life\'s basic unit. Some organisms are a single cell; you are made of about 37 trillion, each carrying out its own specialised job.'},
+    {type:'mc', cat:'Chemical Reactions', q:'What is produced when an acid reacts with a base?', opts:['Salt and water','Only gas','Only heat','Pure metal'], ans:0, fact:'An acid and base neutralise to make a salt and water. Table salt itself comes from the reaction of hydrochloric acid with the base sodium hydroxide.'},
+    {type:'num', cat:'Physics', q:'What is absolute zero, roughly, in degrees Celsius? (just the number, with minus)', accept:['-273','−273','-273.15'], fact:'Absolute zero is about −273°C, the point where atoms stop moving. It\'s the basis of the Kelvin scale, which starts counting from there.'},
+    {type:'word', cat:'Atomic Structure', q:'What do we call the neutral particle in an atom\'s nucleus? (one word)', accept:['neutron','neutrons'], fact:'Neutrons have no charge and sit in the nucleus with protons. Their number can vary, creating isotopes — versions of an element with different masses.'},
+    {type:'mc', cat:'Genetics', q:'Whose 1858 letter pushed Darwin to finally publish his theory of evolution?', opts:['Thomas Huxley','Alfred Russel Wallace','Charles Lyell','Gregor Mendel'], ans:1, fact:'Wallace had independently reached the same theory of natural selection. Rather than be scooped, Darwin presented their ideas together, then rushed his book to print.'},
+    {type:'word', cat:'Chemistry', q:'What is the name for the smallest unit of a compound that keeps its properties? (one word)', accept:['molecule','a molecule'], fact:'A molecule is the smallest unit of a compound. Split a water molecule and you get hydrogen and oxygen gas — which behave nothing like liquid water.'},
+    {type:'mc', cat:'Cosmology', q:'What is the name for the dense, spinning remnant of a collapsed star that sweeps beams of radiation?', opts:['A pulsar','A comet','A nebula','An asteroid'], ans:0, fact:'A pulsar spins so steadily its sweeping beam acts like a cosmic lighthouse. The first one found was jokingly nicknamed "LGM-1" — for little green men.'},
+    {type:'num', cat:'Biology', q:'About how many genes does the human genome contain? (in thousands, just the number)', accept:['20','20000','20,000','21'], fact:'Humans have about 20,000 genes — surprisingly, not many more than a tiny worm. It turns out how genes are used matters as much as how many you have.'},
+    {type:'word', cat:'Physics', q:'What do we call the resistance to flow in a circuit, measured in ohms? (one word)', accept:['resistance'], fact:'Resistance turns electrical energy into heat and light. It\'s exactly how a toaster warms your bread and how an old-style bulb glows.'},
+    {type:'mc', cat:'Chemistry', q:'What kind of bond involves a metal giving electrons to a non-metal?', opts:['Covalent bond','Ionic bond','Hydrogen bond','Metallic bond'], ans:1, fact:'In an ionic bond, a metal donates electrons to a non-metal, and the oppositely charged ions attract. Table salt is held together this way.'},
+  ]
+};
+
+
+/* ─────────── TIER CONFIG ─────────── */
+const TIERS = [
+  { id:'g13', name:'Grade 1-3', desc:'Animals, plants, weather, senses' },
+  { id:'g45', name:'Grade 4-5', desc:'Life cycles, matter, forces, space' },
+  { id:'g68', name:'Grade 6-8', desc:'Cells, energy, chemistry, body' },
+  { id:'hs',  name:'High School', desc:'Atoms, genetics, physics laws' },
+];
+const TIER_INDEX = { g13:0, g45:1, g68:2, hs:3 };
+const HP_MAX = 100;
+const DMG_HOME = 11;
+const DMG_REACH = 15;
+
+let state = {};
+function resetState(){
+  state = {
+    p1:null, p2:null,
+    tier1:null, tier2:null,
+    hp1:HP_MAX, hp2:HP_MAX,
+    turn:1, answered:false,
+    pools:{}, poolIdx:{},
+    currentQ:null, currentTier:null, currentReach:false,
+    turns:0, correct1:0, correct2:0, asked1:0, asked2:0
+  };
+}
+const $ = id => document.getElementById(id);
+
+/* ─────────── SETUP: SCIENTIST GRIDS ─────────── */
+function renderGrids(){
+  [1,2].forEach(p=>{
+    const grid = $('sci-grid-'+p);
+    grid.innerHTML='';
+    const mine  = p===1 ? state.p1 : state.p2;
+    const other = p===1 ? state.p2 : state.p1;
+    SCIENTISTS.forEach(s=>{
+      const taken = other===s.id;
+      const selected = mine===s.id;
+      const card=document.createElement('div');
+      card.className='sci-card'+(selected?' selected'+(p===2?' p2sel':''):'')+(taken?' taken':'');
+      const body=document.createElement('div');
+      body.innerHTML=`<span class="icon">${s.icon}</span><div class="sname">${s.name}</div><div class="sdomain">${s.domain}</div>`;
+      body.style.cursor='pointer';
+      if(!taken) body.onclick=()=>pickScientist(p,s.id);
+      const link=document.createElement('button');
+      link.className='story-link';
+      link.textContent='📖 Read their story';
+      link.onclick=(e)=>{e.stopPropagation();openStory(s.id,p);};
+      card.appendChild(body);
+      card.appendChild(link);
+      grid.appendChild(card);
+    });
+  });
+}
+function pickScientist(player,id){
+  const other = player===1 ? state.p2 : state.p1;
+  if(other===id) return;
+  if(player===1) state.p1=id; else state.p2=id;
+  renderGrids();
+  checkReady();
+}
+
+/* ─────────── SETUP: TIER GRIDS ─────────── */
+function renderTiers(){
+  [1,2].forEach(p=>{
+    const grid = $('tier-grid-'+p);
+    grid.innerHTML='';
+    const mine = p===1 ? state.tier1 : state.tier2;
+    TIERS.forEach(t=>{
+      const btn=document.createElement('button');
+      btn.className='tier-btn'+(mine===t.id?' selected'+(p===2?' p2sel':''):'');
+      btn.innerHTML=`<span class="tier-name">${t.name}</span><span class="tier-desc">${t.desc}</span>`;
+      btn.onclick=()=>pickTier(p,t.id);
+      grid.appendChild(btn);
+    });
+  });
+}
+function pickTier(player,id){
+  if(player===1) state.tier1=id; else state.tier2=id;
+  renderTiers();
+  checkReady();
+}
+function checkReady(){
+  $('start-btn').disabled = !(state.p1 && state.p2 && state.tier1 && state.tier2);
+}
+
+/* ─────────── STORY MODAL ─────────── */
+let storyContext = {id:null, player:null};
+function openStory(id,player){
+  const s = SCIENTISTS.find(x=>x.id===id);
+  const st = STORIES[id];
+  storyContext = {id, player};
+  $('story-icon').textContent=s.icon;
+  $('story-name').textContent=s.name;
+  $('story-epithet').textContent=st.epithet;
+  $('story-tags').innerHTML=st.tags.map(t=>`<span class="scroll-tag">${t}</span>`).join('');
+  let bodyHtml = st.body.map((p,i)=>`<p${i===0?' class="lead"':''}>${p}</p>`).join('');
+  if(st.diagram){
+    bodyHtml += `<div class="diagram-box">
+        <div class="diagram-title">${st.diagram.title}</div>
+        <div class="diagram-svg">${st.diagram.svg}</div>
+        <div class="diagram-caption">${st.diagram.caption}</div>
+      </div>`;
+  }
+  $('story-body').innerHTML=bodyHtml;
+  const pick=$('story-pick');
+  if(player===null){
+    pick.style.display='none';
+  } else {
+    pick.style.display='block';
+    const other = player===1 ? state.p2 : state.p1;
+    if(other===id){
+      pick.disabled=true; pick.classList.add('taken');
+      pick.textContent='Already chosen by the other player';
+    } else {
+      pick.disabled=false; pick.classList.remove('taken');
+      pick.textContent=`Choose ${s.name} for Player ${player}`;
+      pick.onclick=()=>{ pickScientist(player,id); closeStory(); };
+    }
+  }
+  $('story-modal').classList.add('active');
+  $('story-modal').scrollTop=0;
+}
+function closeStory(){ $('story-modal').classList.remove('active'); }
+
+/* ─────────── QUESTION POOLS ─────────── */
+function buildPool(tier){
+  const base=[...QUESTIONS[tier]];
+  for(let i=base.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[base[i],base[j]]=[base[j],base[i]];}
+  state.pools[tier]=base; state.poolIdx[tier]=0;
+}
+function drawQuestion(tier){
+  if(!state.pools[tier] || state.poolIdx[tier]>=state.pools[tier].length) buildPool(tier);
+  return state.pools[tier][state.poolIdx[tier]++];
+}
+
+/* ─────────── ANSWER MATCHING ─────────── */
+// numeric
+function normalizeNum(str){
+  if(str==null) return '';
+  let s=String(str).trim().toLowerCase();
+  s=s.replace(/\s+/g,'').replace(/−/g,'-').replace(/,/g,'').replace(/%$/,'');
+  return s;
+}
+function toNumber(s){
+  if(/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return parseFloat(s);
+  return null;
+}
+function checkNumeric(typed, accepts){
+  const t=normalizeNum(typed);
+  if(t==='') return false;
+  for(const a of accepts){
+    const na=normalizeNum(a);
+    if(t===na) return true;
+    const tv=toNumber(t), av=toNumber(na);
+    if(tv!==null && av!==null && Math.abs(tv-av)<1e-9) return true;
+  }
+  return false;
+}
+
+// words: normalise, strip leading articles, allow small spelling slips
+function normalizeWord(str){
+  if(str==null) return '';
+  let s=String(str).trim().toLowerCase();
+  s=s.replace(/[.,!?;:'"()]/g,'');     // strip punctuation
+  s=s.replace(/\s+/g,' ').trim();
+  s=s.replace(/^(the|a|an|my|its|it is|it's)\s+/,''); // drop leading article/filler
+  return s;
+}
+// Levenshtein distance (small, iterative)
+function editDistance(a,b){
+  const m=a.length,n=b.length;
+  if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,i)=>i);
+  let cur=new Array(n+1);
+  for(let i=1;i<=m;i++){
+    cur[0]=i;
+    for(let j=1;j<=n;j++){
+      const cost=a[i-1]===b[j-1]?0:1;
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
+    }
+    [prev,cur]=[cur,prev];
+  }
+  return prev[n];
+}
+// fuzzy single-token compare: tolerant of small misspellings, scaled to word length
+function fuzzyEqual(a,b){
+  if(a===b) return true;
+  const dist=editDistance(a,b);
+  const len=Math.max(a.length,b.length);
+  if(len<=3) return dist===0;            // very short words must be exact
+  if(len<=6) return dist<=1;             // allow 1 slip
+  return dist<=2;                        // longer words allow 2
+}
+function checkWord(typed, accepts){
+  const t=normalizeWord(typed);
+  if(t==='') return false;
+  for(const a of accepts){
+    const na=normalizeWord(a);
+    if(t===na) return true;
+    // compare full phrase fuzzily
+    if(fuzzyEqual(t,na)) return true;
+    // also compare ignoring spaces (e.g. "carbondioxide" vs "carbon dioxide")
+    if(t.replace(/\s/g,'')===na.replace(/\s/g,'')) return true;
+    if(fuzzyEqual(t.replace(/\s/g,''), na.replace(/\s/g,''))) return true;
+  }
+  return false;
+}
+
+/* ─────────── BATTLE START ─────────── */
+function startBattle(){
+  if(!(state.p1&&state.p2&&state.tier1&&state.tier2)) return;
+  const s1=SCIENTISTS.find(x=>x.id===state.p1);
+  const s2=SCIENTISTS.find(x=>x.id===state.p2);
+  $('p1-icon').textContent=s1.icon; $('p1-label').textContent=s1.name;
+  $('p2-icon').textContent=s2.icon; $('p2-label').textContent=s2.name;
+  const used=new Set([state.tier1,state.tier2]);
+  [state.tier1,state.tier2].forEach(t=>{const up=reachUpTier(t); if(up) used.add(up);});
+  used.forEach(t=>buildPool(t));
+  updateHP();
+  showScreen('battle');
+  loadTurn();
+}
+function reachUpTier(tierId){
+  const idx=TIER_INDEX[tierId];
+  if(idx<TIERS.length-1) return TIERS[idx+1].id;
+  return null;
+}
+function updateHP(){
+  $('p1-bar').style.width=Math.max(0,state.hp1/HP_MAX*100)+'%';
+  $('p2-bar').style.width=Math.max(0,state.hp2/HP_MAX*100)+'%';
+  $('p1-hp-text').textContent=Math.max(0,state.hp1)+' HP';
+  $('p2-hp-text').textContent=Math.max(0,state.hp2)+' HP';
+}
+
+/* ─────────── TURN: home vs reach-up ─────────── */
+function loadTurn(){
+  state.answered=false;
+  state.currentTier=null; state.currentReach=false;
+  const me=state.turn===1?state.p1:state.p2;
+  const myTier=state.turn===1?state.tier1:state.tier2;
+  const s=SCIENTISTS.find(x=>x.id===me);
+  const banner=$('turn-banner');
+  banner.textContent=`Player ${state.turn}'s turn — ${s.name}`;
+  banner.className='turn-banner '+(state.turn===1?'p1':'p2');
+  $('score-left').textContent=`P1 ✓ ${state.correct1}`;
+  $('score-right').textContent=`✓ ${state.correct2} P2`;
+
+  const homeTierObj=TIERS[TIER_INDEX[myTier]];
+  const upId=reachUpTier(myTier);
+  const wrap=$('choice-row'); wrap.innerHTML='';
+
+  const homeBtn=document.createElement('button');
+  homeBtn.className='choice-btn home';
+  homeBtn.innerHTML=`<span class="choice-label">Play my level</span>
+    <span class="choice-tier">${homeTierObj.name}</span>
+    <span class="choice-dmg">${DMG_HOME} damage</span>`;
+  homeBtn.onclick=()=>chooseQuestion(myTier,false);
+  wrap.appendChild(homeBtn);
+
+  if(upId){
+    const upObj=TIERS[TIER_INDEX[upId]];
+    const upBtn=document.createElement('button');
+    upBtn.className='choice-btn reach';
+    upBtn.innerHTML=`<span class="choice-label">⬆ Reach up!</span>
+      <span class="choice-tier">${upObj.name}</span>
+      <span class="choice-dmg">${DMG_REACH} damage</span>`;
+    upBtn.onclick=()=>chooseQuestion(upId,true);
+    wrap.appendChild(upBtn);
+  }
+
+  $('choice-wrap').style.display='block';
+  $('question-area').style.display='none';
+  $('feedback-card').classList.remove('show','hit','miss');
+  $('next-btn').classList.remove('show');
+}
+
+function chooseQuestion(tier,isReach){
+  state.currentTier=tier;
+  state.currentReach=isReach;
+  const q=drawQuestion(tier);
+  state.currentQ=q;
+  $('choice-wrap').style.display='none';
+  $('question-area').style.display='block';
+
+  const tierObj=TIERS[TIER_INDEX[tier]];
+  const dmg=isReach?DMG_REACH:DMG_HOME;
+  const cls=isReach?'reach':'home';
+  $('q-category').innerHTML=`${q.cat}<span class="diff-tag ${cls}">${tierObj.name} · ${dmg} dmg${isReach?' ⬆':''}</span>`;
+  $('q-text').textContent=q.q;
+
+  const grid=$('options-grid');
+  const numWrap=$('num-answer-wrap');
+  grid.innerHTML='';
+
+  if(q.type==='num' || q.type==='word'){
+    grid.style.display='none';
+    numWrap.style.display='flex';
+    const input=$('num-input');
+    input.value=''; input.disabled=false; input.className='';
+    input.placeholder = q.type==='num' ? 'Type a number…' : 'Type your answer…';
+    input.setAttribute('inputmode', q.type==='num' ? 'decimal' : 'text');
+    $('num-submit').disabled=false;
+    input.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); submitTyped(); } };
+    setTimeout(()=>input.focus(),50);
+  } else {
+    numWrap.style.display='none';
+    grid.style.display='grid';
+    const keys=['A','B','C','D'];
+    q.opts.forEach((o,i)=>{
+      const b=document.createElement('button');
+      b.className='opt-btn';
+      b.innerHTML=`<span class="opt-key">${keys[i]}</span> ${o}`;
+      b.onclick=()=>answerMC(i,b);
+      grid.appendChild(b);
+    });
+  }
+}
+
+function answerMC(idx,btn){
+  if(state.answered) return;
+  const q=state.currentQ;
+  const correct=idx===q.ans;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===q.ans) b.classList.add('correct');
+    else if(i===idx && !correct) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  resolveAnswer(correct, q.opts[q.ans]);
+}
+
+function submitTyped(){
+  if(state.answered) return;
+  const q=state.currentQ;
+  const typed=$('num-input').value;
+  if(q.type==='num'){
+    if(normalizeNum(typed)===''){ $('num-input').focus(); return; }
+  } else {
+    if(normalizeWord(typed)===''){ $('num-input').focus(); return; }
+  }
+  const correct = q.type==='num' ? checkNumeric(typed,q.accept) : checkWord(typed,q.accept);
+  $('num-input').disabled=true;
+  $('num-submit').disabled=true;
+  $('num-input').className = correct?'ok':'bad';
+  resolveAnswer(correct, q.accept[0]);
+}
+
+function resolveAnswer(correct, correctText){
+  state.answered=true;
+  state.turns++;
+  if(state.turn===1) state.asked1++; else state.asked2++;
+  const dmg=state.currentReach?DMG_REACH:DMG_HOME;
+  const q=state.currentQ;
+  const fb=$('feedback-card');
+  fb.classList.add('show');
+  if(correct){
+    const target=SCIENTISTS.find(x=>x.id===(state.turn===1?state.p2:state.p1));
+    if(state.turn===1){ state.hp2-=dmg; state.correct1++; }
+    else { state.hp1-=dmg; state.correct2++; }
+    fb.classList.add('hit');
+    const reachNote=state.currentReach?' (reach-up bonus!)':'';
+    $('fb-head').textContent=`✓ Correct! −${dmg} HP to ${target.name}${reachNote}`;
+  } else {
+    fb.classList.add('miss');
+    $('fb-head').textContent=`✗ Not quite — the answer was "${correctText}". No damage dealt.`;
+  }
+  $('fb-body').textContent=q.fact;
+  updateHP();
+  if(state.hp1<=0 || state.hp2<=0){
+    setTimeout(showWinner,950);
+  } else {
+    $('next-btn').classList.add('show');
+  }
+}
+
+function nextTurn(){
+  state.turn = state.turn===1?2:1;
+  loadTurn();
+}
+
+/* ─────────── WINNER ─────────── */
+function showWinner(){
+  const winnerNum=state.hp1>0?1:2;
+  const w=SCIENTISTS.find(x=>x.id===(winnerNum===1?state.p1:state.p2));
+  const l=SCIENTISTS.find(x=>x.id===(winnerNum===1?state.p2:state.p1));
+  $('winner-icon').textContent=w.icon;
+  $('winner-title').textContent=`Player ${winnerNum} wins — ${w.name}!`;
+  $('winner-sub').textContent=`${w.name} outwits ${l.name} in the battle of the great minds.`;
+  $('stat-turns').textContent=state.turns;
+  const asked=winnerNum===1?state.asked1:state.asked2;
+  const corr=winnerNum===1?state.correct1:state.correct2;
+  $('stat-acc').textContent=asked?Math.round(corr/asked*100)+'%':'—';
+  $('winner-story-btn').onclick=()=>openStory(w.id,null);
+  showScreen('winner');
+}
+
+/* ─────────── NAV ─────────── */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetGame(){
+  resetState(); renderGrids(); renderTiers(); checkReady(); showScreen('setup');
+}
+
+/* ─────────── INIT ─────────── */
+resetState();
+renderGrids();
+renderTiers();
+showScreen('setup');
+
+</script>
+</body>
+</html>
