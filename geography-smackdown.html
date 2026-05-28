@@ -1,0 +1,2339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geography Smackdown — Atlas Battle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Inter:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ========== GLOBAL THEME: MODERN ATLAS / SATELLITE ========== */
+:root {
+  --space-deep: #050a18;
+  --space-mid: #0a1426;
+  --space-light: #142340;
+  --ocean: #0b2a5b;
+  --ocean-glow: #1a4fa3;
+  --land: #1e3a2a;
+  --land-glow: #2d5a3e;
+  --grid: rgba(120, 200, 255, 0.08);
+  --grid-bright: rgba(120, 200, 255, 0.18);
+  --cyan: #5be3ff;
+  --cyan-dim: #2d8fb8;
+  --amber: #ffb547;
+  --amber-glow: #ffd166;
+  --crimson: #ff5e6c;
+  --jade: #4eebac;
+  --paper: #e8f0ff;
+  --paper-dim: #aab8d0;
+  --p1: #5be3ff;
+  --p2: #ffb547;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100%;
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  color: var(--paper);
+  background: var(--space-deep);
+  overflow-x: hidden;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(26, 79, 163, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(45, 90, 62, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(91, 227, 255, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, var(--space-deep) 0%, var(--space-mid) 50%, var(--space-deep) 100%);
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Star field + grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 28%, white, transparent),
+    radial-gradient(1px 1px at 37% 71%, white, transparent),
+    radial-gradient(1px 1px at 58% 12%, white, transparent),
+    radial-gradient(1px 1px at 82% 47%, white, transparent),
+    radial-gradient(1px 1px at 91% 83%, white, transparent),
+    radial-gradient(1px 1px at 23% 91%, white, transparent),
+    radial-gradient(1px 1px at 67% 38%, white, transparent),
+    radial-gradient(1px 1px at 5% 55%, white, transparent),
+    radial-gradient(1px 1px at 45% 5%, white, transparent),
+    radial-gradient(1px 1px at 73% 92%, white, transparent);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Lat/long grid overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, transparent 80%);
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* ========== SCREENS ========== */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.4s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== TITLE BLOCK ========== */
+.title-block {
+  text-align: center;
+  padding: 36px 16px 28px;
+  position: relative;
+}
+
+.coords {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: var(--cyan-dim);
+  letter-spacing: 0.3em;
+  margin-bottom: 12px;
+}
+
+.game-title {
+  font-family: 'Orbitron', 'Bungee', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 7vw, 4.4rem);
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  background: linear-gradient(180deg, #ffffff 0%, var(--cyan) 60%, var(--cyan-dim) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(91, 227, 255, 0.4);
+  margin-bottom: 8px;
+}
+
+.game-sub {
+  font-family: 'Inter', sans-serif;
+  font-style: italic;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  color: var(--paper-dim);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ========== SETUP SECTIONS ========== */
+.setup-section {
+  margin: 32px 0;
+  background: rgba(10, 20, 38, 0.55);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(91, 227, 255, 0.18);
+  border-radius: 18px;
+  padding: 20px 18px;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+.setup-section h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.p1c { color: var(--p1); }
+.p2c { color: var(--p2); }
+
+.setup-hint {
+  font-size: 0.88rem;
+  color: var(--paper-dim);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* ========== EXPLORER GRID ========== */
+.fighter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.fighter-card {
+  background: linear-gradient(160deg, rgba(20, 35, 64, 0.9), rgba(10, 20, 38, 0.95));
+  border: 1.5px solid rgba(91, 227, 255, 0.2);
+  border-radius: 14px;
+  padding: 12px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fighter-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(91, 227, 255, 0.15), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.fighter-card:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(91, 227, 255, 0.18);
+}
+.fighter-card:hover::before { opacity: 1; }
+
+.fighter-card.selected {
+  border-color: var(--amber);
+  background: linear-gradient(160deg, rgba(255, 181, 71, 0.18), rgba(20, 35, 64, 0.95));
+  box-shadow: 0 0 22px rgba(255, 181, 71, 0.4);
+}
+.fighter-card.selected-p2 {
+  border-color: var(--p2);
+  background: linear-gradient(160deg, rgba(255, 181, 71, 0.18), rgba(20, 35, 64, 0.95));
+  box-shadow: 0 0 22px rgba(255, 181, 71, 0.4);
+}
+.fighter-card.selected-p1 {
+  border-color: var(--p1);
+  background: linear-gradient(160deg, rgba(91, 227, 255, 0.18), rgba(20, 35, 64, 0.95));
+  box-shadow: 0 0 22px rgba(91, 227, 255, 0.4);
+}
+
+.fighter-emoji {
+  font-size: 2.2rem;
+  margin-bottom: 4px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.fighter-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--paper);
+  line-height: 1.15;
+  margin-bottom: 2px;
+}
+
+.fighter-era {
+  font-size: 0.72rem;
+  color: var(--paper-dim);
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+.story-btn {
+  background: rgba(91, 227, 255, 0.12);
+  border: 1px solid rgba(91, 227, 255, 0.4);
+  color: var(--cyan);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+  transition: all 0.15s;
+}
+.story-btn:hover {
+  background: rgba(91, 227, 255, 0.25);
+  color: white;
+}
+
+/* ========== TIER GRID ========== */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.tier-card {
+  background: linear-gradient(135deg, rgba(20, 35, 64, 0.9), rgba(10, 20, 38, 0.95));
+  border: 1.5px solid rgba(91, 227, 255, 0.2);
+  border-radius: 12px;
+  padding: 14px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.tier-card:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+}
+
+.tier-card.selected-p1 {
+  border-color: var(--p1);
+  background: linear-gradient(135deg, rgba(91, 227, 255, 0.2), rgba(20, 35, 64, 0.95));
+  box-shadow: 0 0 18px rgba(91, 227, 255, 0.35);
+}
+.tier-card.selected-p2 {
+  border-color: var(--p2);
+  background: linear-gradient(135deg, rgba(255, 181, 71, 0.2), rgba(20, 35, 64, 0.95));
+  box-shadow: 0 0 18px rgba(255, 181, 71, 0.35);
+}
+
+.tier-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+.tier-age {
+  font-size: 0.78rem;
+  color: var(--paper-dim);
+}
+
+/* ========== RULES BOX ========== */
+.rules-box {
+  background: linear-gradient(135deg, rgba(91, 227, 255, 0.06), rgba(20, 35, 64, 0.6));
+  border-left: 3px solid var(--cyan);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--paper);
+}
+.rules-box b { color: var(--cyan); }
+.up { color: var(--amber-glow); font-weight: 700; }
+
+/* ========== GO BUTTON ========== */
+.btn-go {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 30px auto 0;
+  background: linear-gradient(135deg, var(--cyan) 0%, #1da9d6 100%);
+  color: var(--space-deep);
+  border: none;
+  border-radius: 14px;
+  padding: 18px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(91, 227, 255, 0.4), 0 8px 22px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+}
+.btn-go:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(91, 227, 255, 0.6), 0 12px 30px rgba(0,0,0,0.5);
+}
+.btn-go:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ========== BATTLE ARENA ========== */
+.arena-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  background: rgba(10, 20, 38, 0.7);
+  border: 1px solid rgba(91, 227, 255, 0.2);
+  border-radius: 18px;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+}
+
+.player-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.player-panel.right { text-align: right; align-items: flex-end; }
+
+.panel-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.player-panel.right .panel-name { flex-direction: row-reverse; }
+
+.panel-tier {
+  font-size: 0.72rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hp-bar {
+  height: 14px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.hp-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hp-fill.p1 { background: linear-gradient(90deg, #5be3ff, #2d8fb8); box-shadow: 0 0 10px rgba(91,227,255,0.5); }
+.hp-fill.p2 { background: linear-gradient(90deg, #ffd166, #ff8c1a); box-shadow: 0 0 10px rgba(255,181,71,0.5); }
+.hp-fill.low { background: linear-gradient(90deg, #ff5e6c, #c0392b); animation: pulse 0.8s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.hp-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--paper-dim);
+}
+
+.vs-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.1em;
+}
+
+/* ========== TURN INDICATOR ========== */
+.turn-indicator {
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 16px 0;
+  padding: 10px;
+  border-radius: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(91, 227, 255, 0.08);
+  border: 1px solid rgba(91, 227, 255, 0.2);
+  transition: all 0.3s;
+}
+.turn-indicator.p2-turn {
+  background: rgba(255, 181, 71, 0.08);
+  border-color: rgba(255, 181, 71, 0.3);
+}
+
+/* ========== TURN CHOICE ========== */
+.turn-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.choice-btn {
+  background: linear-gradient(140deg, rgba(20, 35, 64, 0.9), rgba(10, 20, 38, 0.95));
+  border: 1.5px solid rgba(91, 227, 255, 0.3);
+  border-radius: 14px;
+  padding: 16px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--paper);
+  text-align: center;
+  transition: all 0.2s;
+}
+.choice-btn:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(91, 227, 255, 0.25);
+}
+.choice-btn.reachup {
+  border-color: rgba(255, 181, 71, 0.4);
+}
+.choice-btn.reachup:hover {
+  border-color: var(--amber);
+  box-shadow: 0 6px 20px rgba(255, 181, 71, 0.3);
+}
+
+.choice-title {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.choice-sub {
+  font-size: 0.8rem;
+  color: var(--paper-dim);
+}
+.choice-damage {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--cyan);
+  margin-top: 6px;
+}
+.choice-btn.reachup .choice-damage { color: var(--amber); }
+
+/* ========== QUESTION CARD ========== */
+.question-card {
+  background: linear-gradient(160deg, rgba(20, 35, 64, 0.95), rgba(10, 20, 38, 0.98));
+  border: 1.5px solid rgba(91, 227, 255, 0.25);
+  border-radius: 18px;
+  padding: 24px 22px;
+  margin: 16px 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.question-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--cyan), var(--amber), var(--cyan));
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.q-topic {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--cyan);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: rgba(91, 227, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+.q-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  margin-bottom: 20px;
+  color: var(--paper);
+}
+
+.choices-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.choice {
+  background: rgba(10, 20, 38, 0.7);
+  border: 1.5px solid rgba(91, 227, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.98rem;
+  color: var(--paper);
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.choice:hover:not(:disabled) {
+  border-color: var(--cyan);
+  background: rgba(91, 227, 255, 0.08);
+}
+.choice .letter {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  color: var(--cyan);
+  background: rgba(91, 227, 255, 0.12);
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.88rem;
+}
+.choice.correct {
+  border-color: var(--jade);
+  background: rgba(78, 235, 172, 0.15);
+}
+.choice.correct .letter { background: var(--jade); color: var(--space-deep); }
+.choice.wrong {
+  border-color: var(--crimson);
+  background: rgba(255, 94, 108, 0.12);
+}
+.choice.wrong .letter { background: var(--crimson); color: white; }
+.choice:disabled { cursor: default; opacity: 0.85; }
+
+.typed-row {
+  display: flex;
+  gap: 10px;
+}
+.typed-input {
+  flex: 1;
+  background: rgba(0,0,0,0.5);
+  border: 1.5px solid rgba(91, 227, 255, 0.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--paper);
+  outline: none;
+}
+.typed-input:focus { border-color: var(--cyan); }
+.typed-input.correct { border-color: var(--jade); background: rgba(78, 235, 172, 0.1); }
+.typed-input.wrong { border-color: var(--crimson); background: rgba(255, 94, 108, 0.1); }
+
+.submit-btn {
+  background: var(--cyan);
+  color: var(--space-deep);
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+.submit-btn:hover { background: white; }
+
+/* ========== FEEDBACK ========== */
+.feedback {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.feedback.right {
+  background: rgba(78, 235, 172, 0.1);
+  border-left: 3px solid var(--jade);
+}
+.feedback.wrong {
+  background: rgba(255, 94, 108, 0.1);
+  border-left: 3px solid var(--crimson);
+}
+.feedback b { color: var(--cyan); }
+
+.next-btn {
+  display: block;
+  margin: 16px auto 0;
+  background: linear-gradient(135deg, var(--cyan), #1da9d6);
+  color: var(--space-deep);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.next-btn:hover { box-shadow: 0 6px 20px rgba(91,227,255,0.4); }
+
+/* ========== STORY MODAL ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 24, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-overlay.active { display: flex; }
+
+.story-modal {
+  background: linear-gradient(170deg, rgba(20, 35, 64, 0.98), rgba(10, 20, 38, 0.99));
+  border: 1.5px solid rgba(91, 227, 255, 0.35);
+  border-radius: 20px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px 28px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 60px rgba(91,227,255,0.15);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--paper);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: rgba(255,255,255,0.18); }
+
+.story-emoji {
+  font-size: 3.5rem;
+  text-align: center;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.story-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 1.8rem;
+  text-align: center;
+  letter-spacing: 0.02em;
+  margin: 8px 0 4px;
+  background: linear-gradient(180deg, white, var(--cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.story-era {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--cyan-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.story-body p {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  margin-bottom: 14px;
+  color: var(--paper);
+}
+.story-body b { color: var(--cyan); }
+.story-body i { color: var(--amber-glow); font-style: italic; }
+
+.diagram-wrap {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(91, 227, 255, 0.18);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 18px;
+  text-align: center;
+}
+.diagram-wrap svg { max-width: 100%; height: auto; }
+.diagram-caption {
+  font-size: 0.82rem;
+  color: var(--paper-dim);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* ========== WINNER SCREEN ========== */
+.winner-screen {
+  text-align: center;
+  padding: 40px 16px;
+}
+.winner-banner {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  letter-spacing: 0.05em;
+  background: linear-gradient(180deg, var(--amber-glow), var(--amber));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 40px rgba(255, 181, 71, 0.5);
+  margin-bottom: 20px;
+}
+.winner-emoji { font-size: 5rem; margin: 12px 0; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)); }
+.winner-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  margin-bottom: 30px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto 30px;
+}
+.stat-box {
+  background: rgba(20, 35, 64, 0.7);
+  border: 1px solid rgba(91, 227, 255, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--cyan);
+}
+
+.winner-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.action-btn {
+  background: linear-gradient(135deg, var(--cyan), #1da9d6);
+  color: var(--space-deep);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.action-btn.secondary {
+  background: transparent;
+  color: var(--paper);
+  border: 1.5px solid rgba(91, 227, 255, 0.4);
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(91,227,255,0.3); }
+
+/* ========== UTILS ========== */
+.shake { animation: shake 0.4s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.dmg-flash {
+  position: fixed;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 3rem;
+  pointer-events: none;
+  z-index: 200;
+  animation: dmgFloat 1.2s ease-out forwards;
+}
+@keyframes dmgFloat {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -80px) scale(1); }
+}
+
+@media (max-width: 560px) {
+  .arena-header { grid-template-columns: 1fr; }
+  .player-panel.right { text-align: left; align-items: flex-start; }
+  .player-panel.right .panel-name { flex-direction: row; }
+  .vs-badge { display: none; }
+  .turn-choice { grid-template-columns: 1fr; }
+  .fighter-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ SETUP SCREEN ============ -->
+  <div id="setup-screen" class="screen active">
+    <div class="title-block">
+      <div class="coords">45.000°N · 73.000°W · ALT 0M</div>
+      <h1 class="game-title">Geography<br>Smackdown</h1>
+      <p class="game-sub">Twelve great explorers. Five continents of trivia. Pick your champion, pick your level, and battle for the globe.</p>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p1c">PLAYER 1</span> — Choose Your Explorer</h2>
+      <p class="setup-hint">Tap a story button to read about anyone before you pick.</p>
+      <div class="fighter-grid" id="p1-fighters"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p1c">PLAYER 1</span> — Choose Your Home Level</h2>
+      <p class="setup-hint">This is your default difficulty. You can reach up one tier for more damage.</p>
+      <div class="tier-grid" id="p1-tiers"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p2c">PLAYER 2</span> — Choose Your Explorer</h2>
+      <div class="fighter-grid" id="p2-fighters"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p2c">PLAYER 2</span> — Choose Your Home Level</h2>
+      <div class="tier-grid" id="p2-tiers"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2>The Rules</h2>
+      <div class="rules-box">
+        Each player starts with <b>100 HP</b>. On your turn, choose to answer a question at your <b>home level</b> for <b>11 damage</b>, or <span class="up">reach up</span> one tier for <b>15 damage</b>. Wrong answers do nothing — but you learn something either way. Questions are a mix of multiple choice and typed answers (don't worry about exact spelling — close is fine). First to drop the opponent's HP to zero wins.
+      </div>
+    </div>
+
+    <button id="go-btn" class="btn-go" disabled>⚔ Enter the Arena ⚔</button>
+  </div>
+
+  <!-- ============ BATTLE SCREEN ============ -->
+  <div id="battle-screen" class="screen">
+    <div class="arena-header">
+      <div class="player-panel">
+        <div class="panel-name p1c" id="p1-name"></div>
+        <div class="panel-tier" id="p1-tier"></div>
+        <div class="hp-bar"><div class="hp-fill p1" id="p1-hp-fill" style="width:100%"></div></div>
+        <div class="hp-text" id="p1-hp-text">100 / 100 HP</div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="player-panel right">
+        <div class="panel-name p2c" id="p2-name"></div>
+        <div class="panel-tier" id="p2-tier"></div>
+        <div class="hp-bar"><div class="hp-fill p2" id="p2-hp-fill" style="width:100%"></div></div>
+        <div class="hp-text" id="p2-hp-text">100 / 100 HP</div>
+      </div>
+    </div>
+
+    <div class="turn-indicator" id="turn-indicator">Player 1's turn</div>
+
+    <div class="turn-choice" id="turn-choice">
+      <button class="choice-btn" id="choice-home-btn">
+        <div class="choice-title" id="choice-home-title">Home</div>
+        <div class="choice-sub" id="choice-home-sub">Your level</div>
+        <div class="choice-damage">11 DMG</div>
+      </button>
+      <button class="choice-btn reachup" id="choice-up-btn">
+        <div class="choice-title" id="choice-up-title">Reach Up</div>
+        <div class="choice-sub" id="choice-up-sub">One tier higher</div>
+        <div class="choice-damage">15 DMG</div>
+      </button>
+    </div>
+
+    <div class="question-area" id="question-area" style="display:none">
+      <div class="question-card">
+        <span class="q-topic" id="q-topic"></span>
+        <div class="q-text" id="q-text"></div>
+        <div class="choices-grid" id="q-choices"></div>
+        <div class="typed-row" id="q-typed" style="display:none">
+          <input type="text" class="typed-input" id="q-input" placeholder="Type your answer…" autocomplete="off" spellcheck="false">
+          <button class="submit-btn" id="q-submit">Submit</button>
+        </div>
+        <div class="feedback" id="q-feedback" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WINNER SCREEN ============ -->
+  <div id="winner-screen" class="screen">
+    <div class="winner-screen">
+      <div class="winner-banner">VICTORY</div>
+      <div class="winner-emoji" id="winner-emoji">🌍</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Turns Played</div>
+          <div class="stat-value" id="stat-turns">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">P1 Accuracy</div>
+          <div class="stat-value" id="stat-acc1">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">P2 Accuracy</div>
+          <div class="stat-value" id="stat-acc2">0%</div>
+        </div>
+      </div>
+      <div class="winner-actions">
+        <button class="action-btn" id="rematch-btn">Rematch (same setup)</button>
+        <button class="action-btn secondary" id="new-game-btn">New Setup</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ STORY MODAL ============ -->
+<div class="modal-overlay" id="story-overlay">
+  <div class="story-modal" id="story-modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="story-emoji" id="story-emoji"></div>
+    <div class="story-name" id="story-name"></div>
+    <div class="story-era" id="story-era"></div>
+    <div class="story-body" id="story-body"></div>
+    <div class="diagram-wrap" id="story-diagram"></div>
+  </div>
+</div>
+
+<script>
+// ============== THE 12 EXPLORERS ==============
+const EXPLORERS = [
+  {
+    id: 'ibn_battuta',
+    name: 'Ibn Battuta',
+    emoji: '🐪',
+    era: '1304 – 1369',
+    tagline: 'Greatest medieval traveler',
+    story: [
+      "In the year 1325, a 21-year-old scholar named <b>Ibn Battuta</b> set out from his home in Tangier, Morocco, intending only to make the holy pilgrimage to Mecca. He would not return for <b>29 years</b>. By the time he came home, he had crossed three continents and traveled an estimated <b>75,000 miles</b> — more than any person on Earth would travel for centuries.",
+      "He rode camels across the burning Sahara, sailed dhows down the Swahili coast as far as <i>Kilwa</i> in modern Tanzania, climbed into the Hindu Kush, served as a judge for the Sultan of Delhi, and was nearly executed more than once. He survived shipwrecks, plagues, robbers, and palace intrigues.",
+      "He reached <b>China</b>, marveled at the Maldives, crossed the Black Sea, visited Constantinople, and trekked through the Mali Empire to the gold city of <i>Timbuktu</i>. When the Sultan of Morocco finally summoned him home, a scribe was hired just to write down everything he had seen.",
+      "The result — the <b>Rihla</b>, meaning 'The Journey' — is one of the most extraordinary travel books ever written. It is the eyewitness record of a 14th-century world that has otherwise vanished: bustling caravan cities, royal courts in Africa, monsoon trade across the Indian Ocean. Ibn Battuta saw it all.",
+    ],
+    diagram: 'ibn_battuta',
+  },
+  {
+    id: 'marco_polo',
+    name: 'Marco Polo',
+    emoji: '🏯',
+    era: '1254 – 1324',
+    tagline: 'Venice to Cathay',
+    story: [
+      "<b>Marco Polo</b> was seventeen when he left Venice with his father and uncle, two merchants who had already met the Mongol emperor <b>Kublai Khan</b> on a previous journey. The road east took the Polos through Persia, across the Pamir Mountains, along the edge of the Taklamakan Desert, and finally into the heart of the Mongol Empire — the largest land empire in history.",
+      "Marco lived in <i>Cathay</i> — China — for <b>17 years</b>, working in the service of the Khan. He saw the great capital of <b>Khanbaliq</b> (modern Beijing), watched paper money change hands in the marketplaces, traveled the imperial post roads, and described coal, gunpowder, and porcelain to a Europe that had never imagined such things.",
+      "On the way home he sailed by sea around Southeast Asia, putting in at Sumatra, Sri Lanka, and the spice-rich coast of India. He returned to Venice in 1295 after 24 years away — and his own relatives, the story goes, did not recognize him.",
+      "Captured in a sea battle with Genoa, he dictated his memories to a fellow prisoner. The book — <i>The Travels of Marco Polo</i> — became a sensation. Christopher Columbus carried a heavily-annotated copy on his voyages 200 years later, convinced he was sailing toward the cities Marco had described.",
+    ],
+    diagram: 'marco_polo',
+  },
+  {
+    id: 'zheng_he',
+    name: 'Zheng He',
+    emoji: '⛵',
+    era: '1371 – 1433',
+    tagline: 'Admiral of the Treasure Fleet',
+    story: [
+      "Decades before Columbus or Magellan, the Chinese admiral <b>Zheng He</b> commanded the most powerful navy the world had ever seen. Under the Ming emperor <b>Yongle</b>, he led seven enormous voyages across the Indian Ocean — fleets of more than <b>300 ships</b> and 28,000 sailors.",
+      "His flagship treasure ships were <b>over 400 feet long</b> — perhaps five times the size of Columbus's <i>Santa María</i>. They carried silks, porcelain, soldiers, scholars, doctors, and gifts for the rulers of distant lands.",
+      "Zheng He's fleets reached <b>Southeast Asia, India, Arabia, and the east coast of Africa</b>, putting in at ports as far as modern Kenya. He brought back giraffes, zebras, and ostriches to the imperial court. He helped establish Chinese cultural and trade influence across half the known world.",
+      "After his death, China turned inward. The great shipyards were dismantled, the voyages forbidden, and the records partially destroyed. For centuries, the West had almost no idea that an Asian fleet had crossed half the globe before any European caravel set sail.",
+    ],
+    diagram: 'zheng_he',
+  },
+  {
+    id: 'columbus',
+    name: 'Christopher Columbus',
+    emoji: '🧭',
+    era: '1451 – 1506',
+    tagline: 'Crossed the Atlantic, 1492',
+    story: [
+      "In August 1492, <b>Christopher Columbus</b> sailed from the small Spanish port of Palos with three ships — the <i>Niña</i>, the <i>Pinta</i>, and the <i>Santa María</i> — and a wildly wrong calculation about the size of the Earth. He believed Asia lay only a few weeks' sail to the west. He was off by an entire continent.",
+      "On <b>October 12, 1492</b>, after 33 days at sea, his lookouts sighted land — an island in the Bahamas he named San Salvador. He met the Taíno people and, convinced he had reached the Indies, called them 'Indians.' The name stuck for the next five centuries.",
+      "Columbus made <b>four voyages</b> to the Americas, reaching Cuba, Hispaniola, Jamaica, Trinidad, and the coasts of Central and South America. He never accepted he had found a new continent — to his dying day he believed he had reached Asia.",
+      "His voyages set off the largest meeting of two worlds in human history — the <b>Columbian Exchange</b>, in which crops, animals, diseases, and people moved between the Americas, Europe, and Africa. The consequences, for better and for catastrophically worse, remade the planet.",
+    ],
+    diagram: 'columbus',
+  },
+  {
+    id: 'magellan',
+    name: 'Ferdinand Magellan',
+    emoji: '🌍',
+    era: '1480 – 1521',
+    tagline: 'First circumnavigation',
+    story: [
+      "<b>Ferdinand Magellan</b>, a Portuguese captain in the service of Spain, set out in September 1519 with <b>five ships</b> and 270 men to find a westward route to the Spice Islands. He would not finish the journey — but his expedition would.",
+      "He sailed down the coast of South America, weathered a mutiny in Patagonia, and found the cold, twisting strait at the southern tip of the continent that now bears his name — the <b>Strait of Magellan</b>. When his ships emerged on the other side into a vast, calm ocean, he named it <i>Mar Pacífico</i> — the Pacific.",
+      "The crossing was nightmarish. They sailed for <b>98 days</b> without sight of land. The food turned to dust and worms. Men ate sawdust and rats. Many died of scurvy.",
+      "Magellan himself was killed in 1521 in a battle on the island of Mactan in the Philippines. But one ship, the <i>Victoria</i>, captained now by <b>Juan Sebastián Elcano</b>, struggled on. In September 1522, with only 18 survivors, she limped back into Spain — having sailed all the way around the world. Humanity had circumnavigated the globe for the first time.",
+    ],
+    diagram: 'magellan',
+  },
+  {
+    id: 'cook',
+    name: 'Captain James Cook',
+    emoji: '🗺️',
+    era: '1728 – 1779',
+    tagline: 'Mapped the Pacific',
+    story: [
+      "The son of a Yorkshire farmhand, <b>James Cook</b> taught himself navigation and mathematics, joined the Royal Navy as a common sailor, and rose by sheer talent to become the greatest cartographer of his age. His maps of <b>Newfoundland</b> were so accurate they were still in use 200 years later.",
+      "In 1768 the Admiralty gave him command of <b>HMS Endeavour</b> and sent him to the South Pacific to observe the transit of Venus. He had secret orders too: search for the rumored great southern continent. He didn't find it — but he did become the first European to map the eastern coast of <b>Australia</b> and to circumnavigate <b>New Zealand</b>.",
+      "On three great voyages he charted the Pacific from edge to edge — Tahiti, Tonga, Easter Island, the Hawaiian Islands (which he was the first European to visit), and the icy coasts of Antarctica and Alaska. He searched relentlessly for the <b>Northwest Passage</b> through the top of North America.",
+      "He insisted his sailors eat sauerkraut and citrus, and in doing so virtually <b>eliminated scurvy</b> from long sea voyages — saving thousands of lives in the centuries that followed. Cook was killed in a confrontation in Hawaii in 1779, but the Pacific he charted is essentially the map we still use today.",
+    ],
+    diagram: 'cook',
+  },
+  {
+    id: 'champlain',
+    name: 'Samuel de Champlain',
+    emoji: '🍁',
+    era: '1567 – 1635',
+    tagline: 'Father of New France',
+    story: [
+      "<b>Samuel de Champlain</b> was a French navigator, cartographer, and soldier who crossed the Atlantic an astonishing <b>27 times</b>. He came to map a wild new country — and ended up founding it.",
+      "In 1608, on the narrowing of the great river he had been exploring, he chose a high stone bluff and founded a fortified trading post he called <b>Québec</b>. It was the first permanent French settlement in North America, and it grew into the capital of <b>New France</b>.",
+      "Champlain pushed deep into the continent's interior. He was the first European to describe <b>Lake Champlain</b> (which now carries his name), and he canoed up the Ottawa River and reached <b>Lake Huron</b> and <b>Lake Ontario</b> — opening the Great Lakes to Europe. His detailed maps of the Atlantic coast, the St. Lawrence, and the Great Lakes are some of the most important in the history of North American cartography.",
+      "He learned Algonquian languages, formed lasting alliances with the <b>Huron-Wendat</b> and <b>Algonquin</b> nations, and tried — imperfectly — to live with the peoples whose lands he was mapping. He is remembered today across Canada as the <i>Father of New France</i>.",
+    ],
+    diagram: 'champlain',
+  },
+  {
+    id: 'sacagawea',
+    name: 'Sacagawea',
+    emoji: '🏞️',
+    era: 'c. 1788 – 1812',
+    tagline: 'Guide of the Corps of Discovery',
+    story: [
+      "In 1804, U.S. President Thomas Jefferson sent two officers — <b>Meriwether Lewis</b> and <b>William Clark</b> — to lead the <b>Corps of Discovery</b> across the newly purchased Louisiana Territory and on to the Pacific Ocean. They needed a guide who could cross the Rocky Mountains and talk to the people who lived there. They found her in a Mandan-Hidatsa village on the Missouri River.",
+      "<b>Sacagawea</b> was a young <b>Lemhi Shoshone</b> woman, perhaps only 16, who had been kidnapped as a child and now had an infant son. She joined the expedition with her baby on her back — and over the next two years, that baby <b>traveled with her across an entire continent</b>.",
+      "She translated. She identified edible plants. When a boat capsized, she calmly saved the expedition's journals and instruments. Most remarkably, when the Corps reached the Rockies starving and exhausted, the Shoshone chief who could sell them horses turned out to be her own long-lost brother. Without that family reunion, the expedition might never have crossed the mountains.",
+      "Her very presence — a woman with an infant — signaled to the nations they met that this was not a war party. Lewis and Clark wrote that without Sacagawea they would have failed. She is the only woman, the only Native American, and the only teenager honored on a United States dollar coin.",
+    ],
+    diagram: 'sacagawea',
+  },
+  {
+    id: 'livingstone',
+    name: 'David Livingstone',
+    emoji: '💧',
+    era: '1813 – 1873',
+    tagline: 'Explorer of central Africa',
+    story: [
+      "<b>David Livingstone</b> was a Scottish missionary, doctor, and abolitionist who became the most famous European explorer of central Africa. He spent over <b>30 years</b> walking, paddling, and being carried through territory no European had ever mapped.",
+      "In 1855 he became the first European to set eyes on the colossal waterfall the local Kololo people called <i>Mosi-oa-Tunya</i> — 'the Smoke that Thunders.' He renamed it <b>Victoria Falls</b>, after his queen. The waterfall, on the border of modern Zambia and Zimbabwe, is twice the height of Niagara.",
+      "He crossed Africa from coast to coast — Atlantic to Indian Ocean — the first European to do so. He charted the Zambezi River, hunted for the source of the Nile, and reported back to Britain in horrifying detail about the <b>Arab-Swahili slave trade</b> still operating across East Africa. His writings helped move public opinion against slavery.",
+      "By 1871 he had vanished into the interior and was presumed dead. A young Welsh-American journalist named <b>Henry Morton Stanley</b> was sent to find him. Stanley searched for months, and finally, on the shore of Lake Tanganyika, walked up to a thin, sick old man and is said to have spoken the four most famous words in exploration: <i>'Dr. Livingstone, I presume?'</i>",
+    ],
+    diagram: 'livingstone',
+  },
+  {
+    id: 'amundsen',
+    name: 'Roald Amundsen',
+    emoji: '🐧',
+    era: '1872 – 1928',
+    tagline: 'First to the South Pole',
+    story: [
+      "<b>Roald Amundsen</b> was a Norwegian polar explorer obsessed with the cold from boyhood. He slept with his bedroom windows wide open all winter to harden himself, and he studied the Inuit of northern Canada to learn how humans actually survive — in furs, on skis, with sled dogs — at the ends of the Earth.",
+      "In 1903, he became the first to successfully navigate the <b>Northwest Passage</b>, threading his small ship the <i>Gjøa</i> through the icy maze north of Canada — a route ships had searched for in vain for three hundred years.",
+      "Then he set his sights on a bigger prize. He told the world he was sailing north to the Arctic. Secretly, he turned south. In a tense race with the British team led by <b>Robert Falcon Scott</b>, Amundsen and four companions skied across the Antarctic plateau with dog teams. On <b>December 14, 1911</b>, they planted the Norwegian flag at the <b>South Pole</b>. Scott arrived a month later — and died on the way home.",
+      "Amundsen later flew an airship over the <b>North Pole</b>, becoming the first person to indisputably reach both poles. He disappeared in 1928 on a rescue flight in the Arctic. His body was never found. The icy ocean he loved finally took him.",
+    ],
+    diagram: 'amundsen',
+  },
+  {
+    id: 'shackleton',
+    name: 'Ernest Shackleton',
+    emoji: '🧊',
+    era: '1874 – 1922',
+    tagline: 'Survived the Antarctic',
+    story: [
+      "Sir <b>Ernest Shackleton</b> was an Anglo-Irish explorer whose great Antarctic expedition turned into one of the most astonishing survival stories ever told. In 1914 he sailed south aboard a ship he had named, with grim appropriateness, the <b>Endurance</b>, planning to cross Antarctica on foot.",
+      "He never crossed it. In January 1915, the <i>Endurance</i> became locked in the pack ice of the Weddell Sea. For ten months she drifted helplessly, until the slowly closing ice finally crushed her hull. The ship sank. Shackleton's <b>28 men</b> were marooned on a floating ice floe at the bottom of the world.",
+      "What followed is now legend. They camped on the ice for months. When the floe broke up, they rowed three small lifeboats across freezing seas to barren <b>Elephant Island</b>. From there, Shackleton and five others sailed one of those lifeboats — the <i>James Caird</i>, 22 feet long — <b>800 miles across the worst ocean on Earth</b> to the whaling station on South Georgia.",
+      "Landing on the wrong side of the island, Shackleton and two others then climbed across an unmapped glaciated mountain range with almost no equipment and walked into the whaling station like ghosts. He went back for his men. <b>Every single one of the 28 survived.</b> Not one was lost.",
+    ],
+    diagram: 'shackleton',
+  },
+  {
+    id: 'gagarin',
+    name: 'Yuri Gagarin',
+    emoji: '🚀',
+    era: '1934 – 1968',
+    tagline: 'First human in space',
+    story: [
+      "On the morning of <b>April 12, 1961</b>, a 27-year-old Soviet pilot named <b>Yuri Gagarin</b> climbed into a small spherical capsule called <b>Vostok 1</b>. The hatch was sealed behind him. The rocket beneath him weighed nearly 300 tons and was, essentially, an experimental missile.",
+      "He said only one word as the engines lit: <i>'Poyekhali!'</i> — 'Let's go!' Eight minutes later he was in orbit, the first human being ever to leave the planet Earth.",
+      "He flew once around the world. He looked down at the curve of the planet, at oceans and continents and clouds, and reported back: <i>'The Earth is blue. How wonderful. It is amazing.'</i> The whole trip lasted <b>108 minutes</b>. He landed by parachute in a Russian field, and a farmer and her granddaughter were the first people to greet him back from space.",
+      "Gagarin became a global hero. Children everywhere wanted to be cosmonauts. The geography of human exploration had suddenly expanded from continents and oceans to <b>the whole sphere of the Earth seen from above</b>. He never went to space again — but every astronaut and cosmonaut since has walked through the door he opened.",
+    ],
+    diagram: 'gagarin',
+  },
+];
+// ============== EXPLORER DIAGRAMS (SVG) ==============
+const DIAGRAMS = {
+
+  ibn_battuta: {
+    caption: "Ibn Battuta's 75,000-mile journey across the medieval world",
+    svg: `<svg viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ibSea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0b2a5b"/><stop offset="1" stop-color="#06163a"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="320" fill="url(#ibSea)"/>
+      <!-- crude continents -->
+      <path d="M 40 130 Q 90 90 160 110 L 200 90 L 240 110 L 280 100 L 310 130 L 290 180 L 240 220 L 180 240 L 120 230 L 70 210 Z" fill="#1e3a2a" opacity="0.85"/>
+      <path d="M 320 80 Q 380 60 460 90 L 510 110 L 560 130 L 550 170 L 510 200 L 460 220 L 410 215 L 360 195 L 330 165 Z" fill="#1e3a2a" opacity="0.85"/>
+      <path d="M 200 220 Q 240 240 280 260 L 260 285 L 220 290 L 190 270 Z" fill="#1e3a2a" opacity="0.85"/>
+      <!-- journey route -->
+      <path d="M 60 150 Q 120 130 180 145 Q 240 160 300 140 Q 360 120 420 130 Q 460 145 500 165 Q 480 200 430 210 Q 380 215 340 200 Q 290 195 250 210 Q 200 220 160 215 Q 110 200 80 180 Q 70 170 60 150 Z"
+            fill="none" stroke="#ffb547" stroke-width="2.5" stroke-dasharray="5,4" opacity="0.95"/>
+      <!-- key cities -->
+      <g font-family="Inter, sans-serif" font-size="10" fill="#5be3ff" text-anchor="middle">
+        <circle cx="60" cy="150" r="4" fill="#ffd166"/><text x="60" y="142">Tangier</text>
+        <circle cx="240" cy="155" r="4" fill="#ffd166"/><text x="240" y="147">Mecca</text>
+        <circle cx="420" cy="135" r="4" fill="#ffd166"/><text x="420" y="127">Delhi</text>
+        <circle cx="500" cy="165" r="4" fill="#ffd166"/><text x="510" y="160">China</text>
+        <circle cx="180" cy="230" r="4" fill="#ffd166"/><text x="160" y="248">Timbuktu</text>
+      </g>
+      <text x="300" y="30" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="14" fill="#5be3ff" font-weight="700">29 YEARS · 75,000 MILES</text>
+    </svg>`
+  },
+
+  marco_polo: {
+    caption: "The Silk Road: Venice to Khanbaliq (Beijing) and back by sea",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a1426"/>
+      <!-- land mass -->
+      <path d="M 0 90 L 80 80 L 160 100 L 240 90 L 320 110 L 400 95 L 480 105 L 560 115 L 600 110 L 600 200 L 560 195 L 480 210 L 400 200 L 320 215 L 240 205 L 160 210 L 80 200 L 0 195 Z" fill="#1a2f1a" opacity="0.7"/>
+      <!-- silk road overland -->
+      <path d="M 60 140 Q 120 130 180 145 T 300 150 T 420 145 T 540 150" fill="none" stroke="#ffd166" stroke-width="3" stroke-linecap="round"/>
+      <!-- sea route home -->
+      <path d="M 540 150 Q 540 220 480 240 Q 380 260 280 250 Q 180 240 100 220 Q 70 195 60 170" fill="none" stroke="#5be3ff" stroke-width="2.5" stroke-dasharray="6,4"/>
+      <!-- key cities -->
+      <g font-family="Inter, sans-serif" font-size="10" text-anchor="middle">
+        <circle cx="60" cy="140" r="5" fill="#ffb547"/><text x="60" y="128" fill="#ffd166" font-weight="700">VENICE</text>
+        <circle cx="540" cy="150" r="5" fill="#ffb547"/><text x="540" y="138" fill="#ffd166" font-weight="700">KHANBALIQ</text>
+        <text x="540" y="170" fill="#aab8d0" font-size="9" font-style="italic">(Beijing)</text>
+        <circle cx="320" cy="148" r="3" fill="#5be3ff"/><text x="320" y="135" fill="#5be3ff" font-size="9">Samarkand</text>
+        <circle cx="180" cy="146" r="3" fill="#5be3ff"/><text x="180" y="133" fill="#5be3ff" font-size="9">Hormuz</text>
+      </g>
+      <text x="300" y="40" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#ffd166" font-weight="700">— OVERLAND OUTBOUND —</text>
+      <text x="300" y="270" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="12" fill="#5be3ff" font-weight="700">- - - SEA ROUTE HOME - - -</text>
+    </svg>`
+  },
+
+  zheng_he: {
+    caption: "Treasure ship vs. Columbus's Santa María (relative scale)",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a1426"/>
+      <!-- sea -->
+      <rect y="200" width="600" height="80" fill="#0b2a5b"/>
+      <path d="M 0 200 Q 50 195 100 200 T 200 200 T 300 200 T 400 200 T 500 200 T 600 200 L 600 280 L 0 280 Z" fill="#0b2a5b"/>
+      <!-- big treasure ship (left) -->
+      <g transform="translate(40, 70)">
+        <path d="M 0 120 L 350 120 Q 360 130 350 140 L 0 140 Q -10 130 0 120 Z" fill="#8b4513"/>
+        <rect x="20" y="60" width="6" height="60" fill="#5a3010"/>
+        <rect x="100" y="20" width="6" height="100" fill="#5a3010"/>
+        <rect x="180" y="40" width="6" height="80" fill="#5a3010"/>
+        <rect x="260" y="50" width="6" height="70" fill="#5a3010"/>
+        <!-- red sails -->
+        <path d="M 26 70 L 80 70 L 80 115 L 26 115 Z" fill="#c0392b"/>
+        <path d="M 106 30 L 175 30 L 175 115 L 106 115 Z" fill="#c0392b"/>
+        <path d="M 186 50 L 250 50 L 250 115 L 186 115 Z" fill="#c0392b"/>
+        <path d="M 266 60 L 320 60 L 320 115 L 266 115 Z" fill="#c0392b"/>
+        <text x="175" y="160" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#ffd166" font-weight="800">TREASURE SHIP</text>
+        <text x="175" y="178" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#aab8d0">~ 400 ft long</text>
+      </g>
+      <!-- small santa maria (right) -->
+      <g transform="translate(450, 150)">
+        <path d="M 0 35 L 70 35 Q 75 42 70 50 L 0 50 Q -5 42 0 35 Z" fill="#8b4513"/>
+        <rect x="20" y="10" width="3" height="25" fill="#5a3010"/>
+        <rect x="40" y="5" width="3" height="30" fill="#5a3010"/>
+        <path d="M 23 14 L 55 14 L 55 32 L 23 32 Z" fill="#fff5e0"/>
+        <text x="35" y="75" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="11" fill="#5be3ff" font-weight="700">SANTA MARÍA</text>
+        <text x="35" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#aab8d0">~ 85 ft long</text>
+      </g>
+      <text x="300" y="35" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="14" fill="#5be3ff" font-weight="800">CHINA'S TREASURE FLEET (1405-1433)</text>
+    </svg>`
+  },
+
+  columbus: {
+    caption: "Columbus's 1492 voyage — three small ships across the Atlantic",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="atl" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1a4fa3"/><stop offset="1" stop-color="#06163a"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="280" fill="url(#atl)"/>
+      <!-- Europe/Africa -->
+      <path d="M 470 60 Q 510 50 540 70 L 555 100 L 540 140 L 555 180 L 540 220 L 510 240 L 480 220 L 470 180 L 480 140 L 470 100 Z" fill="#1e3a2a"/>
+      <!-- Americas -->
+      <path d="M 50 50 L 100 50 L 130 90 L 110 130 L 130 160 L 100 200 L 80 230 L 50 230 L 30 200 L 40 160 L 30 130 L 50 90 Z" fill="#1e3a2a"/>
+      <!-- Caribbean islands -->
+      <ellipse cx="155" cy="155" rx="10" ry="4" fill="#1e3a2a"/>
+      <ellipse cx="175" cy="170" rx="8" ry="3" fill="#1e3a2a"/>
+      <ellipse cx="190" cy="185" rx="6" ry="3" fill="#1e3a2a"/>
+      <!-- route -->
+      <path d="M 500 150 Q 400 140 300 145 Q 220 150 175 165" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="6,4"/>
+      <!-- tiny ships -->
+      <text x="380" y="148" font-size="14">⛵</text>
+      <text x="280" y="150" font-size="14">⛵</text>
+      <!-- labels -->
+      <g font-family="Inter, sans-serif" font-size="11" fill="#5be3ff" text-anchor="middle">
+        <text x="500" y="175" fill="#ffd166" font-weight="700">PALOS</text>
+        <text x="500" y="190" font-size="9" fill="#aab8d0">Spain · Aug 1492</text>
+        <text x="175" y="200" fill="#ffd166" font-weight="700">SAN SALVADOR</text>
+        <text x="175" y="215" font-size="9" fill="#aab8d0">Oct 12, 1492</text>
+      </g>
+      <text x="300" y="30" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#ffd166" font-weight="700">33 DAYS · ~3,000 MILES</text>
+      <text x="300" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-style="italic" fill="#aab8d0">Niña · Pinta · Santa María</text>
+    </svg>`
+  },
+
+  magellan: {
+    caption: "First circumnavigation: 5 ships left, 1 returned — with 18 survivors",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#06163a"/>
+      <!-- world outline very stylized -->
+      <ellipse cx="300" cy="140" rx="260" ry="100" fill="none" stroke="#1a4fa3" stroke-width="1"/>
+      <!-- continents -->
+      <path d="M 90 100 L 140 90 L 170 110 L 160 150 L 180 180 L 140 200 L 110 180 L 100 140 Z" fill="#1e3a2a"/>
+      <path d="M 220 60 L 280 70 L 320 90 L 310 130 L 280 140 L 240 120 L 220 90 Z" fill="#1e3a2a"/>
+      <path d="M 380 80 L 460 90 L 510 120 L 500 160 L 440 170 L 400 140 L 380 110 Z" fill="#1e3a2a"/>
+      <!-- circumnavigation path -->
+      <path d="M 240 90 Q 200 130 170 180 Q 140 210 140 230 Q 200 245 280 240 Q 380 235 460 230 Q 510 220 540 190 Q 545 150 510 130 Q 460 90 410 90 Q 360 90 310 90 Q 270 90 240 90 Z"
+            fill="none" stroke="#ffd166" stroke-width="2.5" stroke-dasharray="6,3"/>
+      <!-- start -->
+      <circle cx="240" cy="90" r="5" fill="#ffb547"/>
+      <text x="240" y="78" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#ffd166" font-weight="700">SPAIN (start &amp; end)</text>
+      <!-- Magellan death -->
+      <circle cx="510" cy="160" r="4" fill="#ff5e6c"/>
+      <text x="510" y="178" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ff5e6c" font-weight="700">Magellan dies</text>
+      <text x="510" y="190" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0">(Philippines)</text>
+      <!-- strait -->
+      <text x="160" y="230" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff" font-style="italic">Strait of</text>
+      <text x="160" y="242" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff" font-style="italic">Magellan</text>
+      <!-- stats -->
+      <g font-family="Orbitron, sans-serif" font-size="12" fill="#ffd166" font-weight="800">
+        <text x="50" y="30">5 ships out</text>
+        <text x="50" y="50" fill="#5be3ff">1 ship back</text>
+        <text x="500" y="30">270 men</text>
+        <text x="500" y="50" fill="#5be3ff">18 survivors</text>
+      </g>
+    </svg>`
+  },
+
+  cook: {
+    caption: "Cook's three voyages charted nearly the whole Pacific Ocean",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0b2a5b"/>
+      <!-- Australia -->
+      <path d="M 240 160 L 320 155 L 360 175 L 340 215 L 280 220 L 240 200 Z" fill="#1e3a2a"/>
+      <text x="290" y="195" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#5be3ff" font-weight="700">AUSTRALIA</text>
+      <!-- New Zealand -->
+      <ellipse cx="390" cy="235" rx="14" ry="5" fill="#1e3a2a" transform="rotate(-20 390 235)"/>
+      <text x="390" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#aab8d0">N.Z.</text>
+      <!-- Hawaii -->
+      <circle cx="490" cy="90" r="3" fill="#1e3a2a"/>
+      <text x="490" y="78" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#ff5e6c" font-weight="700">HAWAII</text>
+      <text x="490" y="105" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0">(died 1779)</text>
+      <!-- Tahiti -->
+      <circle cx="510" cy="180" r="3" fill="#1e3a2a"/>
+      <text x="510" y="173" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166">Tahiti</text>
+      <!-- Antarctica edge -->
+      <path d="M 0 260 L 600 260 L 600 280 L 0 280 Z" fill="#e8f0ff" opacity="0.7"/>
+      <text x="300" y="275" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#06163a" font-weight="700">ANTARCTIC CIRCLE</text>
+      <!-- voyage paths -->
+      <path d="M 60 130 Q 200 140 320 180 Q 400 220 480 230 Q 540 220 580 200" fill="none" stroke="#ffd166" stroke-width="2" opacity="0.9"/>
+      <path d="M 60 100 Q 250 95 400 130 Q 500 160 540 130 Q 560 110 580 90" fill="none" stroke="#5be3ff" stroke-width="2" opacity="0.9"/>
+      <path d="M 60 70 Q 200 60 350 70 Q 460 80 490 90" fill="none" stroke="#ff8c1a" stroke-width="2" opacity="0.9"/>
+      <!-- legend -->
+      <g font-family="Inter, sans-serif" font-size="10">
+        <rect x="20" y="200" width="14" height="3" fill="#ffd166"/><text x="40" y="204" fill="#ffd166">Voyage 1 (Endeavour) 1768-71</text>
+        <rect x="20" y="220" width="14" height="3" fill="#5be3ff"/><text x="40" y="224" fill="#5be3ff">Voyage 2 — Antarctic</text>
+        <rect x="20" y="240" width="14" height="3" fill="#ff8c1a"/><text x="40" y="244" fill="#ff8c1a">Voyage 3 — N. Pacific</text>
+      </g>
+      <text x="300" y="30" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#5be3ff" font-weight="800">CHARTING THE PACIFIC</text>
+    </svg>`
+  },
+
+  champlain: {
+    caption: "Champlain mapped the St. Lawrence and opened the Great Lakes",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a1426"/>
+      <!-- land -->
+      <rect width="600" height="280" fill="#1a2f1a" opacity="0.5"/>
+      <!-- Great Lakes -->
+      <ellipse cx="120" cy="140" rx="60" ry="25" fill="#1a4fa3"/>
+      <ellipse cx="200" cy="170" rx="35" ry="20" fill="#1a4fa3"/>
+      <ellipse cx="170" cy="100" rx="40" ry="18" fill="#1a4fa3"/>
+      <ellipse cx="250" cy="130" rx="28" ry="14" fill="#1a4fa3"/>
+      <!-- St. Lawrence River -->
+      <path d="M 270 140 Q 320 130 370 145 Q 420 155 470 175 Q 510 185 560 200" fill="none" stroke="#1a4fa3" stroke-width="10" stroke-linecap="round"/>
+      <!-- Lake Champlain -->
+      <ellipse cx="430" cy="125" rx="6" ry="22" fill="#5be3ff" transform="rotate(15 430 125)"/>
+      <!-- Atlantic -->
+      <path d="M 560 100 L 600 100 L 600 280 L 540 280 L 560 200 Z" fill="#0b2a5b"/>
+      <!-- Quebec settlement -->
+      <circle cx="445" cy="165" r="6" fill="#ffd166" stroke="#fff" stroke-width="1.5"/>
+      <text x="445" y="153" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#ffd166" font-weight="800">QUÉBEC</text>
+      <text x="445" y="185" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#aab8d0" font-style="italic">founded 1608</text>
+      <!-- Labels -->
+      <text x="120" y="143" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#fff" font-weight="700">Huron</text>
+      <text x="200" y="173" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#fff" font-weight="700">Ontario</text>
+      <text x="170" y="103" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#fff" font-weight="700">Superior</text>
+      <text x="250" y="133" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#fff" font-weight="700">Erie</text>
+      <text x="455" y="125" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff" font-style="italic">L. Champlain</text>
+      <text x="500" y="225" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff" font-style="italic">St. Lawrence R.</text>
+      <text x="575" y="180" font-family="Inter, sans-serif" font-size="10" fill="#aab8d0" text-anchor="end" font-weight="700">ATLANTIC</text>
+      <!-- title -->
+      <text x="300" y="30" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#ffd166" font-weight="800">NEW FRANCE · 1608</text>
+      <text x="300" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-style="italic" fill="#aab8d0">27 Atlantic crossings</text>
+    </svg>`
+  },
+
+  sacagawea: {
+    caption: "The Corps of Discovery: St. Louis to the Pacific (1804–1806)",
+    svg: `<svg viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="260" fill="#0a1426"/>
+      <!-- USA shape -->
+      <path d="M 30 80 L 570 80 L 570 200 L 30 200 Z" fill="#1a2f1a" opacity="0.6"/>
+      <!-- Rocky Mountains -->
+      <polygon points="280,80 290,60 300,80 310,55 320,80 330,65 340,80" fill="#aab8d0"/>
+      <polygon points="280,200 290,180 300,200 310,175 320,200 330,185 340,200" fill="#aab8d0"/>
+      <rect x="280" y="80" width="60" height="120" fill="#3d2f1f" opacity="0.6"/>
+      <text x="310" y="150" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#fff" font-weight="700">ROCKIES</text>
+      <!-- Pacific -->
+      <rect width="30" height="260" fill="#0b2a5b"/>
+      <text x="15" y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff" font-weight="700" transform="rotate(-90 15 140)">PACIFIC</text>
+      <!-- Missouri/Columbia River -->
+      <path d="M 500 140 Q 450 145 400 150 Q 360 155 320 145 Q 290 140 280 130" fill="none" stroke="#1a4fa3" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 30 130 Q 80 130 130 135 Q 200 140 280 135" fill="none" stroke="#1a4fa3" stroke-width="6" stroke-linecap="round"/>
+      <!-- Route -->
+      <path d="M 500 140 Q 430 130 360 135 Q 320 138 310 130 Q 250 130 180 135 Q 110 140 60 140" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-dasharray="5,3"/>
+      <!-- Cities -->
+      <circle cx="500" cy="140" r="5" fill="#ffb547"/>
+      <text x="500" y="128" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166" font-weight="700">ST. LOUIS</text>
+      <text x="500" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0">(start 1804)</text>
+      <circle cx="60" cy="140" r="5" fill="#ffb547"/>
+      <text x="60" y="128" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166" font-weight="700">PACIFIC OCEAN</text>
+      <text x="60" y="160" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0">(arrived 1805)</text>
+      <!-- Sacagawea joins -->
+      <circle cx="380" cy="135" r="4" fill="#5be3ff"/>
+      <text x="380" y="175" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff" font-weight="700">★ Mandan village</text>
+      <text x="380" y="187" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#5be3ff" font-style="italic">Sacagawea joins (1805)</text>
+      <text x="300" y="30" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#ffd166" font-weight="800">CORPS OF DISCOVERY · 8,000 MILES</text>
+    </svg>`
+  },
+
+  livingstone: {
+    caption: "Livingstone's African crossings and Victoria Falls",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0b2a5b"/>
+      <!-- Africa -->
+      <path d="M 200 30 L 380 30 L 430 80 L 450 140 L 440 200 L 410 250 L 360 270 L 290 270 L 240 250 L 210 200 L 200 140 L 195 80 Z" fill="#1e3a2a"/>
+      <!-- coast-to-coast route -->
+      <path d="M 210 160 Q 280 155 320 165 Q 360 175 420 170" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-dasharray="5,3"/>
+      <!-- Zambezi/Victoria Falls -->
+      <circle cx="320" cy="175" r="6" fill="#5be3ff" stroke="#fff" stroke-width="1.5"/>
+      <text x="320" y="195" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#5be3ff" font-weight="800">VICTORIA FALLS</text>
+      <text x="320" y="210" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" font-style="italic" fill="#aab8d0">"Mosi-oa-Tunya"</text>
+      <text x="320" y="222" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0">(Smoke that Thunders)</text>
+      <!-- coasts labeled -->
+      <text x="210" y="155" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166" font-weight="700">ATLANTIC</text>
+      <text x="430" y="155" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166" font-weight="700">INDIAN</text>
+      <text x="430" y="167" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166" font-weight="700">OCEAN</text>
+      <!-- Lake Tanganyika - where Stanley found him -->
+      <ellipse cx="350" cy="120" rx="6" ry="20" fill="#1a4fa3"/>
+      <text x="375" y="115" font-family="Inter, sans-serif" font-size="9" fill="#5be3ff">L. Tanganyika</text>
+      <text x="375" y="127" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0" font-style="italic">"Dr. Livingstone,</text>
+      <text x="375" y="138" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0" font-style="italic">I presume?"</text>
+      <!-- title -->
+      <text x="100" y="50" font-family="Orbitron, sans-serif" font-size="12" fill="#ffd166" font-weight="800">DAVID LIVINGSTONE</text>
+      <text x="100" y="68" font-family="Inter, sans-serif" font-size="10" fill="#aab8d0" font-style="italic">30 years in central Africa</text>
+      <text x="100" y="82" font-family="Inter, sans-serif" font-size="10" fill="#aab8d0">Coast-to-coast crossing</text>
+    </svg>`
+  },
+
+  amundsen: {
+    caption: "Amundsen vs. Scott: race to the South Pole, 1911",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#e8f0ff"/>
+      <!-- icy texture overlay -->
+      <rect width="600" height="280" fill="#aab8d0" opacity="0.3"/>
+      <!-- snow lines -->
+      <path d="M 0 80 Q 150 70 300 80 T 600 80" stroke="#fff" stroke-width="2" fill="none" opacity="0.7"/>
+      <path d="M 0 140 Q 150 130 300 140 T 600 140" stroke="#fff" stroke-width="2" fill="none" opacity="0.7"/>
+      <path d="M 0 220 Q 150 210 300 220 T 600 220" stroke="#fff" stroke-width="2" fill="none" opacity="0.7"/>
+      <!-- Amundsen path -->
+      <path d="M 100 40 Q 150 100 200 140 Q 250 170 300 200" fill="none" stroke="#0b2a5b" stroke-width="3"/>
+      <!-- Scott path -->
+      <path d="M 500 40 Q 450 100 400 140 Q 350 170 300 200" fill="none" stroke="#c0392b" stroke-width="3" stroke-dasharray="5,3"/>
+      <!-- South Pole -->
+      <g transform="translate(300, 200)">
+        <line x1="0" y1="-15" x2="0" y2="15" stroke="#06163a" stroke-width="3"/>
+        <path d="M 0 -15 L 20 -10 L 0 -5 Z" fill="#c0392b"/>
+        <circle cx="0" cy="20" r="4" fill="#06163a"/>
+        <text x="0" y="42" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="13" fill="#06163a" font-weight="800">SOUTH POLE</text>
+        <text x="0" y="56" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#06163a">90° S</text>
+      </g>
+      <!-- Amundsen -->
+      <g transform="translate(100, 40)">
+        <circle r="8" fill="#0b2a5b"/>
+        <text x="0" y="-12" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="12" fill="#0b2a5b" font-weight="800">AMUNDSEN</text>
+        <text x="0" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#0b2a5b" font-weight="700">Dec 14, 1911</text>
+        <text x="0" y="35" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#0b2a5b" font-style="italic">dogs · skis · returned safely</text>
+      </g>
+      <!-- Scott -->
+      <g transform="translate(500, 40)">
+        <circle r="8" fill="#c0392b"/>
+        <text x="0" y="-12" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="12" fill="#c0392b" font-weight="800">SCOTT</text>
+        <text x="0" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#c0392b" font-weight="700">Jan 17, 1912</text>
+        <text x="0" y="35" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#c0392b" font-style="italic">arrived 2nd · died on return</text>
+      </g>
+    </svg>`
+  },
+
+  shackleton: {
+    caption: "The Endurance is crushed — 28 men survive on ice",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#06163a"/>
+      <!-- ice -->
+      <path d="M 0 130 L 60 125 L 120 135 L 180 120 L 240 130 L 300 120 L 360 135 L 420 125 L 480 135 L 540 120 L 600 130 L 600 280 L 0 280 Z" fill="#e8f0ff" opacity="0.85"/>
+      <!-- Antarctica -->
+      <path d="M 0 200 L 600 200 L 600 280 L 0 280 Z" fill="#fff"/>
+      <!-- Endurance crushed -->
+      <g transform="translate(100, 100)">
+        <path d="M -20 25 L 20 25 Q 25 30 20 35 L -20 35 Q -25 30 -20 25 Z" fill="#5a3010" transform="rotate(-30)"/>
+        <rect x="-2" y="10" width="2" height="20" fill="#3d2010" transform="rotate(-30)"/>
+        <text x="0" y="-10" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="10" fill="#ff5e6c" font-weight="800">ENDURANCE</text>
+        <text x="0" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ff5e6c" font-weight="700">CRUSHED · Oct 1915</text>
+      </g>
+      <!-- Elephant Island -->
+      <g transform="translate(300, 180)">
+        <ellipse cx="0" cy="0" rx="20" ry="10" fill="#3d2f1f"/>
+        <text x="0" y="-15" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#ffd166" font-weight="700">ELEPHANT ISLAND</text>
+        <text x="0" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#ffd166" font-style="italic">22 men wait here</text>
+      </g>
+      <!-- James Caird lifeboat journey -->
+      <path d="M 320 180 Q 400 170 480 160 Q 520 155 540 150" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-dasharray="4,3"/>
+      <text x="430" y="155" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ffd166" font-weight="700">800 miles · open boat</text>
+      <text x="430" y="168" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#aab8d0" font-style="italic">The James Caird</text>
+      <!-- South Georgia -->
+      <g transform="translate(540, 155)">
+        <ellipse cx="0" cy="0" rx="14" ry="6" fill="#3d2f1f"/>
+        <text x="0" y="-12" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#5be3ff" font-weight="700">SOUTH GEORGIA</text>
+        <text x="0" y="20" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#5be3ff" font-style="italic">whaling station</text>
+      </g>
+      <!-- title -->
+      <text x="300" y="30" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="14" fill="#5be3ff" font-weight="800">28 OUT · 28 BACK</text>
+      <text x="300" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-style="italic" fill="#aab8d0">"By endurance we conquer."</text>
+    </svg>`
+  },
+
+  gagarin: {
+    caption: "Vostok 1: one orbit around the Earth, 108 minutes total",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="earthG">
+          <stop offset="0" stop-color="#5be3ff"/>
+          <stop offset="0.7" stop-color="#1a4fa3"/>
+          <stop offset="1" stop-color="#06163a"/>
+        </radialGradient>
+      </defs>
+      <rect width="600" height="280" fill="#020611"/>
+      <!-- stars -->
+      <g fill="white">
+        <circle cx="50" cy="40" r="1"/><circle cx="100" cy="80" r="1"/><circle cx="180" cy="30" r="1"/>
+        <circle cx="240" cy="60" r="1"/><circle cx="350" cy="40" r="1"/><circle cx="450" cy="50" r="1"/>
+        <circle cx="520" cy="30" r="1"/><circle cx="80" cy="200" r="1"/><circle cx="540" cy="220" r="1"/>
+        <circle cx="500" cy="250" r="1"/><circle cx="60" cy="240" r="1"/>
+      </g>
+      <!-- Earth -->
+      <circle cx="300" cy="160" r="85" fill="url(#earthG)"/>
+      <!-- continents stylized -->
+      <path d="M 260 130 Q 280 125 295 135 L 290 155 L 270 158 Z" fill="#1e3a2a" opacity="0.85"/>
+      <path d="M 305 145 Q 330 140 345 155 L 340 175 L 315 172 Z" fill="#1e3a2a" opacity="0.85"/>
+      <path d="M 280 180 Q 310 175 330 190 L 320 200 L 285 198 Z" fill="#1e3a2a" opacity="0.85"/>
+      <!-- orbital path -->
+      <ellipse cx="300" cy="160" rx="120" ry="118" fill="none" stroke="#ffd166" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <!-- Vostok capsule -->
+      <g transform="translate(420, 100)">
+        <circle r="8" fill="#aab8d0" stroke="#fff" stroke-width="1"/>
+        <line x1="-12" y1="0" x2="-22" y2="0" stroke="#aab8d0" stroke-width="2"/>
+        <line x1="12" y1="0" x2="22" y2="0" stroke="#aab8d0" stroke-width="2"/>
+        <text x="0" y="-15" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="11" fill="#ffd166" font-weight="800">VOSTOK 1</text>
+      </g>
+      <!-- text -->
+      <text x="50" y="45" font-family="Orbitron, sans-serif" font-size="13" fill="#5be3ff" font-weight="800">APRIL 12, 1961</text>
+      <text x="50" y="65" font-family="Inter, sans-serif" font-size="11" fill="#fff" font-weight="700">YURI GAGARIN</text>
+      <text x="50" y="80" font-family="Inter, sans-serif" font-size="9" fill="#aab8d0" font-style="italic">first human in space</text>
+      <text x="50" y="240" font-family="Inter, sans-serif" font-size="10" fill="#ffd166" font-style="italic">"Poyekhali!"</text>
+      <text x="50" y="254" font-family="Inter, sans-serif" font-size="9" fill="#aab8d0">— "Let's go!"</text>
+      <text x="550" y="240" text-anchor="end" font-family="Orbitron, sans-serif" font-size="11" fill="#ffd166" font-weight="800">108 MIN</text>
+      <text x="550" y="254" text-anchor="end" font-family="Inter, sans-serif" font-size="9" fill="#aab8d0">one orbit</text>
+    </svg>`
+  },
+
+};
+// ============== TIER 1: GRADE 1-3 ==============
+const TIER1 = [
+  // CONTINENTS & OCEANS BASICS
+  {q:"How many continents are there on Earth?", t:"continents", c:["5","6","7","8"], a:1, fact:"There are seven continents: Africa, Antarctica, Asia, Australia/Oceania, Europe, North America, and South America."},
+  {q:"How many oceans are there on Earth?", t:"oceans", c:["3","4","5","6"], a:1, fact:"The five oceans are the Pacific, Atlantic, Indian, Southern (Antarctic), and Arctic."},
+  {q:"Which is the biggest ocean?", t:"oceans", c:["Atlantic","Pacific","Indian","Arctic"], a:1, fact:"The Pacific Ocean covers about a third of the Earth's surface — bigger than all the land combined!"},
+  {q:"Which ocean is the smallest and coldest?", t:"oceans", c:["Pacific","Indian","Arctic","Atlantic"], a:2, fact:"The Arctic Ocean is the smallest and is mostly covered in floating sea ice."},
+  {q:"Which continent has the most penguins?", t:"continents", c:["Africa","Asia","Europe","Antarctica"], a:3, fact:"Antarctica is home to penguins like the emperor penguin. It's the coldest, windiest place on Earth!"},
+  {q:"Which continent do kangaroos come from?", t:"continents", c:["Africa","Australia","Asia","Europe"], a:1, fact:"Kangaroos live only in Australia in the wild."},
+  {q:"Which continent has the Sahara Desert?", t:"continents", c:["Asia","Australia","Africa","Europe"], a:2, fact:"The Sahara is in northern Africa and is the largest hot desert in the world."},
+  {q:"Which continent has the Amazon rainforest?", t:"continents", c:["Africa","Asia","South America","Europe"], a:2, fact:"The Amazon rainforest is mostly in Brazil, in South America. It's the largest rainforest in the world."},
+
+  // FAMOUS COUNTRIES
+  {q:"What country has the Eiffel Tower?", t:"landmarks", c:["Italy","France","Spain","Germany"], a:1, fact:"The Eiffel Tower is in Paris, the capital of France. It was built in 1889 and is over 300 metres tall."},
+  {q:"What country has the Great Wall?", t:"landmarks", c:["Japan","India","China","Korea"], a:2, fact:"The Great Wall of China is so long it would stretch across the United States more than twice!"},
+  {q:"What country has the Statue of Liberty?", t:"landmarks", c:["Canada","United States","Mexico","Brazil"], a:1, fact:"The Statue of Liberty stands in New York Harbor and was a gift from France."},
+  {q:"Pyramids are most famous in which country?", t:"landmarks", c:["Mexico","Egypt","Spain","Greece"], a:1, fact:"The Egyptian pyramids were built over 4,000 years ago as tombs for the pharaohs."},
+  {q:"Which country is shaped like a boot?", t:"countries", c:["Spain","France","Italy","Greece"], a:2, fact:"Italy sticks out into the Mediterranean Sea and looks just like a boot!"},
+  {q:"What is the biggest country in the world?", t:"countries", c:["China","Canada","USA","Russia"], a:3, fact:"Russia is so big it stretches across two continents — Europe and Asia."},
+  {q:"Maple syrup comes mostly from which country?", t:"countries", c:["USA","Canada","Mexico","France"], a:1, fact:"Canada produces about 75% of the world's maple syrup, mostly in Quebec."},
+  {q:"Which country has lots of pandas?", t:"countries", c:["Japan","India","China","Russia"], a:2, fact:"Giant pandas live in the bamboo forests of central China."},
+
+  // CAPITALS - very famous
+  {q:"What is the capital of France?", t:"capitals", c:["London","Paris","Rome","Berlin"], a:1, fact:"Paris is on the River Seine. The Eiffel Tower and the Louvre are there."},
+  {q:"What is the capital of the United Kingdom?", t:"capitals", c:["Paris","Madrid","London","Dublin"], a:2, fact:"London is on the River Thames and has Big Ben and Buckingham Palace."},
+  {q:"What is the capital of Canada?", t:"capitals", c:["Toronto","Vancouver","Ottawa","Montreal"], a:2, fact:"Ottawa is the capital of Canada — not Toronto! It's in the province of Ontario."},
+  {q:"What is the capital of the USA?", t:"capitals", c:["New York","Washington, D.C.","Los Angeles","Chicago"], a:1, fact:"Washington, D.C. has the White House and the Capitol Building."},
+  {q:"What is the capital of Japan?", t:"capitals", c:["Beijing","Seoul","Tokyo","Bangkok"], a:2, fact:"Tokyo is one of the biggest cities in the world with over 13 million people!"},
+  {q:"What is the capital of Italy?", t:"capitals", c:["Milan","Venice","Rome","Naples"], a:2, fact:"Rome is over 2,500 years old. It has the Colosseum and the Vatican."},
+  {q:"What is the capital of Australia?", t:"capitals", c:["Sydney","Melbourne","Canberra","Perth"], a:2, fact:"Canberra is the capital — not Sydney! It was built specially to be the capital."},
+
+  // RIVERS & MOUNTAINS - basic
+  {q:"What is the longest river in Africa?", t:"rivers", c:["Amazon","Nile","Mississippi","Yangtze"], a:1, fact:"The Nile flows north through Egypt and is over 6,650 km long!"},
+  {q:"Which river flows through the Amazon rainforest?", t:"rivers", c:["Nile","Amazon","Congo","Ganges"], a:1, fact:"The Amazon River carries more water than any other river in the world."},
+  {q:"What is the tallest mountain in the world?", t:"mountains", c:["Mount Kilimanjaro","Mount Everest","Mount Fuji","Mount McKinley"], a:1, fact:"Mount Everest is 8,849 metres tall. It's on the border of Nepal and Tibet."},
+  {q:"What mountain range has Mount Everest in it?", t:"mountains", c:["Andes","Alps","Himalayas","Rockies"], a:2, fact:"The Himalayas have nine of the ten highest mountains in the world!"},
+  {q:"Mountains in western Canada and USA are called the...", t:"mountains", c:["Alps","Rockies","Andes","Atlas"], a:1, fact:"The Rocky Mountains stretch from northern Canada all the way down to New Mexico."},
+
+  // ANIMALS BY PLACE
+  {q:"Where do polar bears live?", t:"animals", c:["Antarctica","Arctic","Africa","Australia"], a:1, fact:"Polar bears live in the Arctic — the northern icy areas, NOT the south! No polar bears in Antarctica."},
+  {q:"Where do lions live in the wild?", t:"animals", c:["Australia","South America","Africa","Europe"], a:2, fact:"African lions live in grasslands called savannas, mostly south of the Sahara Desert."},
+  {q:"Where do koalas live?", t:"animals", c:["Africa","Asia","Australia","Antarctica"], a:2, fact:"Koalas live in Australia and eat eucalyptus leaves all day long."},
+  {q:"Tigers in the wild live mostly in which continent?", t:"animals", c:["Africa","Asia","Europe","Australia"], a:1, fact:"Tigers are Asian — the Bengal tiger of India is the most common kind."},
+
+  // OUR PLANET BASICS
+  {q:"What planet do we live on?", t:"planet", c:["Mars","Earth","Venus","Jupiter"], a:1, fact:"Earth is the third planet from the Sun and the only one we know with life."},
+  {q:"What is the imaginary line around the middle of the Earth called?", t:"planet", c:["The Pole","The Equator","The Coast","The Border"], a:1, fact:"The Equator divides the Earth into the Northern and Southern halves (hemispheres)."},
+  {q:"What is the top of the Earth called?", t:"planet", c:["The South Pole","The Equator","The North Pole","The Hill"], a:2, fact:"The North Pole is the very top of the Earth. The South Pole is at the bottom."},
+  {q:"At the North and South Poles it is mostly...", t:"planet", c:["Hot and sandy","Cold and icy","Warm and wet","Sunny and dry"], a:1, fact:"Both poles are freezing cold because the Sun's rays come in at a low angle."},
+
+  // SIMPLE CULTURE
+  {q:"Sushi is a famous food from which country?", t:"culture", c:["China","Japan","Korea","Thailand"], a:1, fact:"Sushi is a Japanese dish usually made with rice, fish, and seaweed."},
+  {q:"Pizza was invented in which country?", t:"culture", c:["France","Italy","Greece","Spain"], a:1, fact:"Modern pizza comes from Naples, Italy — though many cultures have made flatbreads for thousands of years."},
+  {q:"Maple leaves are the symbol on the flag of which country?", t:"culture", c:["USA","Canada","France","UK"], a:1, fact:"The red maple leaf has been on Canada's flag since 1965."},
+  {q:"What language do most people in Mexico speak?", t:"culture", c:["English","French","Spanish","Portuguese"], a:2, fact:"Spanish is spoken across most of Latin America — except Brazil, which speaks Portuguese."},
+  {q:"What language do most people in Brazil speak?", t:"culture", c:["Spanish","Portuguese","French","English"], a:1, fact:"Brazil was once a Portuguese colony, which is why they speak Portuguese."},
+
+  // MAP READING
+  {q:"On a map, what colour is usually used for water?", t:"maps", c:["Green","Blue","Brown","Yellow"], a:1, fact:"Blue is for water on most maps — oceans, lakes, and rivers."},
+  {q:"Which way is up on most maps?", t:"maps", c:["South","North","East","West"], a:1, fact:"On most maps, north points up — but this is just a convention, not a rule!"},
+  {q:"A compass needle always points to the...", t:"maps", c:["South","East","North","West"], a:2, fact:"A magnetic compass needle points roughly north, toward the Earth's magnetic North Pole."},
+  {q:"What does N, S, E, W stand for on a compass?", t:"maps", c:["Numbers","Directions","Names","Nothing"], a:1, fact:"N=North, S=South, E=East, W=West — the four main directions!"},
+
+  // FAMOUS PLACES
+  {q:"Niagara Falls is on the border of which two countries?", t:"landmarks", c:["USA and Mexico","Canada and USA","Canada and France","UK and France"], a:1, fact:"Niagara Falls is on the border of Ontario, Canada and New York State, USA."},
+  {q:"The Great Lakes are between which two countries?", t:"landmarks", c:["USA and Mexico","Canada and USA","Russia and China","France and Spain"], a:1, fact:"The five Great Lakes (Superior, Michigan, Huron, Erie, Ontario) border Canada and the USA — except Lake Michigan, which is entirely in the USA."},
+  {q:"The Sahara is what kind of place?", t:"geography", c:["A jungle","A desert","A mountain","An ocean"], a:1, fact:"The Sahara is a desert — the biggest hot desert on Earth, in north Africa."},
+  {q:"What do you call a small piece of land surrounded by water?", t:"geography", c:["A mountain","A lake","An island","A desert"], a:2, fact:"An island is land surrounded by water on all sides. Greenland is the largest island in the world!"},
+  {q:"What do you call a big area of water surrounded by land?", t:"geography", c:["An ocean","A lake","A river","A desert"], a:1, fact:"A lake is water surrounded by land. The Great Lakes in North America are some of the biggest!"},
+
+  // TYPED ANSWERS (TIER 1)
+  {q:"What country are you in if you visit the Eiffel Tower? (type your answer)", t:"landmarks", typed:true, a:"France", aliases:["france","la france","frence","franse"], fact:"The Eiffel Tower stands in Paris, France."},
+  {q:"What is the capital of England (and the UK)? (type your answer)", t:"capitals", typed:true, a:"London", aliases:["london","londen","lundon"], fact:"London is the capital of both England and the United Kingdom."},
+  {q:"On which continent would you find lions, zebras, and giraffes living wild? (type your answer)", t:"animals", typed:true, a:"Africa", aliases:["africa","afrika","afica"], fact:"All three live on the African savanna."},
+  {q:"Which planet do we live on? (type your answer)", t:"planet", typed:true, a:"Earth", aliases:["earth","erth","the earth"], fact:"Earth is the third planet from the Sun."},
+  {q:"What is the tallest mountain in the world? (type your answer)", t:"mountains", typed:true, a:"Mount Everest", aliases:["everest","mount everest","mt everest","mt. everest","mounteverest","everast"], fact:"Mount Everest reaches 8,849 metres (29,032 feet) above sea level."},
+  {q:"Which big country sits just below Canada? (type your answer)", t:"countries", typed:true, a:"USA", aliases:["usa","united states","united states of america","us","america","the usa","the us"], fact:"The United States shares the world's longest international border with Canada."},
+  {q:"What ocean would you cross going from New York to England? (type your answer)", t:"oceans", typed:true, a:"Atlantic", aliases:["atlantic","atlantic ocean","the atlantic","atlanic"], fact:"The Atlantic Ocean separates the Americas from Europe and Africa."},
+];
+// ============== TIER 2: GRADE 4-5 ==============
+const TIER2 = [
+  // CAPITALS - moderate
+  {q:"What is the capital of Germany?", t:"capitals", c:["Munich","Hamburg","Berlin","Frankfurt"], a:2, fact:"Berlin was divided into East and West by a wall until 1989."},
+  {q:"What is the capital of Spain?", t:"capitals", c:["Barcelona","Madrid","Seville","Valencia"], a:1, fact:"Madrid sits high on a plateau in the middle of Spain."},
+  {q:"What is the capital of Russia?", t:"capitals", c:["St. Petersburg","Moscow","Kiev","Volgograd"], a:1, fact:"Moscow has the famous Red Square and the colourful onion domes of St. Basil's Cathedral."},
+  {q:"What is the capital of China?", t:"capitals", c:["Shanghai","Hong Kong","Beijing","Guangzhou"], a:2, fact:"Beijing was once called Peking. It's home to the Forbidden City."},
+  {q:"What is the capital of India?", t:"capitals", c:["Mumbai","Kolkata","New Delhi","Bangalore"], a:2, fact:"New Delhi is the capital — Mumbai is bigger but New Delhi has the government."},
+  {q:"What is the capital of Egypt?", t:"capitals", c:["Alexandria","Cairo","Luxor","Aswan"], a:1, fact:"Cairo is on the Nile and is the largest city in Africa."},
+  {q:"What is the capital of Brazil?", t:"capitals", c:["Rio de Janeiro","São Paulo","Brasília","Salvador"], a:2, fact:"Brasília was built in just four years to be the new capital — it opened in 1960."},
+  {q:"What is the capital of Argentina?", t:"capitals", c:["Buenos Aires","Lima","Santiago","Bogotá"], a:0, fact:"Buenos Aires means 'good airs' in Spanish."},
+  {q:"What is the capital of Mexico?", t:"capitals", c:["Cancún","Mexico City","Guadalajara","Monterrey"], a:1, fact:"Mexico City sits on top of the ancient Aztec capital, Tenochtitlán."},
+  {q:"What is the capital of Greece?", t:"capitals", c:["Sparta","Thessaloniki","Athens","Corinth"], a:2, fact:"Athens is over 3,000 years old and has the famous Acropolis with the Parthenon."},
+  {q:"What is the capital of South Korea?", t:"capitals", c:["Busan","Seoul","Pyongyang","Incheon"], a:1, fact:"Seoul has been the capital of Korea for over 600 years. Pyongyang is the capital of North Korea."},
+  {q:"What is the capital of Norway?", t:"capitals", c:["Bergen","Stockholm","Oslo","Helsinki"], a:2, fact:"Oslo is at the head of a long ocean inlet called the Oslofjord."},
+  {q:"What is the capital of Sweden?", t:"capitals", c:["Stockholm","Gothenburg","Malmö","Uppsala"], a:0, fact:"Stockholm is built on 14 islands connected by bridges."},
+
+  // COUNTRIES & BORDERS
+  {q:"Which country shares the longest border with the USA?", t:"borders", c:["Mexico","Cuba","Canada","Russia"], a:2, fact:"The Canada–US border is about 8,891 km long — the longest international border in the world."},
+  {q:"Which country borders both France and Germany?", t:"borders", c:["Belgium","Spain","Italy","Greece"], a:0, fact:"Belgium also borders the Netherlands and Luxembourg."},
+  {q:"Which two countries make up the Iberian Peninsula?", t:"borders", c:["France & Italy","Spain & Portugal","Greece & Turkey","Italy & Greece"], a:1, fact:"Spain and Portugal share the Iberian Peninsula in southwestern Europe."},
+  {q:"Which country is between France and Spain?", t:"borders", c:["Monaco","Andorra","Luxembourg","Liechtenstein"], a:1, fact:"Andorra is a tiny country high in the Pyrenees Mountains."},
+  {q:"Which country is the smallest in the world?", t:"countries", c:["Monaco","Vatican City","San Marino","Liechtenstein"], a:1, fact:"Vatican City is only 0.44 square km — smaller than many parks!"},
+  {q:"Which country has the most people?", t:"countries", c:["China","USA","Indonesia","India"], a:3, fact:"India overtook China in 2023 and now has the most people — about 1.4 billion."},
+  {q:"Which country is shaped like a long thin strip on the west coast of South America?", t:"countries", c:["Peru","Argentina","Chile","Brazil","Ecuador"].slice(0,4), a:2, fact:"Chile is over 4,300 km long but on average only 175 km wide!"},
+
+  // MOUNTAINS & RIVERS
+  {q:"Which mountain range runs down the west side of South America?", t:"mountains", c:["Rockies","Andes","Atlas","Alps"], a:1, fact:"The Andes are the longest mountain range in the world — about 7,000 km long."},
+  {q:"In which country would you find Mount Fuji?", t:"mountains", c:["China","Korea","Japan","Vietnam"], a:2, fact:"Mount Fuji is a volcano and Japan's tallest mountain at 3,776 m."},
+  {q:"Mount Kilimanjaro is in which country?", t:"mountains", c:["Kenya","Tanzania","Uganda","Ethiopia"], a:1, fact:"Kilimanjaro is in Tanzania and is the tallest mountain in Africa."},
+  {q:"The Alps stretch across which continent?", t:"mountains", c:["Asia","Europe","Africa","North America"], a:1, fact:"The Alps cross France, Switzerland, Italy, Germany, Austria, and Slovenia."},
+  {q:"What is the longest river in the world?", t:"rivers", c:["Amazon","Nile","Mississippi","Yangtze"], a:1, fact:"The Nile is about 6,650 km long, just longer than the Amazon."},
+  {q:"Which river flows through London?", t:"rivers", c:["Seine","Danube","Thames","Tiber"], a:2, fact:"The River Thames flows under famous bridges like Tower Bridge."},
+  {q:"Which river flows through Paris?", t:"rivers", c:["Rhine","Seine","Loire","Rhône"], a:1, fact:"The Seine is famous for its bridges and the boats that float past Notre-Dame and the Louvre."},
+  {q:"The Mississippi River flows through which country?", t:"rivers", c:["Canada","USA","Mexico","Brazil"], a:1, fact:"The Mississippi flows from Minnesota to the Gulf of Mexico, crossing 10 US states."},
+  {q:"The Yangtze River is in which country?", t:"rivers", c:["India","Japan","China","Korea"], a:2, fact:"The Yangtze is the longest river in Asia and the third longest in the world."},
+
+  // OCEANS & SEAS
+  {q:"What ocean is between Asia and the Americas?", t:"oceans", c:["Atlantic","Indian","Pacific","Arctic"], a:2, fact:"The Pacific is the biggest ocean — Magellan named it because it seemed peaceful (pacific = calm)."},
+  {q:"What sea is between Italy and Greece?", t:"oceans", c:["Black Sea","Mediterranean Sea","Adriatic Sea","Aegean Sea"], a:2, fact:"The Adriatic Sea is the long arm of the Mediterranean between Italy and the Balkans."},
+  {q:"What sea is between Europe and Africa?", t:"oceans", c:["Red Sea","Mediterranean Sea","Black Sea","North Sea"], a:1, fact:"The Mediterranean Sea links to the Atlantic only at the narrow Strait of Gibraltar."},
+  {q:"What ocean is on the east coast of Canada?", t:"oceans", c:["Pacific","Atlantic","Arctic","Indian"], a:1, fact:"Canada has coastline on THREE oceans: the Pacific (west), Atlantic (east), and Arctic (north)."},
+  {q:"What ocean is east of Africa?", t:"oceans", c:["Atlantic","Pacific","Indian","Arctic"], a:2, fact:"The Indian Ocean borders eastern Africa and the south coast of Asia."},
+
+  // PROVINCES & STATES
+  {q:"What is the biggest US state?", t:"states", c:["Texas","California","Alaska","Montana"], a:2, fact:"Alaska is by far the biggest state — over twice the size of Texas."},
+  {q:"What is the largest Canadian province by area?", t:"states", c:["Ontario","Alberta","Quebec","British Columbia"], a:2, fact:"Quebec is the largest province by area; Nunavut (a territory) is bigger overall."},
+  {q:"Which Canadian province has the most people?", t:"states", c:["British Columbia","Quebec","Alberta","Ontario"], a:3, fact:"Ontario has nearly 16 million people — about 40% of all Canadians."},
+  {q:"Hollywood is in which US state?", t:"states", c:["New York","California","Florida","Texas"], a:1, fact:"Hollywood is part of Los Angeles, California."},
+  {q:"Which US state is famous for oranges and Disney World?", t:"states", c:["Texas","Florida","California","Georgia"], a:1, fact:"Florida grows lots of oranges and has Walt Disney World near Orlando."},
+  {q:"Which Canadian province is mostly French-speaking?", t:"states", c:["Ontario","Quebec","Manitoba","Alberta"], a:1, fact:"Quebec is officially French-speaking. Its capital is Quebec City and its largest city is Montreal."},
+
+  // FAMOUS LANDMARKS
+  {q:"The Taj Mahal is in which country?", t:"landmarks", c:["Pakistan","India","Iran","Bangladesh"], a:1, fact:"The Taj Mahal is a white marble tomb built in the 1600s by Emperor Shah Jahan for his wife."},
+  {q:"Machu Picchu is in which country?", t:"landmarks", c:["Mexico","Peru","Bolivia","Chile"], a:1, fact:"Machu Picchu is an Inca city high in the Andes Mountains of Peru."},
+  {q:"The Sydney Opera House is in which country?", t:"landmarks", c:["New Zealand","Australia","UK","USA"], a:1, fact:"The Sydney Opera House is in Sydney, Australia, with its famous sail-shaped roof."},
+  {q:"The Colosseum is in which city?", t:"landmarks", c:["Athens","Rome","Florence","Naples"], a:1, fact:"The Colosseum is in Rome and was where the ancient Romans watched gladiator fights."},
+  {q:"Stonehenge is in which country?", t:"landmarks", c:["Ireland","France","England","Scotland"], a:2, fact:"Stonehenge is in southern England and is about 5,000 years old."},
+  {q:"Mount Rushmore is in which country?", t:"landmarks", c:["Canada","Mexico","USA","Brazil"], a:2, fact:"Mount Rushmore in South Dakota has the faces of four US presidents carved into it."},
+
+  // CULTURE & FOOD
+  {q:"Which country is famous for the Olympic Games starting?", t:"culture", c:["Italy","Greece","Egypt","Turkey"], a:1, fact:"The ancient Olympics began in Greece almost 2,800 years ago."},
+  {q:"Tacos and burritos come from which country?", t:"culture", c:["Brazil","Spain","Mexico","Cuba"], a:2, fact:"Tacos are a traditional Mexican food, going back to before the Spanish arrived."},
+  {q:"Curry is famously from which country?", t:"culture", c:["China","India","Japan","Thailand"], a:1, fact:"Indian curry has hundreds of different styles, depending on the region."},
+  {q:"Which country has the most time zones (mostly because it's so wide)?", t:"culture", c:["USA","China","Russia","Canada"], a:2, fact:"Russia spans 11 time zones — more than any other country!"},
+
+  // GEOGRAPHY TERMS
+  {q:"What do you call land that has water on three sides?", t:"geography", c:["An island","A peninsula","A bay","A continent"], a:1, fact:"Florida and Italy are peninsulas."},
+  {q:"What's a chain of islands called?", t:"geography", c:["A continent","An archipelago","A peninsula","A delta"], a:1, fact:"Japan, Indonesia, and the Philippines are all archipelagos."},
+  {q:"What is the area where a river meets the sea called?", t:"geography", c:["A waterfall","A delta or mouth","A source","A lake"], a:1, fact:"The Nile Delta in Egypt is shaped like the Greek letter Δ (delta)!"},
+  {q:"What do you call a really tall mountain that shoots out lava?", t:"geography", c:["A glacier","A volcano","A canyon","A geyser"], a:1, fact:"Volcanoes happen where the Earth's inner heat breaks through the surface."},
+  {q:"A long, deep valley with steep sides carved by a river is called a...", t:"geography", c:["Canyon","Delta","Plateau","Plain"], a:0, fact:"The Grand Canyon in Arizona was carved by the Colorado River over millions of years."},
+
+  // TYPED ANSWERS (TIER 2)
+  {q:"In what city is the Eiffel Tower? (type your answer)", t:"landmarks", typed:true, a:"Paris", aliases:["paris","parris","paree"], fact:"Paris is the City of Light."},
+  {q:"What is the capital of Canada? (type your answer)", t:"capitals", typed:true, a:"Ottawa", aliases:["ottawa","otawa","ottowa","ottaawa"], fact:"Ottawa is on the Ottawa River in the province of Ontario."},
+  {q:"What is the longest river in the world? (type your answer)", t:"rivers", typed:true, a:"Nile", aliases:["nile","the nile","nile river","river nile","niel"], fact:"The Nile flows north — unusual for a major river!"},
+  {q:"What is the largest hot desert on Earth? (type your answer)", t:"deserts", typed:true, a:"Sahara", aliases:["sahara","sahara desert","the sahara","sahra","saharah"], fact:"The Sahara covers about 9 million square km."},
+  {q:"What is the smallest country in the world? (type your answer)", t:"countries", typed:true, a:"Vatican City", aliases:["vatican","vatican city","the vatican","vatican-city","vatcian"], fact:"Vatican City is inside the city of Rome."},
+  {q:"What is the largest ocean on Earth? (type your answer)", t:"oceans", typed:true, a:"Pacific", aliases:["pacific","pacific ocean","the pacific","pasific"], fact:"The Pacific covers about a third of Earth's surface."},
+  {q:"What's the longest mountain range on Earth (on land)? (type your answer)", t:"mountains", typed:true, a:"Andes", aliases:["andes","the andes","andes mountains"], fact:"The Andes run about 7,000 km down western South America."},
+  {q:"Which country has the most people in the world? (type your answer)", t:"countries", typed:true, a:"India", aliases:["india","indea"], fact:"India overtook China in 2023."},
+];
+// ============== TIER 3: GRADE 6-8 ==============
+const TIER3 = [
+  // HARDER CAPITALS
+  {q:"What is the capital of Turkey?", t:"capitals", c:["Istanbul","Ankara","Izmir","Bursa"], a:1, fact:"Many people think Istanbul is the capital, but it's Ankara — Istanbul is just the largest city."},
+  {q:"What is the capital of South Africa? (One of them)", t:"capitals", c:["Cape Town","Pretoria","Johannesburg","Durban"], a:1, fact:"South Africa has THREE capitals — Pretoria (executive), Cape Town (legislative), Bloemfontein (judicial)."},
+  {q:"What is the capital of Indonesia?", t:"capitals", c:["Jakarta","Bali","Surabaya","Jogja"], a:0, fact:"Jakarta is on Java island; Indonesia is moving its capital to a new city called Nusantara on Borneo."},
+  {q:"What is the capital of Thailand?", t:"capitals", c:["Chiang Mai","Pattaya","Bangkok","Phuket"], a:2, fact:"Bangkok's official ceremonial name is the longest city name in the world — 168 letters!"},
+  {q:"What is the capital of Vietnam?", t:"capitals", c:["Ho Chi Minh City","Hue","Hanoi","Da Nang"], a:2, fact:"Hanoi is in the north of Vietnam; Ho Chi Minh City (formerly Saigon) is the biggest city."},
+  {q:"What is the capital of Iran?", t:"capitals", c:["Isfahan","Shiraz","Tehran","Mashhad"], a:2, fact:"Tehran sits at the foot of the Alborz Mountains."},
+  {q:"What is the capital of Saudi Arabia?", t:"capitals", c:["Mecca","Jeddah","Riyadh","Medina"], a:2, fact:"Riyadh sits in the desert centre of the Arabian Peninsula."},
+  {q:"What is the capital of Kenya?", t:"capitals", c:["Mombasa","Nairobi","Kisumu","Nakuru"], a:1, fact:"Nairobi National Park is right next to the city — lions and rhinos roam there!"},
+  {q:"What is the capital of Nigeria?", t:"capitals", c:["Lagos","Abuja","Kano","Ibadan"], a:1, fact:"Abuja became the capital in 1991; Lagos is bigger but no longer the capital."},
+  {q:"What is the capital of Ethiopia?", t:"capitals", c:["Asmara","Addis Ababa","Mogadishu","Khartoum"], a:1, fact:"Addis Ababa means 'new flower' in Amharic; it's also the headquarters of the African Union."},
+  {q:"What is the capital of New Zealand?", t:"capitals", c:["Auckland","Wellington","Christchurch","Queenstown"], a:1, fact:"Wellington is the southernmost capital city in the world."},
+  {q:"What is the capital of Portugal?", t:"capitals", c:["Porto","Lisbon","Faro","Braga"], a:1, fact:"Lisbon is one of the oldest cities in Europe, older than Rome."},
+  {q:"What is the capital of Poland?", t:"capitals", c:["Krakow","Gdansk","Warsaw","Wroclaw"], a:2, fact:"Warsaw was almost completely destroyed in WWII and meticulously rebuilt."},
+  {q:"What is the capital of the Netherlands?", t:"capitals", c:["The Hague","Amsterdam","Rotterdam","Utrecht"], a:1, fact:"Amsterdam is the capital, but the government is actually in The Hague."},
+  {q:"What is the capital of Switzerland?", t:"capitals", c:["Zurich","Geneva","Bern","Basel"], a:2, fact:"Bern is the capital — not Zurich or Geneva, the bigger and more famous cities."},
+  {q:"What is the capital of Belgium?", t:"capitals", c:["Antwerp","Brussels","Bruges","Ghent"], a:1, fact:"Brussels is also the headquarters of the European Union."},
+  {q:"What is the capital of Cuba?", t:"capitals", c:["Santiago","Havana","Trinidad","Camagüey"], a:1, fact:"Havana's old town is a UNESCO World Heritage Site."},
+
+  // RIVERS
+  {q:"The Danube River flows through how many countries?", t:"rivers", c:["4","6","10","12"], a:2, fact:"The Danube flows through TEN countries — more than any other river on Earth!"},
+  {q:"The Ganges River is sacred in which country?", t:"rivers", c:["Pakistan","India","Bangladesh","Nepal"], a:1, fact:"The Ganges is sacred to Hindus. Varanasi on its banks is one of the world's oldest cities."},
+  {q:"The Volga River is in which country?", t:"rivers", c:["Germany","Russia","Poland","Ukraine"], a:1, fact:"The Volga is Europe's longest river, flowing through Russia into the Caspian Sea."},
+  {q:"The Mekong River flows through Southeast Asia and empties in which country?", t:"rivers", c:["Thailand","Vietnam","Cambodia","Laos"], a:1, fact:"The Mekong forms a huge delta in southern Vietnam."},
+  {q:"Which river forms most of the border between USA and Mexico?", t:"rivers", c:["Colorado","Rio Grande","Mississippi","Pecos"], a:1, fact:"The Rio Grande forms the border from El Paso, Texas all the way to the Gulf of Mexico."},
+
+  // MOUNTAINS
+  {q:"K2, the world's second-tallest mountain, sits on the border of...", t:"mountains", c:["India and Nepal","Pakistan and China","Bhutan and Tibet","Afghanistan and Iran"], a:1, fact:"K2 is harder to climb than Everest, with a much higher fatality rate."},
+  {q:"Mount Everest is on the border of Nepal and what other country?", t:"mountains", c:["India","China (Tibet)","Bhutan","Pakistan"], a:1, fact:"The Tibetan/Chinese name is Chomolungma; the Nepali name is Sagarmāthā."},
+  {q:"The Atlas Mountains are in which region?", t:"mountains", c:["Central Asia","North Africa","South America","Eastern Europe"], a:1, fact:"The Atlas Mountains stretch across Morocco, Algeria, and Tunisia."},
+  {q:"The Ural Mountains form the traditional border between what?", t:"mountains", c:["Russia and China","Europe and Asia","Norway and Sweden","India and Pakistan"], a:1, fact:"The Urals are the traditional divider between Europe and Asia."},
+
+  // OCEANS & SEAS
+  {q:"What is the deepest place in the ocean?", t:"oceans", c:["Mariana Trench","Puerto Rico Trench","Java Trench","Tonga Trench"], a:0, fact:"The Mariana Trench in the Pacific is about 11 km deep — taller than Everest is high!"},
+  {q:"Which sea is the saltiest in the world and so salty you float?", t:"oceans", c:["Red Sea","Dead Sea","Caspian Sea","Black Sea"], a:1, fact:"The Dead Sea is about 10 times saltier than the ocean. It's also the lowest point on land."},
+  {q:"The Bering Strait separates which two continents?", t:"oceans", c:["Europe and Africa","Asia and N. America","Asia and Europe","S. America and Antarctica"], a:1, fact:"The Bering Strait is only about 85 km wide between Russia and Alaska."},
+  {q:"What is the world's largest lake by area?", t:"oceans", c:["Lake Superior","Lake Victoria","Caspian Sea","Lake Baikal"], a:2, fact:"The Caspian Sea is sometimes called a lake (no ocean connection) and sometimes a sea — it's huge!"},
+  {q:"What's the deepest freshwater lake in the world?", t:"oceans", c:["Lake Superior","Lake Tanganyika","Lake Baikal","Lake Michigan"], a:2, fact:"Lake Baikal in Siberia is over 1,600 m deep and holds about 20% of the world's unfrozen freshwater."},
+
+  // BORDERS & REGIONS
+  {q:"Which country is completely surrounded by South Africa?", t:"borders", c:["Swaziland","Lesotho","Botswana","Zimbabwe"], a:1, fact:"Lesotho is an 'enclave' — entirely inside another country. The same is true of Vatican City and San Marino in Italy."},
+  {q:"Which two landlocked countries are inside Italy?", t:"borders", c:["Monaco & Andorra","Vatican City & San Marino","Liechtenstein & Luxembourg","Malta & Cyprus"], a:1, fact:"Both Vatican City and San Marino are tiny independent countries surrounded by Italy."},
+  {q:"Which country borders the most other countries?", t:"borders", c:["Russia","Brazil","China","Germany"], a:2, fact:"China borders 14 other countries — tied with Russia for the most."},
+  {q:"Istanbul, Turkey is special because...", t:"borders", c:["It's the biggest city in the world","It's on two continents","It's underground","It has no roads"], a:1, fact:"Istanbul is split by the Bosphorus Strait — half is in Europe, half is in Asia!"},
+
+  // STATES & PROVINCES (HARDER)
+  {q:"Which Canadian province is on the west coast?", t:"states", c:["Alberta","Saskatchewan","British Columbia","Manitoba"], a:2, fact:"British Columbia is on the Pacific coast; its capital is Victoria on Vancouver Island."},
+  {q:"Which US state is the most northern (excluding Alaska)?", t:"states", c:["Maine","Minnesota","North Dakota","Washington"], a:1, fact:"Minnesota's northwestern tip — the 'Northwest Angle' — is the northernmost point of the lower 48 states."},
+  {q:"Which Canadian province is the only one bordering one US state alone (Maine)?", t:"states", c:["Quebec","New Brunswick","Nova Scotia","P.E.I."], a:1, fact:"New Brunswick borders only Maine. It's also Canada's only officially bilingual province."},
+  {q:"Texas was once an independent country called the Republic of...?", t:"states", c:["Tejas","Texas","Lone Star","Alamo"], a:1, fact:"Texas was an independent country from 1836 to 1845. It's called the Lone Star State."},
+
+  // CULTURES & LANDMARKS
+  {q:"The Acropolis is in which city?", t:"landmarks", c:["Rome","Athens","Cairo","Istanbul"], a:1, fact:"The Acropolis sits on a rocky hill above Athens; the Parthenon is its most famous building."},
+  {q:"The Western Wall is a Jewish holy site in which city?", t:"landmarks", c:["Tel Aviv","Jerusalem","Bethlehem","Nazareth"], a:1, fact:"The Western Wall is the only remaining wall of the ancient Jewish Temple in Jerusalem."},
+  {q:"The Angkor Wat temples are in which country?", t:"landmarks", c:["Thailand","Vietnam","Cambodia","Laos"], a:2, fact:"Angkor Wat is the largest religious monument in the world; it's on Cambodia's flag."},
+  {q:"Christ the Redeemer statue overlooks which city?", t:"landmarks", c:["São Paulo","Buenos Aires","Lima","Rio de Janeiro"], a:3, fact:"The 38-metre statue stands atop Corcovado Mountain in Rio de Janeiro, Brazil."},
+  {q:"The Petra ruins, carved from red rock, are in which country?", t:"landmarks", c:["Egypt","Jordan","Syria","Iraq"], a:1, fact:"Petra was carved by the Nabataeans about 2,000 years ago in southern Jordan."},
+
+  // GEOGRAPHY CONCEPTS
+  {q:"What's the imaginary line at 0° longitude that goes through Greenwich, England?", t:"maps", c:["The Equator","The International Date Line","The Prime Meridian","The Tropic of Cancer"], a:2, fact:"The Prime Meridian divides east longitude from west longitude. Greenwich is the reference point for time zones too."},
+  {q:"The Tropic of Cancer is at how many degrees north?", t:"maps", c:["Exactly the Equator","About 23.5° N","45° N","66.5° N"], a:1, fact:"At the Tropic of Cancer (23.5° N) the sun is directly overhead on the June solstice."},
+  {q:"What's the climate region called between the Tropics where rainforests grow?", t:"climate", c:["Temperate","Polar","Tropical","Tundra"], a:2, fact:"The tropics have hot temperatures year-round and lots of rainfall in places like the Amazon and Congo."},
+  {q:"The cold treeless region near the Arctic is called the...", t:"climate", c:["Steppe","Tundra","Taiga","Savanna"], a:1, fact:"The tundra has permafrost — soil that's frozen all year long."},
+  {q:"The huge belt of evergreen forest across northern Canada and Russia is called the...", t:"climate", c:["Tundra","Savanna","Taiga","Veldt"], a:2, fact:"The taiga (boreal forest) is the world's largest land biome."},
+
+  // TYPED ANSWERS (TIER 3)
+  {q:"What strait separates Europe from Africa? (type your answer)", t:"oceans", typed:true, a:"Strait of Gibraltar", aliases:["gibraltar","strait of gibraltar","gibralter","strait of gibralter"], fact:"The Strait of Gibraltar is only 13 km wide at its narrowest!"},
+  {q:"What is the capital of Australia? (type your answer)", t:"capitals", typed:true, a:"Canberra", aliases:["canberra","canbera","camberra"], fact:"Canberra was purpose-built as the capital because Sydney and Melbourne couldn't agree."},
+  {q:"What is the largest country in the world by area? (type your answer)", t:"countries", typed:true, a:"Russia", aliases:["russia","russian federation","the russian federation","rusia"], fact:"Russia covers about 17 million square km."},
+  {q:"Name the rainforest covering most of northern South America. (type your answer)", t:"geography", typed:true, a:"Amazon", aliases:["amazon","the amazon","amazon rainforest","amazon basin","amazon jungle"], fact:"The Amazon rainforest produces about 20% of Earth's oxygen."},
+  {q:"What ocean is between Africa and Australia? (type your answer)", t:"oceans", typed:true, a:"Indian", aliases:["indian","indian ocean","the indian ocean","indain ocean"], fact:"The Indian Ocean is the third-largest ocean."},
+  {q:"What is the largest desert in the world (counting the cold ones)? (type your answer)", t:"deserts", typed:true, a:"Antarctica", aliases:["antarctica","antarctic","the antarctic","antartica","antartic"], fact:"Antarctica is technically a desert because it gets very little precipitation — it's the largest desert on Earth!"},
+  {q:"What's the long range of mountains running from Alabama up through eastern Canada? (type your answer)", t:"mountains", typed:true, a:"Appalachians", aliases:["appalachians","appalachian","appalachian mountains","the appalachians","apalachian"], fact:"The Appalachians are among the oldest mountains on Earth, over 480 million years old."},
+  {q:"Which European country is shaped like a boot? (type your answer)", t:"countries", typed:true, a:"Italy", aliases:["italy","italia","itly"], fact:"Italy's boot extends into the Mediterranean Sea."},
+  {q:"What's the world's largest island? (type your answer)", t:"geography", typed:true, a:"Greenland", aliases:["greenland","greenlnd","greenlannd"], fact:"Greenland is part of the Kingdom of Denmark but mostly self-governs."},
+  {q:"What's the line at 23.5° south of the equator called? (type your answer)", t:"maps", typed:true, a:"Tropic of Capricorn", aliases:["tropic of capricorn","capricorn","tropic capricorn","tropic of capricon"], fact:"On the December solstice, the sun is directly above the Tropic of Capricorn."},
+];
+// ============== TIER 4: HIGH SCHOOL ==============
+const TIER4 = [
+  // HARD CAPITALS
+  {q:"What is the capital of Kazakhstan?", t:"capitals", c:["Almaty","Astana","Tashkent","Bishkek"], a:1, fact:"The capital is officially called Astana again (it was briefly renamed Nur-Sultan from 2019–2022)."},
+  {q:"What is the capital of Mongolia?", t:"capitals", c:["Ulaanbaatar","Erdenet","Darkhan","Khovd"], a:0, fact:"Ulaanbaatar means 'red hero' — it's the coldest capital city in the world."},
+  {q:"What is the capital of Myanmar (Burma)?", t:"capitals", c:["Yangon","Mandalay","Naypyidaw","Bagan"], a:2, fact:"The capital was moved from Yangon (Rangoon) to Naypyidaw in 2006."},
+  {q:"What is the capital of Bolivia? (constitutional)", t:"capitals", c:["La Paz","Sucre","Santa Cruz","Cochabamba"], a:1, fact:"Bolivia has TWO capitals: Sucre is the constitutional capital, La Paz is the seat of government."},
+  {q:"What is the capital of Sri Lanka?", t:"capitals", c:["Colombo","Sri Jayawardenepura Kotte","Kandy","Galle"], a:1, fact:"Most people say Colombo, but the official administrative capital is Sri Jayawardenepura Kotte."},
+  {q:"What is the capital of Ghana?", t:"capitals", c:["Lagos","Accra","Abidjan","Bamako"], a:1, fact:"Accra sits on the Atlantic coast and was a major port for centuries."},
+  {q:"What is the capital of Senegal?", t:"capitals", c:["Bamako","Conakry","Dakar","Nouakchott"], a:2, fact:"Dakar is the westernmost city of mainland Africa."},
+  {q:"What is the capital of Uzbekistan?", t:"capitals", c:["Tashkent","Samarkand","Bukhara","Khiva"], a:0, fact:"Tashkent is the largest city in Central Asia. Samarkand was famously a stop on the Silk Road."},
+  {q:"What is the capital of Madagascar?", t:"capitals", c:["Antananarivo","Toamasina","Mahajanga","Antsiranana"], a:0, fact:"Antananarivo (often called Tana) sits high on a rocky ridge in the central highlands."},
+  {q:"What is the capital of Iceland?", t:"capitals", c:["Akureyri","Reykjavik","Keflavik","Selfoss"], a:1, fact:"Reykjavik is the northernmost national capital of any independent country."},
+  {q:"What is the capital of Estonia?", t:"capitals", c:["Riga","Vilnius","Tallinn","Helsinki"], a:2, fact:"Tallinn's medieval Old Town is one of the best-preserved in northern Europe."},
+  {q:"What is the capital of Croatia?", t:"capitals", c:["Split","Dubrovnik","Zagreb","Rijeka"], a:2, fact:"Zagreb is the capital — Split and Dubrovnik are more famous coastal cities."},
+  {q:"What is the capital of Romania?", t:"capitals", c:["Cluj","Bucharest","Constanta","Iasi"], a:1, fact:"Bucharest was nicknamed 'Little Paris' in the early 20th century."},
+  {q:"What is the capital of Afghanistan?", t:"capitals", c:["Herat","Kabul","Kandahar","Mazar-i-Sharif"], a:1, fact:"Kabul is over 3,500 years old and lies in a high valley in the Hindu Kush mountains."},
+  {q:"What is the capital of Venezuela?", t:"capitals", c:["Maracaibo","Caracas","Valencia","Barquisimeto"], a:1, fact:"Caracas is the birthplace of Simón Bolívar, the liberator of much of South America."},
+
+  // HARD COUNTRIES & GEOGRAPHY
+  {q:"Which is the only doubly-landlocked country in Europe?", t:"borders", c:["Switzerland","Hungary","Liechtenstein","Austria"], a:2, fact:"Liechtenstein is doubly landlocked: it has no coast, and neither do its neighbours (Switzerland & Austria)."},
+  {q:"Name the only OTHER doubly-landlocked country in the world.", t:"borders", c:["Mongolia","Uzbekistan","Bhutan","Kyrgyzstan"], a:1, fact:"Uzbekistan and Liechtenstein are the only two countries on Earth that are doubly landlocked."},
+  {q:"How many countries does Russia border?", t:"borders", c:["10","12","14","16"], a:2, fact:"Russia and China are tied with 14 land borders each — the most of any country."},
+  {q:"Which African country was never colonized by Europeans?", t:"countries", c:["Kenya","Ethiopia","Ghana","Nigeria"], a:1, fact:"Ethiopia successfully resisted Italian invasion at the Battle of Adwa in 1896. (Liberia is also debatable.)"},
+  {q:"Which country has the most lakes?", t:"countries", c:["Russia","Finland","Canada","Sweden"], a:2, fact:"Canada has more lakes than the rest of the world combined — over 2 million!"},
+  {q:"Which is the LEAST populous country in Africa?", t:"countries", c:["Seychelles","Equatorial Guinea","Djibouti","Cabo Verde"], a:0, fact:"The Seychelles, an Indian Ocean archipelago, has about 100,000 people."},
+  {q:"Which Central Asian country's name means 'Land of Pure'?", t:"countries", c:["Tajikistan","Pakistan","Kazakhstan","Kyrgyzstan"], a:1, fact:"'Pakistan' was coined in 1933 — pure (pak) + land (stan)."},
+
+  // RIVERS - HARD
+  {q:"Which river is sometimes called 'the cradle of civilization' (along with the Tigris)?", t:"rivers", c:["Indus","Euphrates","Jordan","Orontes"], a:1, fact:"Mesopotamia means 'between the rivers' — Tigris and Euphrates — where Sumerian civilization began."},
+  {q:"The Orinoco River is in which country?", t:"rivers", c:["Brazil","Venezuela","Colombia","Guyana"], a:1, fact:"The Orinoco is mostly in Venezuela; Angel Falls (world's tallest waterfall) drains into it."},
+  {q:"The Murray–Darling river system drains which country?", t:"rivers", c:["South Africa","Australia","Argentina","New Zealand"], a:1, fact:"The Murray–Darling is Australia's most important river system."},
+  {q:"The Yellow River (Huang He) is famous in China for what?", t:"rivers", c:["Pollution","Yellow water from loess sediment","Goldfish","Being a salt river"], a:1, fact:"The Yellow River carries enormous loads of yellow loess soil — and has caused some of the deadliest floods in history."},
+  {q:"What's the source of the Amazon River?", t:"rivers", c:["The Atlantic coast","High in the Peruvian Andes","Lake Titicaca","The Pantanal"], a:1, fact:"The Amazon starts as a tiny glacial stream high in the Peruvian Andes."},
+
+  // HARD PHYSICAL GEOGRAPHY
+  {q:"Plate tectonics: the Indian and Eurasian plates colliding created which mountains?", t:"mountains", c:["The Alps","The Himalayas","The Atlas","The Caucasus"], a:1, fact:"The Indian Plate slamming into Eurasia is still pushing the Himalayas up by about 5mm a year!"},
+  {q:"Which is the most active volcano in continental Europe?", t:"mountains", c:["Vesuvius","Etna","Stromboli","Pico"], a:1, fact:"Mount Etna on Sicily erupts very regularly. Vesuvius famously destroyed Pompeii in 79 AD."},
+  {q:"The Great Rift Valley runs through which continent?", t:"geography", c:["Asia","Africa","South America","Europe"], a:1, fact:"The Great Rift Valley stretches over 6,000 km, mostly through eastern Africa, where the continent is splitting apart."},
+  {q:"What is the largest hot desert NOT in Africa?", t:"deserts", c:["Gobi","Arabian","Patagonian","Great Victoria"], a:1, fact:"The Arabian Desert covers most of the Arabian Peninsula."},
+  {q:"What's special about the Atacama Desert?", t:"deserts", c:["It's the coldest","It's the driest non-polar desert","It's the saltiest","It's the highest"], a:1, fact:"Parts of the Atacama in Chile have received NO recorded rainfall for centuries."},
+
+  // OCEAN/SEA - HARD
+  {q:"What sea is bordered by Israel, Lebanon, Syria, Turkey and Greece?", t:"oceans", c:["Aegean","Eastern Mediterranean","Adriatic","Black Sea"], a:1, fact:"The eastern Mediterranean is historically called the Levant — the cradle of three major religions."},
+  {q:"What current keeps Western Europe warmer than Canada at the same latitude?", t:"climate", c:["California Current","Gulf Stream","Humboldt Current","Kuroshio Current"], a:1, fact:"The Gulf Stream brings warm Caribbean water across the Atlantic, making places like Ireland mild despite being far north."},
+  {q:"The Sargasso Sea is unique because it...", t:"oceans", c:["Has no land borders","Is the saltiest","Is the deepest","Is frozen"], a:0, fact:"The Sargasso Sea is the only sea on Earth defined by ocean currents, not by land. It's named for its floating sargassum seaweed."},
+  {q:"What strait connects the Black Sea to the Mediterranean?", t:"oceans", c:["The Suez Canal","The Bosphorus","The Dardanelles","The Strait of Hormuz"], a:1, fact:"Ships actually pass through TWO straits — the Bosphorus and the Dardanelles — to get from the Black Sea to the Mediterranean."},
+  {q:"Which strait is the busiest oil shipping route in the world?", t:"oceans", c:["Strait of Hormuz","Strait of Malacca","Bab-el-Mandeb","Bering Strait"], a:0, fact:"About 20% of the world's oil passes through the narrow Strait of Hormuz between Iran and Oman."},
+  {q:"Which strait separates Spain from Morocco?", t:"oceans", c:["Strait of Sicily","Strait of Gibraltar","Strait of Otranto","Strait of Messina"], a:1, fact:"The Strait of Gibraltar is only 13 km wide at its narrowest point."},
+
+  // POLITICAL & ECONOMIC GEOGRAPHY
+  {q:"Which line of latitude does Cape Town sit closest to?", t:"maps", c:["The Equator","Tropic of Cancer","Tropic of Capricorn","Arctic Circle"], a:2, fact:"Cape Town is around 34° S, just south of the Tropic of Capricorn."},
+  {q:"What landform connects North and South America?", t:"geography", c:["The Isthmus of Panama","The Strait of Gibraltar","The Bering Bridge","The Andes"], a:0, fact:"The Isthmus of Panama is the narrow land bridge cut by the Panama Canal."},
+  {q:"Which canal connects the Mediterranean to the Red Sea?", t:"landmarks", c:["Panama","Suez","Erie","Kiel"], a:1, fact:"The Suez Canal opened in 1869 and cuts thousands of miles off the Europe-Asia route."},
+  {q:"What's the highest country in the world (by average elevation)?", t:"countries", c:["Nepal","Bhutan","Bolivia","Lesotho"], a:2, fact:"Bhutan has the highest average elevation. (Some sources say it's Tajikistan or Kyrgyzstan, depending on calculations.)"},
+  {q:"What is the world's lowest country (by average elevation)?", t:"countries", c:["Bangladesh","Maldives","Netherlands","Tuvalu"], a:1, fact:"The Maldives is the lowest-lying country on Earth — most of it is barely above sea level."},
+
+  // CULTURE & LANGUAGE
+  {q:"Which is the most widely spoken native language in the world?", t:"culture", c:["English","Spanish","Mandarin Chinese","Hindi"], a:2, fact:"Mandarin Chinese has the most NATIVE speakers (~1 billion); English has the most TOTAL speakers including learners."},
+  {q:"Which country uses both Spanish and Guaraní as official languages?", t:"culture", c:["Bolivia","Paraguay","Peru","Ecuador"], a:1, fact:"Paraguay is one of the few places where the Indigenous language Guaraní is widely spoken and officially recognized."},
+  {q:"What religion is dominant in Indonesia?", t:"culture", c:["Hinduism","Buddhism","Islam","Christianity"], a:2, fact:"Indonesia has the largest Muslim population of any country in the world, even though it's not in the Middle East."},
+  {q:"The 'Stan' suffix in country names (Pakistan, Kazakhstan etc.) means what?", t:"culture", c:["Country","Land or place","Mountain","River"], a:1, fact:"'-stan' is a Persian suffix meaning 'land of' or 'place of'."},
+  {q:"Which country is also called Cathay in old European travel writing?", t:"culture", c:["India","Japan","China","Persia"], a:2, fact:"Cathay was the European name for China in medieval times — used by Marco Polo."},
+
+  // TYPED ANSWERS (TIER 4)
+  {q:"What single country borders Israel, Iran, Iraq, Syria? (Hint: country between Asia & Europe) (type your answer)", t:"borders", typed:true, a:"Turkey", aliases:["turkey","turkiye","türkiye","turkay"], fact:"Turkey straddles both Europe and Asia and borders 8 countries."},
+  {q:"Which country is both a continent AND a country? (type your answer)", t:"countries", typed:true, a:"Australia", aliases:["australia","austraila","austrlia"], fact:"Australia is the only country that fills an entire continent (though New Zealand is part of the Oceania region too)."},
+  {q:"What's the world's largest country by area? (type your answer)", t:"countries", typed:true, a:"Russia", aliases:["russia","russian federation","rusia"], fact:"Russia spans 11 time zones and two continents."},
+  {q:"What 5-letter country, the second smallest in Africa, is in the Indian Ocean? (type your answer)", t:"countries", typed:true, a:"Comoros", aliases:["comoros","the comoros","comoro"], fact:"Comoros — but São Tomé is even smaller; the Seychelles wins for second smallest by area."},
+  {q:"What is the highest waterfall in the world? (type your answer)", t:"landmarks", typed:true, a:"Angel Falls", aliases:["angel falls","angel","salto angel","kerepakupai meru"], fact:"Angel Falls in Venezuela drops 979 metres — almost a kilometre!"},
+  {q:"What's the world's largest desert (counting cold ones)? (type your answer)", t:"deserts", typed:true, a:"Antarctica", aliases:["antarctica","antarctic","antartica","the antarctic"], fact:"Antarctica is a desert because precipitation is so low — the largest desert on Earth."},
+  {q:"What body of water separates Saudi Arabia from Egypt and Sudan? (type your answer)", t:"oceans", typed:true, a:"Red Sea", aliases:["red sea","the red sea","red"], fact:"The Red Sea is one of the saltiest seas in the world."},
+  {q:"What's the world's largest landlocked country? (type your answer)", t:"countries", typed:true, a:"Kazakhstan", aliases:["kazakhstan","kazakstan","kasakhstan","kazakhstn"], fact:"Kazakhstan is the 9th-largest country in the world overall, and the largest with no ocean access."},
+  {q:"What's the largest island in the Mediterranean? (type your answer)", t:"geography", typed:true, a:"Sicily", aliases:["sicily","sicilia","sicilly"], fact:"Sicily is an Italian island and home to Mount Etna."},
+  {q:"What sea has shrunk dramatically due to Soviet-era irrigation? (type your answer)", t:"oceans", typed:true, a:"Aral Sea", aliases:["aral","aral sea","the aral sea","aral-sea"], fact:"The Aral Sea between Kazakhstan and Uzbekistan has lost about 90% of its water — one of the worst environmental disasters in history."},
+  {q:"What is the southernmost continent? (type your answer)", t:"continents", typed:true, a:"Antarctica", aliases:["antarctica","antarctic","the antarctic","antartica"], fact:"No country owns Antarctica — the Antarctic Treaty preserves it for science."},
+  {q:"The Horn of Africa juts into which sea? (type your answer)", t:"oceans", typed:true, a:"Arabian Sea", aliases:["arabian sea","arabian","the arabian sea","indian ocean"], fact:"Technically into the Indian Ocean — but more specifically the Arabian Sea / Gulf of Aden."},
+  {q:"Most of which country's territory lies above the Arctic Circle? (type your answer)", t:"countries", typed:true, a:"Greenland", aliases:["greenland","greenland (denmark)"], fact:"About 80% of Greenland is covered in ice."},
+];
+// ============== GAME LOGIC ==============
+
+const ALL_TIERS = [TIER1, TIER2, TIER3, TIER4];
+const TIER_NAMES = ['Grade 1-3', 'Grade 4-5', 'Grade 6-8', 'High School'];
+
+const state = {
+  p1: { explorer: null, tier: null, hp: 100, used: new Set() },
+  p2: { explorer: null, tier: null, hp: 100, used: new Set() },
+  turn: 1, // 1 or 2
+  currentChoice: null, // 'home' or 'up'
+  currentQ: null,
+  currentQTier: null,
+  turnsPlayed: 0,
+  correctAnswers: { 1: 0, 2: 0 },
+  totalAnswers: { 1: 0, 2: 0 },
+  awaitingNext: false,
+};
+
+// =============== FUZZY ANSWER MATCHING ===============
+function normalize(s) {
+  return s.toLowerCase()
+    .trim()
+    .replace(/[''`]/g, "'")
+    .replace(/[^\w\s'-]/g, '')
+    .replace(/^(the|a|an|le|la|les)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripPunctSpaces(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({length: b.length + 1}, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i-1] === b[j-1]
+        ? prev
+        : Math.min(prev, dp[j], dp[j-1]) + 1;
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}
+
+function fuzzyMatch(input, answer, aliases) {
+  if (!input) return false;
+  const userNorm = normalize(input);
+  const userTight = stripPunctSpaces(input);
+  const allTargets = [answer, ...(aliases || [])];
+  for (const t of allTargets) {
+    const tNorm = normalize(t);
+    const tTight = stripPunctSpaces(t);
+    if (userNorm === tNorm) return true;
+    if (userTight === tTight) return true;
+    // tolerance scales with word length
+    const tol = tNorm.length <= 4 ? 0 : tNorm.length <= 7 ? 1 : tNorm.length <= 12 ? 2 : 3;
+    if (levenshtein(userNorm, tNorm) <= tol) return true;
+    if (levenshtein(userTight, tTight) <= tol) return true;
+  }
+  return false;
+}
+
+// =============== EXPLORER CARD BUILDING ===============
+function buildExplorerGrid(playerNum) {
+  const grid = document.getElementById('p' + playerNum + '-fighters');
+  grid.innerHTML = '';
+  EXPLORERS.forEach((ex, idx) => {
+    const card = document.createElement('div');
+    card.className = 'fighter-card';
+    card.dataset.idx = idx;
+    card.dataset.player = playerNum;
+    card.innerHTML = `
+      <span class="fighter-emoji">${ex.emoji}</span>
+      <div class="fighter-name">${ex.name}</div>
+      <div class="fighter-era">${ex.era}</div>
+      <button class="story-btn" onclick="event.stopPropagation(); openStory(${idx})">📖 story</button>
+    `;
+    card.addEventListener('click', () => selectExplorer(playerNum, idx));
+    grid.appendChild(card);
+  });
+}
+
+function selectExplorer(playerNum, idx) {
+  const grid = document.getElementById('p' + playerNum + '-fighters');
+  grid.querySelectorAll('.fighter-card').forEach(c => {
+    c.classList.remove('selected-p1', 'selected-p2');
+  });
+  const card = grid.querySelector(`.fighter-card[data-idx="${idx}"]`);
+  card.classList.add('selected-p' + playerNum);
+  state['p' + playerNum].explorer = idx;
+  checkGoReady();
+}
+
+// =============== TIER CARD BUILDING ===============
+function buildTierGrid(playerNum) {
+  const grid = document.getElementById('p' + playerNum + '-tiers');
+  grid.innerHTML = '';
+  TIER_NAMES.forEach((name, idx) => {
+    const card = document.createElement('div');
+    card.className = 'tier-card';
+    card.dataset.tier = idx;
+    const ages = ['Ages 6-8','Ages 9-10','Ages 11-13','Ages 14+'];
+    card.innerHTML = `
+      <div class="tier-name">${name}</div>
+      <div class="tier-age">${ages[idx]}</div>
+    `;
+    card.addEventListener('click', () => selectTier(playerNum, idx));
+    grid.appendChild(card);
+  });
+}
+
+function selectTier(playerNum, idx) {
+  const grid = document.getElementById('p' + playerNum + '-tiers');
+  grid.querySelectorAll('.tier-card').forEach(c => {
+    c.classList.remove('selected-p1', 'selected-p2');
+  });
+  const card = grid.querySelector(`.tier-card[data-tier="${idx}"]`);
+  card.classList.add('selected-p' + playerNum);
+  state['p' + playerNum].tier = idx;
+  checkGoReady();
+}
+
+function checkGoReady() {
+  const ready = state.p1.explorer !== null && state.p1.tier !== null &&
+                state.p2.explorer !== null && state.p2.tier !== null;
+  document.getElementById('go-btn').disabled = !ready;
+}
+
+// =============== STORY MODAL ===============
+function openStory(idx) {
+  const ex = EXPLORERS[idx];
+  const dg = DIAGRAMS[ex.diagram];
+  document.getElementById('story-emoji').textContent = ex.emoji;
+  document.getElementById('story-name').textContent = ex.name;
+  document.getElementById('story-era').textContent = ex.era + ' · ' + ex.tagline;
+  document.getElementById('story-body').innerHTML = ex.story.map(p => `<p>${p}</p>`).join('');
+  const diagWrap = document.getElementById('story-diagram');
+  if (dg) {
+    diagWrap.innerHTML = dg.svg + `<div class="diagram-caption">${dg.caption}</div>`;
+    diagWrap.style.display = 'block';
+  } else {
+    diagWrap.style.display = 'none';
+  }
+  document.getElementById('story-overlay').classList.add('active');
+}
+function closeStory() {
+  document.getElementById('story-overlay').classList.remove('active');
+}
+
+// =============== START BATTLE ===============
+function startBattle() {
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+  renderArenaHeader();
+  beginTurn();
+  window.scrollTo(0, 0);
+}
+
+function renderArenaHeader() {
+  const p1 = EXPLORERS[state.p1.explorer];
+  const p2 = EXPLORERS[state.p2.explorer];
+
+  document.getElementById('p1-name').innerHTML = `<span style="font-size:1.2rem">${p1.emoji}</span> <span>${p1.name}</span>`;
+  document.getElementById('p2-name').innerHTML = `<span>${p2.name}</span> <span style="font-size:1.2rem">${p2.emoji}</span>`;
+  document.getElementById('p1-tier').textContent = TIER_NAMES[state.p1.tier];
+  document.getElementById('p2-tier').textContent = TIER_NAMES[state.p2.tier];
+  updateHP();
+}
+
+function updateHP() {
+  const p1pct = Math.max(0, state.p1.hp);
+  const p2pct = Math.max(0, state.p2.hp);
+  const p1fill = document.getElementById('p1-hp-fill');
+  const p2fill = document.getElementById('p2-hp-fill');
+  p1fill.style.width = p1pct + '%';
+  p2fill.style.width = p2pct + '%';
+  p1fill.classList.toggle('low', state.p1.hp <= 30);
+  p2fill.classList.toggle('low', state.p2.hp <= 30);
+  document.getElementById('p1-hp-text').textContent = `${Math.max(0,state.p1.hp)} / 100 HP`;
+  document.getElementById('p2-hp-text').textContent = `${Math.max(0,state.p2.hp)} / 100 HP`;
+}
+
+// =============== TURNS ===============
+function beginTurn() {
+  const me = state['p' + state.turn];
+  const ex = EXPLORERS[me.explorer];
+  const indicator = document.getElementById('turn-indicator');
+  indicator.textContent = `${ex.emoji} ${ex.name}'s Turn — choose a level`;
+  indicator.classList.toggle('p2-turn', state.turn === 2);
+
+  document.getElementById('turn-choice').style.display = 'grid';
+  document.getElementById('question-area').style.display = 'none';
+
+  const homeTierName = TIER_NAMES[me.tier];
+  const upTierName = me.tier < 3 ? TIER_NAMES[me.tier + 1] : null;
+
+  document.getElementById('choice-home-title').textContent = homeTierName;
+  document.getElementById('choice-home-sub').textContent = 'Your level · 11 dmg';
+
+  const upBtn = document.getElementById('choice-up-btn');
+  if (upTierName) {
+    upBtn.style.display = 'block';
+    document.getElementById('choice-up-title').textContent = upTierName;
+    document.getElementById('choice-up-sub').textContent = 'Reach up · 15 dmg';
+  } else {
+    upBtn.style.display = 'none';
+  }
+}
+
+function chooseLevel(which) {
+  const me = state['p' + state.turn];
+  const tierIdx = which === 'home' ? me.tier : me.tier + 1;
+  state.currentChoice = which;
+  state.currentQTier = tierIdx;
+
+  // pick a question this player hasn't used at this tier
+  const bank = ALL_TIERS[tierIdx];
+  const usedKey = 'tier' + tierIdx;
+  if (!me.used.has) me.used = new Set();
+  const seen = me.used;
+  const available = bank.map((_, i) => `${tierIdx}:${i}`).filter(k => !seen.has(k));
+  if (available.length === 0) {
+    // Reset that tier for this player if exhausted
+    bank.forEach((_, i) => seen.delete(`${tierIdx}:${i}`));
+  }
+  const pool = bank.map((_, i) => `${tierIdx}:${i}`).filter(k => !seen.has(k));
+  const pickKey = pool[Math.floor(Math.random() * pool.length)];
+  const qIdx = parseInt(pickKey.split(':')[1], 10);
+  seen.add(pickKey);
+
+  state.currentQ = bank[qIdx];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  document.getElementById('turn-choice').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+
+  const q = state.currentQ;
+  document.getElementById('q-topic').textContent = `${TIER_NAMES[state.currentQTier]} · ${q.t}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const choicesDiv = document.getElementById('q-choices');
+  const typedDiv = document.getElementById('q-typed');
+  const feedback = document.getElementById('q-feedback');
+  feedback.style.display = 'none';
+  feedback.innerHTML = '';
+
+  if (q.typed) {
+    choicesDiv.style.display = 'none';
+    typedDiv.style.display = 'flex';
+    const input = document.getElementById('q-input');
+    input.value = '';
+    input.classList.remove('correct', 'wrong');
+    input.disabled = false;
+    document.getElementById('q-submit').disabled = false;
+    setTimeout(() => input.focus(), 100);
+  } else {
+    typedDiv.style.display = 'none';
+    choicesDiv.style.display = 'grid';
+    choicesDiv.innerHTML = '';
+    const letters = ['A','B','C','D'];
+    q.c.forEach((choice, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choice}</span>`;
+      btn.addEventListener('click', () => answerMC(i));
+      choicesDiv.appendChild(btn);
+    });
+  }
+}
+
+function answerMC(idx) {
+  const q = state.currentQ;
+  const correct = idx === q.a;
+  const choices = document.querySelectorAll('#q-choices .choice');
+  choices.forEach((c, i) => {
+    c.disabled = true;
+    if (i === q.a) c.classList.add('correct');
+    if (i === idx && i !== q.a) c.classList.add('wrong');
+  });
+  resolveAnswer(correct);
+}
+
+function answerTyped() {
+  const q = state.currentQ;
+  const input = document.getElementById('q-input');
+  const userText = input.value.trim();
+  if (!userText) return;
+  const correct = fuzzyMatch(userText, q.a, q.aliases);
+  input.classList.add(correct ? 'correct' : 'wrong');
+  input.disabled = true;
+  document.getElementById('q-submit').disabled = true;
+  resolveAnswer(correct);
+}
+
+function resolveAnswer(correct) {
+  const q = state.currentQ;
+  const attacker = state.turn;
+  const defender = attacker === 1 ? 2 : 1;
+  const damage = state.currentChoice === 'home' ? 11 : 15;
+
+  state.totalAnswers[attacker]++;
+  if (correct) state.correctAnswers[attacker]++;
+  state.turnsPlayed++;
+
+  const feedback = document.getElementById('q-feedback');
+  feedback.style.display = 'block';
+
+  if (correct) {
+    feedback.className = 'feedback right';
+    feedback.innerHTML = `<b>Correct!</b> ${q.fact} <br><br>You deal <b>${damage} damage</b> to your opponent.`;
+    state['p' + defender].hp -= damage;
+    flashDamage(defender, damage);
+  } else {
+    feedback.className = 'feedback wrong';
+    const correctText = q.typed ? q.a : q.c[q.a];
+    feedback.innerHTML = `<b>Not quite!</b> The answer was: <b>${correctText}</b>. <br><br>${q.fact}<br><br>No damage dealt.`;
+  }
+
+  updateHP();
+
+  // Check for winner
+  if (state.p1.hp <= 0 || state.p2.hp <= 0) {
+    setTimeout(showWinner, 1600);
+    return;
+  }
+
+  // Add Next button
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'next-btn';
+  nextBtn.textContent = 'Next turn →';
+  nextBtn.onclick = nextTurn;
+  feedback.appendChild(nextBtn);
+}
+
+function flashDamage(targetPlayer, dmg) {
+  const target = document.getElementById('p' + targetPlayer + '-name').getBoundingClientRect();
+  const flash = document.createElement('div');
+  flash.className = 'dmg-flash';
+  flash.textContent = '-' + dmg;
+  flash.style.color = targetPlayer === 1 ? '#5be3ff' : '#ffb547';
+  flash.style.left = (target.left + target.width / 2) + 'px';
+  flash.style.top = (target.top + window.scrollY) + 'px';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 1200);
+}
+
+function nextTurn() {
+  state.turn = state.turn === 1 ? 2 : 1;
+  beginTurn();
+  document.getElementById('question-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// =============== WINNER ===============
+function showWinner() {
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('winner-screen').classList.add('active');
+
+  const winner = state.p1.hp > 0 ? 1 : 2;
+  const wEx = EXPLORERS[state['p' + winner].explorer];
+  document.getElementById('winner-name').textContent = wEx.name + ' triumphs!';
+  document.getElementById('winner-emoji').textContent = wEx.emoji;
+
+  const acc1 = state.totalAnswers[1] > 0
+    ? Math.round(100 * state.correctAnswers[1] / state.totalAnswers[1])
+    : 0;
+  const acc2 = state.totalAnswers[2] > 0
+    ? Math.round(100 * state.correctAnswers[2] / state.totalAnswers[2])
+    : 0;
+
+  document.getElementById('stat-turns').textContent = state.turnsPlayed;
+  document.getElementById('stat-acc1').textContent = acc1 + '%';
+  document.getElementById('stat-acc2').textContent = acc2 + '%';
+  window.scrollTo(0, 0);
+}
+
+function rematch() {
+  state.p1.hp = 100;
+  state.p2.hp = 100;
+  state.p1.used = new Set();
+  state.p2.used = new Set();
+  state.turn = 1;
+  state.turnsPlayed = 0;
+  state.correctAnswers = { 1: 0, 2: 0 };
+  state.totalAnswers = { 1: 0, 2: 0 };
+  document.getElementById('winner-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+  renderArenaHeader();
+  beginTurn();
+  window.scrollTo(0, 0);
+}
+
+function newGame() {
+  state.p1 = { explorer: null, tier: null, hp: 100, used: new Set() };
+  state.p2 = { explorer: null, tier: null, hp: 100, used: new Set() };
+  state.turn = 1;
+  state.turnsPlayed = 0;
+  state.correctAnswers = { 1: 0, 2: 0 };
+  state.totalAnswers = { 1: 0, 2: 0 };
+  document.getElementById('winner-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('setup-screen').classList.add('active');
+  buildExplorerGrid(1);
+  buildExplorerGrid(2);
+  buildTierGrid(1);
+  buildTierGrid(2);
+  document.getElementById('go-btn').disabled = true;
+  window.scrollTo(0, 0);
+}
+
+// =============== INIT ===============
+window.addEventListener('DOMContentLoaded', () => {
+  buildExplorerGrid(1);
+  buildExplorerGrid(2);
+  buildTierGrid(1);
+  buildTierGrid(2);
+
+  document.getElementById('go-btn').addEventListener('click', startBattle);
+  document.getElementById('choice-home-btn').addEventListener('click', () => chooseLevel('home'));
+  document.getElementById('choice-up-btn').addEventListener('click', () => chooseLevel('up'));
+  document.getElementById('q-submit').addEventListener('click', answerTyped);
+  document.getElementById('q-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') answerTyped();
+  });
+  document.getElementById('modal-close').addEventListener('click', closeStory);
+  document.getElementById('story-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'story-overlay') closeStory();
+  });
+  document.getElementById('rematch-btn').addEventListener('click', rematch);
+  document.getElementById('new-game-btn').addEventListener('click', newGame);
+});
+</script>
+
+</body>
+</html>
