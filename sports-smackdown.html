@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sports Smackdown — Stadium Battle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Anton&family=Inter:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ========== STADIUM SCOREBOARD THEME ========== */
+:root {
+  --black: #0a0a0a;
+  --carbon: #161616;
+  --carbon-light: #1f1f1f;
+  --court: #2a1810;
+  --grass: #0f3d1e;
+  --scoreboard-amber: #ffb800;
+  --scoreboard-red: #ff3030;
+  --neon-cyan: #00e5ff;
+  --neon-magenta: #ff00aa;
+  --jade: #00ff88;
+  --crimson: #ff2050;
+  --paper: #f5f5f5;
+  --paper-dim: #888;
+  --line: #303030;
+  --p1: #00e5ff;
+  --p2: #ffb800;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+  color: var(--paper);
+  background: var(--black);
+  overflow-x: hidden;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 184, 0, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(0, 229, 255, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(255, 0, 170, 0.06) 0%, transparent 55%),
+    var(--black);
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Stadium light flares */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(255,255,255,0.06) 0%, transparent 12%),
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 15%),
+    radial-gradient(circle at 85% 0%, rgba(255,255,255,0.06) 0%, transparent 12%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* halftone dot overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 6px 6px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 14px 80px;
+}
+
+/* ========== SCREENS ========== */
+.screen { display: none; }
+.screen.active { display: block; animation: slideIn 0.4s ease; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== TITLE BLOCK — SCOREBOARD LOOK ========== */
+.title-block {
+  text-align: center;
+  padding: 30px 12px 24px;
+  position: relative;
+}
+
+.scoreboard-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--scoreboard-amber);
+  background: rgba(255, 184, 0, 0.08);
+  border: 1px solid rgba(255, 184, 0, 0.3);
+  padding: 4px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.game-title {
+  font-family: 'Bebas Neue', 'Anton', 'Oswald', sans-serif;
+  font-weight: 400;
+  font-size: clamp(3rem, 10vw, 6.5rem);
+  line-height: 0.85;
+  letter-spacing: 0.01em;
+  color: var(--paper);
+  text-shadow:
+    0 0 30px rgba(255, 184, 0, 0.4),
+    0 0 60px rgba(255, 184, 0, 0.2);
+  margin-bottom: 6px;
+}
+.game-title .smackdown {
+  color: var(--scoreboard-amber);
+  display: block;
+  background: linear-gradient(180deg, var(--scoreboard-amber) 0%, #ff8c00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.game-sub {
+  font-family: 'Inter', sans-serif;
+  font-style: italic;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  color: var(--paper-dim);
+  max-width: 520px;
+  margin: 14px auto 0;
+}
+
+/* ========== SETUP SECTION ========== */
+.setup-section {
+  margin: 28px 0;
+  background: linear-gradient(180deg, var(--carbon) 0%, var(--black) 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.setup-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--scoreboard-amber) 0%, var(--neon-cyan) 100%);
+}
+
+.setup-section h2 {
+  font-family: 'Bebas Neue', 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.p1c { color: var(--p1); }
+.p2c { color: var(--p2); }
+
+.setup-hint {
+  font-size: 0.85rem;
+  color: var(--paper-dim);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* ========== ATHLETE GRID (FIGHTER CARDS) ========== */
+.fighter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.fighter-card {
+  background: linear-gradient(155deg, var(--carbon-light) 0%, var(--carbon) 100%);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 10px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fighter-card::after {
+  content: attr(data-jersey);
+  position: absolute;
+  top: -5px;
+  right: 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.8rem;
+  color: rgba(255,255,255,0.04);
+  font-weight: 400;
+  pointer-events: none;
+}
+
+.fighter-card:hover {
+  border-color: var(--scoreboard-amber);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 184, 0, 0.2);
+}
+
+.fighter-card.selected-p1 {
+  border-color: var(--p1);
+  background: linear-gradient(155deg, rgba(0, 229, 255, 0.12) 0%, var(--carbon) 100%);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+}
+.fighter-card.selected-p2 {
+  border-color: var(--p2);
+  background: linear-gradient(155deg, rgba(255, 184, 0, 0.15) 0%, var(--carbon) 100%);
+  box-shadow: 0 0 20px rgba(255, 184, 0, 0.35);
+}
+
+.fighter-emoji {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+
+.fighter-name {
+  font-family: 'Bebas Neue', 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: 1.05rem;
+  letter-spacing: 0.03em;
+  color: var(--paper);
+  line-height: 1.05;
+  margin-bottom: 2px;
+}
+
+.fighter-era {
+  font-size: 0.7rem;
+  color: var(--paper-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.story-btn {
+  background: rgba(255, 184, 0, 0.12);
+  border: 1px solid rgba(255, 184, 0, 0.4);
+  color: var(--scoreboard-amber);
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.story-btn:hover {
+  background: var(--scoreboard-amber);
+  color: var(--black);
+}
+
+/* ========== TIER GRID ========== */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.tier-card {
+  background: linear-gradient(135deg, var(--carbon-light) 0%, var(--carbon) 100%);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.tier-card:hover {
+  border-color: var(--scoreboard-amber);
+  transform: translateY(-2px);
+}
+
+.tier-card.selected-p1 {
+  border-color: var(--p1);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), var(--carbon));
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+}
+.tier-card.selected-p2 {
+  border-color: var(--p2);
+  background: linear-gradient(135deg, rgba(255, 184, 0, 0.18), var(--carbon));
+  box-shadow: 0 0 16px rgba(255, 184, 0, 0.3);
+}
+
+.tier-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.tier-age {
+  font-size: 0.72rem;
+  color: var(--paper-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ========== RULES BOX ========== */
+.rules-box {
+  background: linear-gradient(135deg, rgba(255, 184, 0, 0.04), var(--carbon-light));
+  border-left: 4px solid var(--scoreboard-amber);
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+.rules-box b { color: var(--scoreboard-amber); }
+.up { color: var(--neon-cyan); font-weight: 700; }
+
+/* ========== GO BUTTON ========== */
+.btn-go {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 30px auto 0;
+  background: linear-gradient(135deg, var(--scoreboard-amber) 0%, #ff7a00 100%);
+  color: var(--black);
+  border: none;
+  border-radius: 12px;
+  padding: 18px 24px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 40px rgba(255, 184, 0, 0.4), 0 8px 22px rgba(0,0,0,0.5);
+  transition: all 0.2s;
+}
+.btn-go:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 60px rgba(255, 184, 0, 0.6), 0 12px 30px rgba(0,0,0,0.6);
+}
+.btn-go:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ========== BATTLE ARENA — SCOREBOARD STYLE ========== */
+.arena-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  background: linear-gradient(180deg, var(--carbon) 0%, var(--black) 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.arena-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--p1) 0%, var(--p1) 50%, var(--p2) 50%, var(--p2) 100%);
+}
+
+.player-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.player-panel.right { text-align: right; align-items: flex-end; }
+
+.panel-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.player-panel.right .panel-name { flex-direction: row-reverse; }
+
+.panel-tier {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.hp-bar {
+  height: 14px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.hp-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hp-fill.p1 {
+  background: linear-gradient(90deg, var(--neon-cyan), #0099bb);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+}
+.hp-fill.p2 {
+  background: linear-gradient(90deg, var(--scoreboard-amber), #ff7a00);
+  box-shadow: 0 0 12px rgba(255, 184, 0, 0.6);
+}
+.hp-fill.low {
+  background: linear-gradient(90deg, var(--scoreboard-red), #aa0000);
+  animation: pulse 0.7s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.hp-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.05em;
+}
+
+.vs-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 2rem;
+  color: var(--scoreboard-amber);
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 12px rgba(255, 184, 0, 0.5);
+}
+
+/* ========== TURN INDICATOR ========== */
+.turn-indicator {
+  text-align: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.4rem;
+  margin: 16px 0;
+  padding: 10px;
+  border-radius: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  transition: all 0.3s;
+}
+.turn-indicator.p2-turn {
+  background: rgba(255, 184, 0, 0.08);
+  border-color: rgba(255, 184, 0, 0.3);
+}
+
+/* ========== TURN CHOICE ========== */
+.turn-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.choice-btn {
+  background: linear-gradient(140deg, var(--carbon-light), var(--carbon));
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--paper);
+  text-align: center;
+  transition: all 0.2s;
+}
+.choice-btn:hover {
+  border-color: var(--neon-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.2);
+}
+.choice-btn.reachup {
+  border-color: rgba(255, 0, 170, 0.4);
+}
+.choice-btn.reachup:hover {
+  border-color: var(--neon-magenta);
+  box-shadow: 0 6px 20px rgba(255, 0, 170, 0.3);
+}
+
+.choice-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.choice-sub {
+  font-size: 0.8rem;
+  color: var(--paper-dim);
+}
+.choice-damage {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--neon-cyan);
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+.choice-btn.reachup .choice-damage { color: var(--neon-magenta); }
+
+/* ========== QUESTION CARD ========== */
+.question-card {
+  background: linear-gradient(160deg, var(--carbon-light) 0%, var(--carbon) 100%);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 22px 22px;
+  margin: 16px 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.question-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--scoreboard-amber), var(--neon-cyan), var(--scoreboard-amber));
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.q-topic {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--scoreboard-amber);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: rgba(255, 184, 0, 0.1);
+  padding: 4px 10px;
+  border-radius: 3px;
+  margin-bottom: 14px;
+}
+
+.q-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  margin-bottom: 20px;
+  color: var(--paper);
+}
+
+.choices-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.choice {
+  background: rgba(0,0,0,0.4);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.98rem;
+  color: var(--paper);
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.choice:hover:not(:disabled) {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 229, 255, 0.06);
+}
+.choice .letter {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.05rem;
+  color: var(--neon-cyan);
+  background: rgba(0, 229, 255, 0.12);
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.choice.correct {
+  border-color: var(--jade);
+  background: rgba(0, 255, 136, 0.12);
+}
+.choice.correct .letter { background: var(--jade); color: var(--black); }
+.choice.wrong {
+  border-color: var(--crimson);
+  background: rgba(255, 32, 80, 0.1);
+}
+.choice.wrong .letter { background: var(--crimson); color: white; }
+.choice:disabled { cursor: default; opacity: 0.85; }
+
+.typed-row {
+  display: flex;
+  gap: 10px;
+}
+.typed-input {
+  flex: 1;
+  background: rgba(0,0,0,0.5);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--paper);
+  outline: none;
+}
+.typed-input:focus { border-color: var(--neon-cyan); }
+.typed-input.correct { border-color: var(--jade); background: rgba(0, 255, 136, 0.08); }
+.typed-input.wrong { border-color: var(--crimson); background: rgba(255, 32, 80, 0.08); }
+
+.submit-btn {
+  background: var(--scoreboard-amber);
+  color: var(--black);
+  border: none;
+  border-radius: 8px;
+  padding: 0 22px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.submit-btn:hover { background: #fff; }
+
+/* ========== FEEDBACK ========== */
+.feedback {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.feedback.right {
+  background: rgba(0, 255, 136, 0.08);
+  border-left: 3px solid var(--jade);
+}
+.feedback.wrong {
+  background: rgba(255, 32, 80, 0.08);
+  border-left: 3px solid var(--crimson);
+}
+.feedback b { color: var(--scoreboard-amber); }
+
+.next-btn {
+  display: block;
+  margin: 16px auto 0;
+  background: linear-gradient(135deg, var(--scoreboard-amber), #ff7a00);
+  color: var(--black);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 30px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.next-btn:hover { box-shadow: 0 6px 20px rgba(255, 184, 0, 0.4); }
+
+/* ========== STORY MODAL ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-overlay.active { display: flex; }
+
+.story-modal {
+  background: linear-gradient(170deg, var(--carbon-light) 0%, var(--black) 100%);
+  border: 1.5px solid var(--scoreboard-amber);
+  border-radius: 16px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px 28px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 60px rgba(255, 184, 0, 0.15);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--line);
+  color: var(--paper);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+.modal-close:hover { background: rgba(255,255,255,0.18); }
+
+.story-emoji {
+  font-size: 3.5rem;
+  text-align: center;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.story-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 2.4rem;
+  text-align: center;
+  letter-spacing: 0.03em;
+  margin: 6px 0 4px;
+  text-transform: uppercase;
+}
+
+.story-era {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--scoreboard-amber);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.story-body p {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  margin-bottom: 14px;
+  color: var(--paper);
+}
+.story-body b { color: var(--scoreboard-amber); }
+.story-body i { color: var(--neon-cyan); font-style: italic; }
+
+.diagram-wrap {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 18px;
+  text-align: center;
+}
+.diagram-wrap svg { max-width: 100%; height: auto; }
+.diagram-caption {
+  font-size: 0.82rem;
+  color: var(--paper-dim);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* ========== WINNER SCREEN ========== */
+.winner-screen {
+  text-align: center;
+  padding: 40px 16px;
+}
+.winner-banner {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: clamp(3rem, 9vw, 5rem);
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, var(--scoreboard-amber), #ff7a00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 50px rgba(255, 184, 0, 0.5);
+  margin-bottom: 16px;
+}
+.winner-emoji { font-size: 5rem; margin: 12px 0; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.winner-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 2rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto 30px;
+}
+.stat-box {
+  background: var(--carbon-light);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--paper-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  color: var(--scoreboard-amber);
+}
+
+.winner-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.action-btn {
+  background: linear-gradient(135deg, var(--scoreboard-amber), #ff7a00);
+  color: var(--black);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 26px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.action-btn.secondary {
+  background: transparent;
+  color: var(--paper);
+  border: 1.5px solid var(--line);
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(255, 184, 0, 0.3); }
+
+/* ========== UTILS ========== */
+.dmg-flash {
+  position: fixed;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 3.5rem;
+  pointer-events: none;
+  z-index: 200;
+  animation: dmgFloat 1.2s ease-out forwards;
+  letter-spacing: 0.04em;
+}
+@keyframes dmgFloat {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -80px) scale(1); }
+}
+
+@media (max-width: 560px) {
+  .arena-header { grid-template-columns: 1fr; }
+  .player-panel.right { text-align: left; align-items: flex-start; }
+  .player-panel.right .panel-name { flex-direction: row; }
+  .vs-badge { display: none; }
+  .turn-choice { grid-template-columns: 1fr; }
+  .fighter-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ SETUP SCREEN ============ -->
+  <div id="setup-screen" class="screen active">
+    <div class="title-block">
+      <div class="scoreboard-tag">EST. 2026 · 12 LEGENDS · 4 LEVELS</div>
+      <h1 class="game-title">Sports<br><span class="smackdown">Smackdown</span></h1>
+      <p class="game-sub">Twelve of the greatest athletes of all time. Eight sports. Four levels of trivia. Pick your champion, pick your level, and battle for the title.</p>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p1c">PLAYER 1</span> — Pick Your Athlete</h2>
+      <p class="setup-hint">Tap the story button to read about anyone before you pick.</p>
+      <div class="fighter-grid" id="p1-fighters"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p1c">PLAYER 1</span> — Pick Your Home Level</h2>
+      <p class="setup-hint">This is your default difficulty. You can reach up one tier for more damage.</p>
+      <div class="tier-grid" id="p1-tiers"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p2c">PLAYER 2</span> — Pick Your Athlete</h2>
+      <div class="fighter-grid" id="p2-fighters"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p2c">PLAYER 2</span> — Pick Your Home Level</h2>
+      <div class="tier-grid" id="p2-tiers"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2>The Rules</h2>
+      <div class="rules-box">
+        Each player starts with <b>100 HP</b>. On your turn, choose to answer a question at your <b>home level</b> for <b>11 damage</b>, or <span class="up">reach up</span> one tier for <b>15 damage</b>. Wrong answers do nothing — but you learn something either way. Questions are a mix of multiple choice and typed answers (don't worry about exact spelling — close is fine). First to drop the opponent's HP to zero wins.
+      </div>
+    </div>
+
+    <button id="go-btn" class="btn-go" disabled>⚔ Enter the Arena ⚔</button>
+  </div>
+
+  <!-- ============ BATTLE SCREEN ============ -->
+  <div id="battle-screen" class="screen">
+    <div class="arena-header">
+      <div class="player-panel">
+        <div class="panel-name p1c" id="p1-name"></div>
+        <div class="panel-tier" id="p1-tier"></div>
+        <div class="hp-bar"><div class="hp-fill p1" id="p1-hp-fill" style="width:100%"></div></div>
+        <div class="hp-text" id="p1-hp-text">100 / 100 HP</div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="player-panel right">
+        <div class="panel-name p2c" id="p2-name"></div>
+        <div class="panel-tier" id="p2-tier"></div>
+        <div class="hp-bar"><div class="hp-fill p2" id="p2-hp-fill" style="width:100%"></div></div>
+        <div class="hp-text" id="p2-hp-text">100 / 100 HP</div>
+      </div>
+    </div>
+
+    <div class="turn-indicator" id="turn-indicator">Player 1's turn</div>
+
+    <div class="turn-choice" id="turn-choice">
+      <button class="choice-btn" id="choice-home-btn">
+        <div class="choice-title" id="choice-home-title">Home</div>
+        <div class="choice-sub" id="choice-home-sub">Your level</div>
+        <div class="choice-damage">11 DMG</div>
+      </button>
+      <button class="choice-btn reachup" id="choice-up-btn">
+        <div class="choice-title" id="choice-up-title">Reach Up</div>
+        <div class="choice-sub" id="choice-up-sub">One tier higher</div>
+        <div class="choice-damage">15 DMG</div>
+      </button>
+    </div>
+
+    <div class="question-area" id="question-area" style="display:none">
+      <div class="question-card">
+        <span class="q-topic" id="q-topic"></span>
+        <div class="q-text" id="q-text"></div>
+        <div class="choices-grid" id="q-choices"></div>
+        <div class="typed-row" id="q-typed" style="display:none">
+          <input type="text" class="typed-input" id="q-input" placeholder="Type your answer…" autocomplete="off" spellcheck="false">
+          <button class="submit-btn" id="q-submit">Submit</button>
+        </div>
+        <div class="feedback" id="q-feedback" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WINNER SCREEN ============ -->
+  <div id="winner-screen" class="screen">
+    <div class="winner-screen">
+      <div class="winner-banner">VICTORY</div>
+      <div class="winner-emoji" id="winner-emoji">🏆</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Turns Played</div>
+          <div class="stat-value" id="stat-turns">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">P1 Accuracy</div>
+          <div class="stat-value" id="stat-acc1">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">P2 Accuracy</div>
+          <div class="stat-value" id="stat-acc2">0%</div>
+        </div>
+      </div>
+      <div class="winner-actions">
+        <button class="action-btn" id="rematch-btn">Rematch (same setup)</button>
+        <button class="action-btn secondary" id="new-game-btn">New Setup</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ STORY MODAL ============ -->
+<div class="modal-overlay" id="story-overlay">
+  <div class="story-modal" id="story-modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="story-emoji" id="story-emoji"></div>
+    <div class="story-name" id="story-name"></div>
+    <div class="story-era" id="story-era"></div>
+    <div class="story-body" id="story-body"></div>
+    <div class="diagram-wrap" id="story-diagram"></div>
+  </div>
+</div>
+
+<script>
+// ============== 12 LEGENDARY ATHLETES ==============
+const EXPLORERS = [
+  {
+    id: 'jordan',
+    name: 'Michael Jordan',
+    emoji: '🏀',
+    era: 'Basketball · 1963',
+    tagline: 'Six rings, no losses in the Finals',
+    story: [
+      "Cut from his high school varsity team as a sophomore, <b>Michael Jordan</b> took that rejection and turned it into the engine of one of the most relentless careers in sports history. He went home, sat in his room, and cried — and then he went to work. By college he had hit the game-winning shot in the 1982 NCAA Championship for the University of North Carolina as a freshman. He never really stopped winning after that.",
+      "Drafted third overall by the <b>Chicago Bulls</b> in 1984 (behind Hakeem Olajuwon and Sam Bowie), Jordan was the most electrifying athlete the NBA had ever seen. He could fly. He scored 63 in a playoff game against the Celtics in his second season. He won Rookie of the Year, then a scoring title, and then five MVP awards.",
+      "From 1991 to 1998 he led the Bulls to <b>six NBA championships in eight seasons</b> — taking two years off in the middle to try minor-league baseball after his father's murder. He never lost an NBA Finals series. He was Finals MVP in all six. In the 1997 'Flu Game,' visibly ill, he scored 38 points against Utah.",
+      "He won two Olympic gold medals, including 1992 with the <i>Dream Team</i>. He retired three separate times. His Jumpman silhouette became the world's most recognizable sports logo. To a generation of fans worldwide, basketball <i>was</i> Michael Jordan.",
+    ],
+    diagram: 'jordan',
+  },
+  {
+    id: 'ali',
+    name: 'Muhammad Ali',
+    emoji: '🥊',
+    era: 'Boxing · 1942–2016',
+    tagline: 'The Greatest',
+    story: [
+      "Born <b>Cassius Marcellus Clay Jr.</b> in segregated Louisville, Kentucky, he started boxing at twelve after his bike was stolen. He told a police officer he wanted to 'whup' the thief. The officer, who also ran a boxing gym, suggested he learn how to fight first.",
+      "At 18 he won Olympic gold in the light heavyweight division at the 1960 Rome Games. In 1964, at just 22, he shocked the boxing world by knocking out the terrifying champion <b>Sonny Liston</b> to claim the heavyweight title — and immediately announced he had joined the Nation of Islam and was changing his name to <b>Muhammad Ali</b>.",
+      "He refused to be drafted to fight in Vietnam in 1967, saying he had no quarrel with the Vietnamese. He was stripped of his title and convicted, losing nearly four years of his prime. The Supreme Court eventually overturned the conviction unanimously. He returned, and in 1971 fought Joe Frazier in the <i>Fight of the Century</i>. He lost. He then beat Frazier twice more.",
+      "In 1974 in Zaire, an aging Ali stunned the seemingly unstoppable <b>George Foreman</b> with the rope-a-dope strategy — the <b>Rumble in the Jungle</b>. He won the heavyweight championship three separate times. He fought through Parkinson's for decades after retiring, and in 1996 a trembling Ali lit the Olympic torch in Atlanta. The world watched and wept.",
+    ],
+    diagram: 'ali',
+  },
+  {
+    id: 'serena',
+    name: 'Serena Williams',
+    emoji: '🎾',
+    era: 'Tennis · 1981',
+    tagline: '23 Grand Slam singles titles',
+    story: [
+      "She and her older sister <b>Venus</b> were taught tennis by their father Richard on the public courts of Compton, California — sometimes in the middle of gang territory, sometimes ducking gunfire to practice. He had a plan written out before they were born. They became the two best players in the world.",
+      "<b>Serena Williams</b> won her first major, the US Open, in 1999 at age 17. Over the next two decades she would win <b>23 Grand Slam singles titles</b> — more than anyone in the Open Era and one short of Margaret Court's all-time record. She won each major at least three times. She held all four simultaneously (the 'Serena Slam') — twice.",
+      "She redefined the women's game with overwhelming power, the greatest serve in the sport's history, and ferocious mental will. In 2017 she won the <b>Australian Open while eight weeks pregnant</b> — and didn't lose a set the entire tournament. She returned after near-fatal post-childbirth complications to reach four more major finals.",
+      "She won four Olympic gold medals (one singles, three doubles with Venus). She was world #1 for a record-tying 186 consecutive weeks. Off the court she launched a venture capital firm investing in women and people of color. When she retired in 2022, she didn't just leave tennis — she had remade it.",
+    ],
+    diagram: 'serena',
+  },
+  {
+    id: 'gretzky',
+    name: 'Wayne Gretzky',
+    emoji: '🏒',
+    era: 'Hockey · 1961',
+    tagline: 'The Great One',
+    story: [
+      "Growing up in Brantford, Ontario, <b>Wayne Gretzky</b> learned to skate at age two on a backyard rink his father Walter flooded every winter. By six he was playing with 10-year-olds. By ten he scored <b>378 goals in a single youth season</b>. There has never, before or since, been anyone like him.",
+      "He turned pro at 17, joined the NHL at 18 with the <b>Edmonton Oilers</b>, and immediately tied for the league scoring lead. In 1981–82 he scored <b>92 goals</b>. In 1985–86 he had <b>215 points</b> in 80 games — both still records, untouched four decades later. He won four Stanley Cups in five years with Edmonton in the 1980s.",
+      "The trade that sent him to the Los Angeles Kings in 1988 was treated as a national tragedy in Canada — newspaper headlines, members of Parliament demanding the government block it. But in LA he turned hockey into a sport Americans cared about. The league added teams in Anaheim, San Jose, Tampa, Florida — places that had never had ice.",
+      "When he retired in 1999, Gretzky held or shared <b>61 NHL records</b>. He had more career <i>assists</i> (1,963) than the next-best player had total <i>points</i>. The NHL retired his number 99 league-wide. No player will ever wear it again.",
+    ],
+    diagram: 'gretzky',
+  },
+  {
+    id: 'bolt',
+    name: 'Usain Bolt',
+    emoji: '⚡',
+    era: 'Sprinting · 1986',
+    tagline: 'Fastest human ever',
+    story: [
+      "He grew up running barefoot in the small Jamaican town of Sherwood Content, the son of a grocery shop owner. He was lanky and tall and disliked the hard work of training — he was famous as a teenager for skipping practice to play video games. But when he stepped on a track, the world bent toward him.",
+      "At 15, <b>Usain Bolt</b> became the youngest male world junior gold medalist ever. By his early twenties he was redefining what humans could do over short distances. At the <b>2008 Beijing Olympics</b> he won the 100m in <b>9.69 seconds</b> while slowing down and beating his chest before the line. Three days later he ran the 200m in 19.30, breaking Michael Johnson's 'unbreakable' record.",
+      "A year later in Berlin he ran 9.58 in the 100m and 19.19 in the 200m — both <b>world records that still stand</b> over fifteen years later. He won the 100m, 200m, and 4×100m relay golds at <b>three consecutive Olympics</b> — Beijing 2008, London 2012, Rio 2016. Eight Olympic golds total. No sprinter had ever done it once.",
+      "He retired at age 31 with an aura of effortless joy that was utterly his own — the lightning-bolt celebration, the showmanship, the camera-mugging before races. He made the fastest event in sports look easy. Nobody since has come close to his times.",
+    ],
+    diagram: 'bolt',
+  },
+  {
+    id: 'messi',
+    name: 'Lionel Messi',
+    emoji: '⚽',
+    era: 'Soccer · 1987',
+    tagline: 'World Cup champion · 8 Ballons d\'Or',
+    story: [
+      "He was diagnosed with growth hormone deficiency at age 11 in his hometown of Rosario, Argentina. His family couldn't afford the $900-a-month treatment. <b>FC Barcelona</b> agreed to pay for it if he and his father moved to Spain. He signed the contract — famously — on a napkin in a restaurant.",
+      "<b>Lionel Messi</b> debuted for Barcelona's senior team at 17 and quickly became the best player in the world. He won the <b>Ballon d'Or eight times</b> (more than any player in history). He scored a record <b>91 goals in one calendar year</b> in 2012. He is Barcelona's all-time leading goal scorer with 672 goals across 778 appearances — a rate nearly impossible to comprehend.",
+      "For years he was haunted by losing finals with Argentina — the 2014 World Cup, three Copa América finals. Then in 2021 he finally lifted a major international trophy, the <b>Copa América</b>. In December 2022 at age 35, in his fifth and probably final attempt, he led Argentina to win the <b>FIFA World Cup</b> in Qatar — scoring twice in the final against France. The trophy that had eluded him was his.",
+      "He left Barcelona in tears in 2021 after the club's finances collapsed, played two seasons with Paris Saint-Germain, then signed with <b>Inter Miami</b> in 2023 — and promptly won their first trophy. In 2025 he led them to their first MLS Cup. He holds the record for most career trophies of any footballer in history.",
+    ],
+    diagram: 'messi',
+  },
+  {
+    id: 'ohtani',
+    name: 'Shohei Ohtani',
+    emoji: '⚾',
+    era: 'Baseball · 1994',
+    tagline: 'Pitcher AND hitter · 4× MVP',
+    story: [
+      "For more than a century, baseball assumed it was impossible to be elite at both pitching and hitting in the major leagues at the same time. Babe Ruth had done it briefly, a hundred years ago. Then came <b>Shohei Ohtani</b>, from the small Japanese city of Ōshū.",
+      "He turned down every Major League team to sign with the <b>Hokkaido Nippon-Ham Fighters</b> in Japan in 2013, where his manager developed his unprecedented two-way game. He arrived in MLB with the <b>Los Angeles Angels</b> in 2018, won Rookie of the Year, then in 2021 began posting seasons no one had ever seen — 40+ home runs as a hitter while pitching like an ace.",
+      "He won American League MVP in <b>2021 and 2023</b>, both times unanimously. He signed with the <b>Los Angeles Dodgers</b> for the 2024 season. Despite not pitching that year (he was recovering from elbow surgery), he became the first player in MLB history to hit <b>50 home runs and steal 50 bases in a single season</b> — the legendary '50/50'. He won NL MVP and a World Series championship.",
+      "In 2025 he returned to the mound, hit 55 home runs, and won a <b>fourth MVP</b> award — second only to Barry Bonds in baseball history. The Dodgers repeated as World Series champions. He is the most uniquely dominant player in the sport's modern history, doing two jobs that no other player on Earth can do simultaneously.",
+    ],
+    diagram: 'ohtani',
+  },
+  {
+    id: 'biles',
+    name: 'Simone Biles',
+    emoji: '🤸',
+    era: 'Gymnastics · 1997',
+    tagline: 'Most decorated gymnast ever',
+    story: [
+      "Placed in foster care as a toddler, <b>Simone Biles</b> was adopted at age six by her maternal grandparents in Spring, Texas. She first walked into a gym on a daycare field trip. Coaches noticed her immediately. Within a decade she would have the entire sport of gymnastics named after her.",
+      "She has <b>five gymnastics skills named after her</b> — moves so difficult that no other gymnast had ever performed them in competition. She won her first <b>world all-around title in 2013</b> at age 16, and would go on to win <b>six more</b>. She has <b>30 World Championship medals (23 gold)</b> — both records.",
+      "At the <b>2016 Rio Olympics</b> she won four gold medals and a bronze. At Tokyo 2020 (held in 2021) she suffered the <i>twisties</i> — a terrifying loss of spatial awareness mid-air that can kill or paralyze a gymnast. She withdrew from events to protect her mental health, prompting a global conversation. She still won silver and bronze.",
+      "She came back. At <b>Paris 2024</b> she won three more golds and a silver, bringing her to <b>11 Olympic medals (7 gold)</b> — the most by any American gymnast ever. She was awarded the Presidential Medal of Freedom in 2022. She is, by almost every measure, the greatest gymnast of all time.",
+    ],
+    diagram: 'biles',
+  },
+  {
+    id: 'brady',
+    name: 'Tom Brady',
+    emoji: '🏈',
+    era: 'NFL · 1977',
+    tagline: '7-time Super Bowl champion',
+    story: [
+      "Picked <b>199th overall</b> in the 2000 NFL Draft — the sixth quarterback chosen that year — <b>Tom Brady</b> was a skinny, slow-footed backup who barely got on the field at the University of Michigan. The New England Patriots used a sixth-round pick on him as an insurance policy.",
+      "He became the starter in week 3 of his second season when Drew Bledsoe was injured. He went on to win the <b>Super Bowl that February</b> at age 24 — and his career arc was set. He would play for 23 NFL seasons. He would reach <b>10 Super Bowls</b>. He would win <b>seven of them</b> — more than any player or franchise in NFL history.",
+      "The 2017 Super Bowl is his signature game. The Patriots trailed the Atlanta Falcons <b>28–3</b> in the third quarter. Brady led the largest comeback in Super Bowl history. New England won in the first overtime in Super Bowl history. He was named MVP for the fourth time.",
+      "He left New England in 2020, signed with the <b>Tampa Bay Buccaneers</b>, and won the Super Bowl in his first year there too — at age 43, in his home stadium during COVID. He retired in 2023 after winning more Super Bowls than any team. The skinny sixth-round pick had become the consensus greatest quarterback in NFL history.",
+    ],
+    diagram: 'brady',
+  },
+  {
+    id: 'phelps',
+    name: 'Michael Phelps',
+    emoji: '🏊',
+    era: 'Swimming · 1985',
+    tagline: '23 Olympic golds — a record',
+    story: [
+      "Diagnosed with ADHD as a child and told by a teacher he would never amount to anything, <b>Michael Phelps</b> found focus in water. He started swimming at age seven in Baltimore. By 15 he was the youngest American male swimmer at the Olympics in 68 years.",
+      "He swam at five Olympic Games. He won his first gold at Athens 2004. Then came <b>Beijing 2008</b> — the most extraordinary individual performance in Olympic history. Phelps entered <b>eight events</b>. He won <b>eight gold medals</b>. He set <b>seven world records</b>. One of his wins, the 100m butterfly, came by one-hundredth of a second.",
+      "He kept going. In London 2012 he became the most decorated Olympian ever. In Rio 2016 he added five more golds and a silver. When he finally retired he had <b>28 total Olympic medals — 23 of them gold</b>. To put that in perspective: if Phelps were a country, he would have won more Olympic gold medals than most countries that have ever competed.",
+      "His training was famously brutal — six hours a day in the pool, six days a week, even on Christmas. He spoke openly later about depression and suicidal thoughts after the Olympic spotlight faded, helping change how athletes talk about mental health. The greatest swimmer, by any honest measure, of all time.",
+    ],
+    diagram: 'phelps',
+  },
+  {
+    id: 'tiger',
+    name: 'Tiger Woods',
+    emoji: '⛳',
+    era: 'Golf · 1975',
+    tagline: '15 majors · transformed the sport',
+    story: [
+      "<b>Eldrick 'Tiger' Woods</b> appeared on the Mike Douglas television show at age two, putting golf balls. He was hitting balls on national TV before most kids can spell. By eight he had won a junior world championship. By twenty he was a professional and the most hyped athlete in any sport.",
+      "In 1997, in his first major as a pro, the 21-year-old won <b>The Masters by 12 strokes</b> — still the largest margin in Masters history. He became the first Black golfer to win a major. He changed the demographics, the prize money, the television ratings, and the athletic conditioning of the sport overnight.",
+      "Between 1999 and 2001 he held all four major championships simultaneously — the <b>Tiger Slam</b>. He spent a record <b>683 weeks ranked #1</b> in the world. He won 15 majors and 82 PGA Tour events (tied for the all-time record). For about a decade, he was the most famous athlete on the planet.",
+      "A 2009 scandal and a series of back surgeries derailed his career. He fell to world #1,199. Most assumed he was done. Then in <b>April 2019</b>, after spinal fusion surgery and at age 43, he won <b>The Masters again</b> — eleven years after his previous major. His son ran into his arms behind the 18th green. The greatest comeback in golf history.",
+    ],
+    diagram: 'tiger',
+  },
+  {
+    id: 'kohli',
+    name: 'Virat Kohli',
+    emoji: '🏏',
+    era: 'Cricket · 1988',
+    tagline: 'Most ODI centuries in history',
+    story: [
+      "Born in Delhi, <b>Virat Kohli</b> started attending the West Delhi Cricket Academy at age nine. When he was 18, his father died of a stroke during a Ranji Trophy match — and Kohli, the same morning, went out and scored 90 runs for his team before going to the funeral. The intensity that defined his career was there from the start.",
+      "In 2008 he captained India to the <b>U-19 World Cup</b> championship. Within a year he was in the senior side. He went on to score a record <b>50 ODI centuries</b> — breaking the mark of his idol Sachin Tendulkar in November 2023 during the World Cup semifinal. He has now scored 53. No batter in the format's history has scored more.",
+      "He was India's Test captain from 2014 to 2022, leading the country to 40 Test wins — the most by any Indian captain — and to the world #1 Test ranking, which India held for five consecutive years. He scored over <b>9,000 runs in Tests</b> with seven double-centuries, the most by any Indian. He played 123 Tests before retiring from the format in May 2025.",
+      "He helped India win the <b>2011 ODI World Cup</b>, the 2013 Champions Trophy, and the <b>2024 T20 World Cup</b>. In May 2025 his IPL franchise, Royal Challengers Bengaluru, finally won the championship after an 18-year wait — he ranked it among the best victories of his career. He is, with Tendulkar, the defining figure of modern Indian cricket.",
+    ],
+    diagram: 'kohli',
+  },
+];
+// ============== ATHLETE DIAGRAMS (SVG) ==============
+const DIAGRAMS = {
+
+  jordan: {
+    caption: "Six Finals appearances. Six rings. Six Finals MVPs.",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="32" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">CHICAGO BULLS · 6 NBA TITLES</text>
+      <!-- Six rings in two threepeats -->
+      <g transform="translate(60, 80)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">FIRST THREEPEAT</text>
+        <g transform="translate(0, 20)">
+          <circle cx="35" cy="40" r="32" fill="none" stroke="#ffb800" stroke-width="3"/>
+          <text x="35" y="36" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">'91</text>
+          <text x="35" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#888">vs LAL</text>
+
+          <circle cx="115" cy="40" r="32" fill="none" stroke="#ffb800" stroke-width="3"/>
+          <text x="115" y="36" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">'92</text>
+          <text x="115" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#888">vs POR</text>
+
+          <circle cx="195" cy="40" r="32" fill="none" stroke="#ffb800" stroke-width="3"/>
+          <text x="195" y="36" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">'93</text>
+          <text x="195" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#888">vs PHX</text>
+        </g>
+      </g>
+      <g transform="translate(330, 80)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">SECOND THREEPEAT</text>
+        <g transform="translate(0, 20)">
+          <circle cx="35" cy="40" r="32" fill="none" stroke="#ffb800" stroke-width="3"/>
+          <text x="35" y="36" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">'96</text>
+          <text x="35" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#888">vs SEA</text>
+
+          <circle cx="115" cy="40" r="32" fill="none" stroke="#ffb800" stroke-width="3"/>
+          <text x="115" y="36" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">'97</text>
+          <text x="115" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#888">vs UTA</text>
+
+          <circle cx="195" cy="40" r="32" fill="none" stroke="#ffb800" stroke-width="3"/>
+          <text x="195" y="36" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">'98</text>
+          <text x="195" y="52" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#888">vs UTA</text>
+        </g>
+      </g>
+      <!-- Gap explanation -->
+      <text x="300" y="200" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#666" font-style="italic">'94 &amp; '95 — gone to play minor-league baseball</text>
+      <!-- Big stats -->
+      <g transform="translate(0, 220)">
+        <text x="100" y="20" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="24" fill="#00e5ff">6/6</text>
+        <text x="100" y="42" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888" letter-spacing="2">FINALS RECORD</text>
+        <text x="300" y="20" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="24" fill="#00e5ff">5</text>
+        <text x="300" y="42" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888" letter-spacing="2">SEASON MVPs</text>
+        <text x="500" y="20" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="24" fill="#00e5ff">30.1</text>
+        <text x="500" y="42" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888" letter-spacing="2">CAREER PPG (RECORD)</text>
+      </g>
+    </svg>`
+  },
+
+  ali: {
+    caption: "Three-time heavyweight champion — across three different decades",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800" letter-spacing="2">THE GREATEST</text>
+      <!-- Three title moments on a timeline -->
+      <line x1="50" y1="160" x2="550" y2="160" stroke="#444" stroke-width="2"/>
+      <g transform="translate(120, 160)">
+        <circle r="10" fill="#ffb800"/>
+        <line x1="0" y1="-10" x2="0" y2="-50" stroke="#ffb800" stroke-width="2"/>
+        <text x="0" y="-58" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">1964</text>
+        <text x="0" y="-78" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#fff">vs Sonny Liston</text>
+        <text x="0" y="-92" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#888" font-style="italic">first title at 22</text>
+        <text x="0" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff" letter-spacing="2">CHAMPION</text>
+      </g>
+      <g transform="translate(300, 160)">
+        <circle r="10" fill="#ffb800"/>
+        <line x1="0" y1="-10" x2="0" y2="-50" stroke="#ffb800" stroke-width="2"/>
+        <text x="0" y="-58" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">1974</text>
+        <text x="0" y="-78" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#fff">vs George Foreman</text>
+        <text x="0" y="-92" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#888" font-style="italic">Rumble in the Jungle</text>
+        <text x="0" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff" letter-spacing="2">REGAINED</text>
+      </g>
+      <g transform="translate(480, 160)">
+        <circle r="10" fill="#ffb800"/>
+        <line x1="0" y1="-10" x2="0" y2="-50" stroke="#ffb800" stroke-width="2"/>
+        <text x="0" y="-58" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ffb800">1978</text>
+        <text x="0" y="-78" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#fff">vs Leon Spinks</text>
+        <text x="0" y="-92" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#888" font-style="italic">third reign</text>
+        <text x="0" y="30" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff" letter-spacing="2">REGAINED</text>
+      </g>
+      <!-- Bottom famous quote -->
+      <text x="300" y="245" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-style="italic" fill="#888">"Float like a butterfly, sting like a bee."</text>
+      <text x="300" y="263" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ffb800" letter-spacing="2">OLYMPIC GOLD · 1960 · LIGHT HEAVYWEIGHT</text>
+    </svg>`
+  },
+
+  serena: {
+    caption: "23 Grand Slam singles titles — most in the Open Era",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">23 GRAND SLAMS — BY TOURNAMENT</text>
+      <!-- Four bars for four slams -->
+      <g transform="translate(60, 70)">
+        <!-- Australian -->
+        <rect x="0" y="0" width="100" height="140" fill="#1f1f1f" stroke="#444"/>
+        <rect x="0" y="0" width="100" height="${(7/8)*140}" fill="#00e5ff"/>
+        <text x="50" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">AUSTRALIAN</text>
+        <text x="50" y="175" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">7</text>
+        <!-- French -->
+        <rect x="130" y="0" width="100" height="140" fill="#1f1f1f" stroke="#444"/>
+        <rect x="130" y="${(8-3)/8*140}" width="100" height="${(3/8)*140}" fill="#00e5ff"/>
+        <text x="180" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">FRENCH</text>
+        <text x="180" y="175" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">3</text>
+        <!-- Wimbledon -->
+        <rect x="260" y="0" width="100" height="140" fill="#1f1f1f" stroke="#444"/>
+        <rect x="260" y="${(8-7)/8*140}" width="100" height="${(7/8)*140}" fill="#00e5ff"/>
+        <text x="310" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">WIMBLEDON</text>
+        <text x="310" y="175" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">7</text>
+        <!-- US -->
+        <rect x="390" y="0" width="100" height="140" fill="#1f1f1f" stroke="#444"/>
+        <rect x="390" y="${(8-6)/8*140}" width="100" height="${(6/8)*140}" fill="#00e5ff"/>
+        <text x="440" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">US OPEN</text>
+        <text x="440" y="175" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">6</text>
+      </g>
+      <!-- Bottom -->
+      <text x="300" y="240" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#fff" font-weight="600">4× Olympic gold · 186 weeks at #1 · 2 'Serena Slams'</text>
+      <text x="300" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-style="italic" fill="#888">2017 Australian Open won while 8 weeks pregnant.</text>
+    </svg>`
+  },
+
+  gretzky: {
+    caption: "Records that won't be broken — the most untouchable numbers in sports",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800" letter-spacing="2">THE GREAT ONE · #99</text>
+      <!-- Big stat boxes -->
+      <g transform="translate(40, 60)">
+        <rect width="160" height="80" fill="#1f1f1f" stroke="#00e5ff" stroke-width="2" rx="8"/>
+        <text x="80" y="38" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="38" fill="#ffb800">2,857</text>
+        <text x="80" y="58" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888" letter-spacing="2">CAREER POINTS</text>
+        <text x="80" y="72" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#00e5ff">NHL ALL-TIME</text>
+      </g>
+      <g transform="translate(220, 60)">
+        <rect width="160" height="80" fill="#1f1f1f" stroke="#00e5ff" stroke-width="2" rx="8"/>
+        <text x="80" y="38" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="38" fill="#ffb800">894</text>
+        <text x="80" y="58" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888" letter-spacing="2">CAREER GOALS</text>
+        <text x="80" y="72" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#00e5ff">2nd ALL-TIME*</text>
+      </g>
+      <g transform="translate(400, 60)">
+        <rect width="160" height="80" fill="#1f1f1f" stroke="#00e5ff" stroke-width="2" rx="8"/>
+        <text x="80" y="38" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="38" fill="#ffb800">1,963</text>
+        <text x="80" y="58" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888" letter-spacing="2">CAREER ASSISTS</text>
+        <text x="80" y="72" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#00e5ff">NHL ALL-TIME</text>
+      </g>
+      <!-- single season record -->
+      <g transform="translate(40, 165)">
+        <rect width="520" height="70" fill="#1f1f1f" stroke="#ffb800" stroke-width="2" rx="8"/>
+        <text x="20" y="30" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">SINGLE-SEASON RECORDS (BOTH STILL STANDING)</text>
+        <text x="20" y="58" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">215 PTS (1985-86)</text>
+        <text x="290" y="58" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">92 GOALS (1981-82)</text>
+      </g>
+      <text x="300" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#888" font-style="italic">*Surpassed in goals by Ovechkin in 2025 — but assists, points, and 61 other records still his.</text>
+    </svg>`
+  },
+
+  bolt: {
+    caption: "World records that have stood for over fifteen years",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <!-- track lanes -->
+      <g opacity="0.4">
+        <line x1="40" y1="80" x2="560" y2="80" stroke="#444" stroke-width="1"/>
+        <line x1="40" y1="100" x2="560" y2="100" stroke="#444" stroke-width="1"/>
+        <line x1="40" y1="120" x2="560" y2="120" stroke="#444" stroke-width="1"/>
+        <line x1="40" y1="140" x2="560" y2="140" stroke="#444" stroke-width="1"/>
+        <line x1="40" y1="160" x2="560" y2="160" stroke="#444" stroke-width="1"/>
+      </g>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">WORLD RECORDS · BERLIN 2009</text>
+      <!-- 100m -->
+      <g transform="translate(40, 75)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">100 METRES</text>
+        <text x="0" y="32" font-family="Bebas Neue, sans-serif" font-size="48" fill="#ffb800">9.58</text>
+        <text x="135" y="22" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff">seconds</text>
+        <text x="135" y="36" font-family="Inter, sans-serif" font-size="9" fill="#888">top speed: 27.8 mph</text>
+      </g>
+      <!-- 200m -->
+      <g transform="translate(330, 75)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">200 METRES</text>
+        <text x="0" y="32" font-family="Bebas Neue, sans-serif" font-size="48" fill="#ffb800">19.19</text>
+        <text x="160" y="22" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff">seconds</text>
+        <text x="160" y="36" font-family="Inter, sans-serif" font-size="9" fill="#888">broke own record</text>
+      </g>
+      <!-- olympic golds -->
+      <g transform="translate(40, 170)">
+        <rect width="520" height="80" fill="#1f1f1f" stroke="#ffb800" stroke-width="2" rx="8"/>
+        <text x="20" y="28" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">OLYMPIC GOLDS · 3 STRAIGHT GAMES (2008·2012·2016)</text>
+        <g transform="translate(20, 50)">
+          <circle cx="0" cy="0" r="14" fill="#ffb800"/><text x="0" y="4" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="11" fill="#0a0a0a">100m</text>
+          <circle cx="50" cy="0" r="14" fill="#ffb800"/><text x="50" y="4" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="11" fill="#0a0a0a">200m</text>
+          <circle cx="100" cy="0" r="14" fill="#ffb800"/><text x="100" y="4" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="11" fill="#0a0a0a">4x100</text>
+          <text x="135" y="4" font-family="Bebas Neue, sans-serif" font-size="18" fill="#fff">×3</text>
+          <text x="170" y="4" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff" letter-spacing="1">= 8 OLYMPIC GOLDS*</text>
+          <text x="170" y="20" font-family="Inter, sans-serif" font-size="8" fill="#888" font-style="italic">(was 9; one 4x100 relay later vacated)</text>
+        </g>
+      </g>
+    </svg>`
+  },
+
+  messi: {
+    caption: "The trophy cabinet that broke records · 47+ team trophies",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800" letter-spacing="2">THE COMPLETE TROPHY CABINET</text>
+      <!-- Trophy cabinet grid -->
+      <g transform="translate(40, 60)">
+        <!-- Row 1: club -->
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">CLUB</text>
+        <g transform="translate(0, 14)">
+          <rect width="100" height="55" fill="#1f1f1f" stroke="#00e5ff" rx="6"/>
+          <text x="50" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">12</text>
+          <text x="50" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#888" letter-spacing="1">LEAGUE TITLES</text>
+
+          <rect x="110" y="0" width="100" height="55" fill="#1f1f1f" stroke="#00e5ff" rx="6"/>
+          <text x="160" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">4</text>
+          <text x="160" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#888" letter-spacing="1">CHAMPIONS LEAGUE</text>
+
+          <rect x="220" y="0" width="100" height="55" fill="#1f1f1f" stroke="#00e5ff" rx="6"/>
+          <text x="270" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">7</text>
+          <text x="270" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#888" letter-spacing="1">COPA DEL REY</text>
+
+          <rect x="330" y="0" width="100" height="55" fill="#1f1f1f" stroke="#00e5ff" rx="6"/>
+          <text x="380" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">2025</text>
+          <text x="380" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#888" letter-spacing="1">MLS CUP</text>
+
+          <rect x="440" y="0" width="80" height="55" fill="#1f1f1f" stroke="#00e5ff" rx="6"/>
+          <text x="480" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">+more</text>
+          <text x="480" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#888" letter-spacing="1">CUPS</text>
+        </g>
+      </g>
+      <!-- Row 2: international -->
+      <g transform="translate(40, 145)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">ARGENTINA</text>
+        <g transform="translate(0, 14)">
+          <rect width="160" height="55" fill="#1f1f1f" stroke="#ffb800" stroke-width="2" rx="6"/>
+          <text x="80" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">WORLD CUP 2022</text>
+          <text x="80" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888" letter-spacing="1">QATAR · vs FRANCE</text>
+
+          <rect x="170" y="0" width="120" height="55" fill="#1f1f1f" stroke="#00e5ff" rx="6"/>
+          <text x="230" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">COPA × 2</text>
+          <text x="230" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888" letter-spacing="1">2021 · 2024</text>
+
+          <rect x="300" y="0" width="220" height="55" fill="#1f1f1f" stroke="#ff00aa" stroke-width="2" rx="6"/>
+          <text x="410" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ff00aa">BALLON D'OR × 8</text>
+          <text x="410" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888" letter-spacing="1">RECORD — MOST EVER</text>
+        </g>
+      </g>
+      <text x="300" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#888" font-style="italic">Most career trophies of any footballer in history.</text>
+    </svg>`
+  },
+
+  ohtani: {
+    caption: "The first true two-way player since Babe Ruth — and arguably better",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800" letter-spacing="2">SHO-TIME · TWO PLAYERS IN ONE</text>
+      <!-- Two big stat columns -->
+      <g transform="translate(60, 60)">
+        <rect width="220" height="160" fill="#1f1f1f" stroke="#00e5ff" stroke-width="2" rx="10"/>
+        <text x="110" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#00e5ff" letter-spacing="3">⚾  AS A HITTER</text>
+        <line x1="20" y1="40" x2="200" y2="40" stroke="#333"/>
+        <text x="20" y="65" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">.282 / .392 / .622</text>
+        <text x="20" y="80" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">2025 SLASH LINE</text>
+        <text x="20" y="110" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">55 HR</text>
+        <text x="20" y="125" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">DODGERS FRANCHISE RECORD</text>
+        <text x="20" y="148" font-family="Inter, sans-serif" font-size="10" fill="#fff">50/50 in 2024 — never done before</text>
+      </g>
+      <g transform="translate(320, 60)">
+        <rect width="220" height="160" fill="#1f1f1f" stroke="#ff00aa" stroke-width="2" rx="10"/>
+        <text x="110" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ff00aa" letter-spacing="3">🥎  AS A PITCHER</text>
+        <line x1="20" y1="40" x2="200" y2="40" stroke="#333"/>
+        <text x="20" y="65" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">2.87 ERA</text>
+        <text x="20" y="80" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">14 STARTS · 2025</text>
+        <text x="20" y="110" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">62 K · 9 BB</text>
+        <text x="20" y="125" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">47 INNINGS · 2025</text>
+        <text x="20" y="148" font-family="Inter, sans-serif" font-size="10" fill="#fff">Career: 3.01 ERA · 11.4 K/9</text>
+      </g>
+      <!-- MVP timeline -->
+      <g transform="translate(60, 235)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">MVP AWARDS</text>
+        <circle cx="120" cy="-3" r="8" fill="#ffb800"/><text x="120" y="0" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="10" fill="#0a0a0a">'21</text>
+        <circle cx="160" cy="-3" r="8" fill="#ffb800"/><text x="160" y="0" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="10" fill="#0a0a0a">'23</text>
+        <circle cx="200" cy="-3" r="8" fill="#ffb800"/><text x="200" y="0" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="10" fill="#0a0a0a">'24</text>
+        <circle cx="240" cy="-3" r="8" fill="#ffb800"/><text x="240" y="0" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="10" fill="#0a0a0a">'25</text>
+        <text x="280" y="0" font-family="Inter, sans-serif" font-size="10" fill="#fff">= 4 (only Bonds has more)</text>
+      </g>
+    </svg>`
+  },
+
+  biles: {
+    caption: "Eleven Olympic medals · five gymnastics skills named after her",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800" letter-spacing="2">SIMONE BILES · GOAT</text>
+      <!-- Three Olympics -->
+      <g transform="translate(50, 60)">
+        <text x="80" y="-5" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#fff">RIO 2016</text>
+        <rect width="160" height="90" fill="#1f1f1f" stroke="#444" rx="6"/>
+        <g transform="translate(80, 40)">
+          <circle cx="-30" cy="0" r="11" fill="#ffb800"/><text x="-30" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+          <circle cx="-10" cy="0" r="11" fill="#ffb800"/><text x="-10" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+          <circle cx="10" cy="0" r="11" fill="#ffb800"/><text x="10" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+          <circle cx="30" cy="0" r="11" fill="#ffb800"/><text x="30" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+        </g>
+        <text x="80" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888">4 GOLD · 1 BRONZE</text>
+      </g>
+      <g transform="translate(220, 60)">
+        <text x="80" y="-5" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#fff">TOKYO 2020</text>
+        <rect width="160" height="90" fill="#1f1f1f" stroke="#444" rx="6"/>
+        <g transform="translate(80, 40)">
+          <circle cx="-15" cy="0" r="11" fill="#c0c0c0"/><text x="-15" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">S</text>
+          <circle cx="15" cy="0" r="11" fill="#cd7f32"/><text x="15" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#fff">B</text>
+        </g>
+        <text x="80" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888">"twisties" — withdrew</text>
+      </g>
+      <g transform="translate(390, 60)">
+        <text x="80" y="-5" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="18" fill="#fff">PARIS 2024</text>
+        <rect width="160" height="90" fill="#1f1f1f" stroke="#ff00aa" stroke-width="2" rx="6"/>
+        <g transform="translate(80, 40)">
+          <circle cx="-30" cy="0" r="11" fill="#ffb800"/><text x="-30" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+          <circle cx="-10" cy="0" r="11" fill="#ffb800"/><text x="-10" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+          <circle cx="10" cy="0" r="11" fill="#ffb800"/><text x="10" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">G</text>
+          <circle cx="30" cy="0" r="11" fill="#c0c0c0"/><text x="30" y="3" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="9" fill="#0a0a0a">S</text>
+        </g>
+        <text x="80" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#ff00aa">THE COMEBACK</text>
+      </g>
+      <!-- totals -->
+      <g transform="translate(50, 185)">
+        <rect width="500" height="70" fill="#1f1f1f" stroke="#ffb800" stroke-width="2" rx="8"/>
+        <text x="120" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="34" fill="#ffb800">11</text>
+        <text x="120" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888">OLYMPIC MEDALS</text>
+        <text x="250" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="34" fill="#ffb800">30</text>
+        <text x="250" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888">WORLD MEDALS</text>
+        <text x="380" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="34" fill="#ffb800">5</text>
+        <text x="380" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#888">SKILLS NAMED AFTER HER</text>
+      </g>
+    </svg>`
+  },
+
+  brady: {
+    caption: "Drafted 199th overall. Won seven Super Bowls.",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800" letter-spacing="2">THE 199th PICK</text>
+      <!-- Draft visualization -->
+      <g transform="translate(40, 60)">
+        <rect width="520" height="50" fill="#1f1f1f" stroke="#444" rx="6"/>
+        <text x="20" y="20" font-family="JetBrains Mono, monospace" font-size="9" fill="#888" letter-spacing="2">2000 NFL DRAFT — QBs SELECTED BEFORE BRADY</text>
+        <text x="20" y="38" font-family="Inter, sans-serif" font-size="10" fill="#fff">1. Chad Pennington</text>
+        <text x="120" y="38" font-family="Inter, sans-serif" font-size="10" fill="#fff">2. Giovanni Carmazzi</text>
+        <text x="230" y="38" font-family="Inter, sans-serif" font-size="10" fill="#fff">3. Chris Redman</text>
+        <text x="335" y="38" font-family="Inter, sans-serif" font-size="10" fill="#fff">4. Tee Martin</text>
+        <text x="420" y="38" font-family="Inter, sans-serif" font-size="10" fill="#fff">5. Marc Bulger</text>
+      </g>
+      <!-- arrow + brady -->
+      <g transform="translate(40, 130)">
+        <rect width="520" height="40" fill="#1f1f1f" stroke="#ffb800" stroke-width="2" rx="6"/>
+        <text x="20" y="26" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">6. (199th) TOM BRADY</text>
+        <text x="300" y="26" font-family="Inter, sans-serif" font-size="11" font-style="italic" fill="#888">"Best decision this organization has ever made."</text>
+      </g>
+      <!-- super bowl trophies -->
+      <g transform="translate(40, 195)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">SEVEN SUPER BOWL RINGS</text>
+        <g transform="translate(0, 14)">
+          <circle cx="30" cy="20" r="20" fill="none" stroke="#ffb800" stroke-width="2"/>
+          <text x="30" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">'01</text>
+          <circle cx="100" cy="20" r="20" fill="none" stroke="#ffb800" stroke-width="2"/>
+          <text x="100" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">'03</text>
+          <circle cx="170" cy="20" r="20" fill="none" stroke="#ffb800" stroke-width="2"/>
+          <text x="170" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">'04</text>
+          <circle cx="240" cy="20" r="20" fill="none" stroke="#ffb800" stroke-width="2"/>
+          <text x="240" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">'14</text>
+          <circle cx="310" cy="20" r="20" fill="none" stroke="#ffb800" stroke-width="2"/>
+          <text x="310" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">'16</text>
+          <circle cx="380" cy="20" r="20" fill="none" stroke="#ffb800" stroke-width="2"/>
+          <text x="380" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">'18</text>
+          <circle cx="450" cy="20" r="20" fill="none" stroke="#ff00aa" stroke-width="2.5"/>
+          <text x="450" y="25" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ff00aa">'20</text>
+          <text x="490" y="25" font-family="Inter, sans-serif" font-size="9" fill="#ff00aa">w/ TB</text>
+        </g>
+      </g>
+    </svg>`
+  },
+
+  phelps: {
+    caption: "Beijing 2008 — eight events, eight golds, seven world records",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pool" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#003a52"/><stop offset="1" stop-color="#001a26"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <rect y="80" width="600" height="120" fill="url(#pool)"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">BEIJING 2008 · 8-FOR-8</text>
+      <!-- 8 lanes with golds -->
+      <g transform="translate(40, 95)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff" letter-spacing="2">EVENT</text>
+        <text x="380" y="0" font-family="JetBrains Mono, monospace" font-size="9" fill="#00e5ff" letter-spacing="2">RESULT</text>
+        <g font-family="Inter, sans-serif" font-size="10" fill="#fff">
+          <text x="0" y="20">400m IM</text><text x="380" y="20" fill="#ffb800">🥇 World Record</text>
+          <text x="0" y="36">4×100m free relay</text><text x="380" y="36" fill="#ffb800">🥇 World Record</text>
+          <text x="0" y="52">200m freestyle</text><text x="380" y="52" fill="#ffb800">🥇 World Record</text>
+          <text x="0" y="68">200m butterfly</text><text x="380" y="68" fill="#ffb800">🥇 World Record</text>
+          <text x="0" y="84">4×200m free relay</text><text x="380" y="84" fill="#ffb800">🥇 World Record</text>
+          <text x="0" y="100">200m IM</text><text x="380" y="100" fill="#ffb800">🥇 World Record</text>
+          <text x="0" y="116">100m butterfly</text><text x="380" y="116" fill="#ff00aa">🥇 won by 0.01s</text>
+        </g>
+      </g>
+      <!-- career totals -->
+      <g transform="translate(40, 235)">
+        <rect width="520" height="35" fill="#1f1f1f" stroke="#ffb800" rx="6"/>
+        <text x="20" y="22" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">28 OLYMPIC MEDALS</text>
+        <text x="260" y="22" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">23 GOLDS</text>
+        <text x="400" y="22" font-family="Inter, sans-serif" font-size="10" fill="#888" font-style="italic">most by any Olympian, any sport</text>
+      </g>
+    </svg>`
+  },
+
+  tiger: {
+    caption: "The Tiger Slam — all four majors held at the same time",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="22" fill="#ffb800">15 MAJOR CHAMPIONSHIPS</text>
+      <!-- Four majors -->
+      <g transform="translate(40, 65)">
+        <rect width="120" height="100" fill="#1f1f1f" stroke="#0f3d1e" stroke-width="3" rx="8"/>
+        <text x="60" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#fff">MASTERS</text>
+        <text x="60" y="60" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="46" fill="#ffb800">5</text>
+        <text x="60" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">'97 '01 '02 '05 '19</text>
+
+        <rect x="140" y="0" width="120" height="100" fill="#1f1f1f" stroke="#444" stroke-width="3" rx="8"/>
+        <text x="200" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#fff">U.S. OPEN</text>
+        <text x="200" y="60" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="46" fill="#ffb800">3</text>
+        <text x="200" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">'00 '02 '08</text>
+
+        <rect x="280" y="0" width="120" height="100" fill="#1f1f1f" stroke="#444" stroke-width="3" rx="8"/>
+        <text x="340" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#fff">THE OPEN</text>
+        <text x="340" y="60" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="46" fill="#ffb800">3</text>
+        <text x="340" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">'00 '05 '06</text>
+
+        <rect x="420" y="0" width="120" height="100" fill="#1f1f1f" stroke="#444" stroke-width="3" rx="8"/>
+        <text x="480" y="28" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#fff">PGA</text>
+        <text x="480" y="60" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="46" fill="#ffb800">4</text>
+        <text x="480" y="84" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">'99 '00 '06 '07</text>
+      </g>
+      <!-- Tiger Slam -->
+      <g transform="translate(40, 195)">
+        <rect width="520" height="40" fill="#1f1f1f" stroke="#ff00aa" stroke-width="2" rx="8"/>
+        <text x="20" y="26" font-family="Bebas Neue, sans-serif" font-size="18" fill="#ff00aa">★ TIGER SLAM 2000-2001</text>
+        <text x="280" y="26" font-family="Inter, sans-serif" font-size="11" fill="#fff">— held all four majors simultaneously</text>
+      </g>
+      <text x="300" y="265" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#888" font-style="italic">683 weeks at world #1 · 82 PGA Tour wins (tied all-time)</text>
+    </svg>`
+  },
+
+  kohli: {
+    caption: "Most ODI centuries in cricket history — passed Sachin in 2023",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0a0a0a"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="20" fill="#ffb800">CAREER CENTURIES · 84 INTERNATIONAL TONS</text>
+      <!-- Three format bars -->
+      <g transform="translate(40, 65)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">FORMAT</text>
+        <text x="520" y="0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#888" letter-spacing="2">CENTURIES</text>
+      </g>
+      <!-- ODI bar (53) -->
+      <g transform="translate(40, 78)">
+        <text x="0" y="14" font-family="Inter, sans-serif" font-size="11" fill="#fff">ODI</text>
+        <rect x="60" y="3" width="${(53/53)*420}" height="18" fill="#ffb800"/>
+        <text x="${60+(53/53)*420-6}" y="17" text-anchor="end" font-family="Bebas Neue, sans-serif" font-size="13" fill="#0a0a0a">53</text>
+        <text x="60" y="36" font-family="JetBrains Mono, monospace" font-size="8" fill="#00e5ff">★ MOST IN CRICKET HISTORY (broke Tendulkar's record in 2023)</text>
+      </g>
+      <!-- Test bar (30) -->
+      <g transform="translate(40, 128)">
+        <text x="0" y="14" font-family="Inter, sans-serif" font-size="11" fill="#fff">TEST</text>
+        <rect x="60" y="3" width="${(30/53)*420}" height="18" fill="#00e5ff"/>
+        <text x="${60+(30/53)*420-6}" y="17" text-anchor="end" font-family="Bebas Neue, sans-serif" font-size="13" fill="#0a0a0a">30</text>
+        <text x="60" y="36" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">9,230 RUNS · RETIRED MAY 2025 · 7 DOUBLE-TONS (MOST BY INDIAN)</text>
+      </g>
+      <!-- T20I bar (1) -->
+      <g transform="translate(40, 178)">
+        <text x="0" y="14" font-family="Inter, sans-serif" font-size="11" fill="#fff">T20I</text>
+        <rect x="60" y="3" width="${(1/53)*420}" height="18" fill="#ff00aa"/>
+        <text x="${60+(1/53)*420+8}" y="17" font-family="Bebas Neue, sans-serif" font-size="13" fill="#ff00aa">1</text>
+        <text x="60" y="36" font-family="JetBrains Mono, monospace" font-size="8" fill="#888">4,188 RUNS · WON 2024 T20 WORLD CUP, THEN RETIRED FROM FORMAT</text>
+      </g>
+      <!-- Bottom: trophies -->
+      <g transform="translate(40, 235)">
+        <rect width="520" height="35" fill="#1f1f1f" stroke="#ffb800" rx="6"/>
+        <text x="260" y="22" text-anchor="middle" font-family="Bebas Neue, sans-serif" font-size="14" fill="#ffb800">2011 WC · 2013 CT · 2024 T20 WC · 2025 IPL (with RCB)</text>
+      </g>
+    </svg>`
+  },
+
+};
+// ============== TIER 1: GRADE 1-3 ==============
+const TIER1 = [
+  // BASIC SPORTS RULES
+  {q:"How many players are on a basketball team on the court at once?", t:"basketball", c:["3","4","5","6"], a:2, fact:"Each basketball team has 5 players on the court — a point guard, shooting guard, small forward, power forward, and center."},
+  {q:"How many strikes do you get in baseball before you're out?", t:"baseball", c:["1","2","3","4"], a:2, fact:"Three strikes and you're out! Four balls and you walk to first base."},
+  {q:"In soccer, what do you call it when the ball goes into the goal?", t:"soccer", c:["A goal","A touchdown","A basket","A home run"], a:0, fact:"In soccer (football), a goal is worth 1 point — and games are usually low-scoring!"},
+  {q:"In hockey, what do you call the goal area where the goalie stands?", t:"hockey", c:["The end zone","The crease","The paint","The pocket"], a:1, fact:"The blue half-circle in front of the net is called the crease. Players can't usually go in there!"},
+  {q:"How many bases are there in baseball?", t:"baseball", c:["3","4","5","6"], a:1, fact:"First, second, third, and home plate — four bases form the diamond."},
+  {q:"What do you score in football to get 6 points?", t:"football", c:["A goal","A touchdown","A run","A homer"], a:1, fact:"A touchdown is worth 6 points. After scoring, teams try a kick for 1 more point (extra point) or a play for 2."},
+  {q:"In tennis, what's it called when you hit the ball with the racket?", t:"tennis", c:["A swing","A shot","A serve","A toss"], a:1, fact:"Each hit in tennis is called a shot. Special shots have names like 'serve,' 'volley,' and 'lob.'"},
+
+  // FAMOUS ATHLETES
+  {q:"Which sport did Michael Jordan play?", t:"basketball", c:["Football","Basketball","Baseball","Tennis"], a:1, fact:"Michael Jordan is the most famous basketball player in history. He won 6 NBA championships with the Chicago Bulls."},
+  {q:"Which sport is Tiger Woods famous for?", t:"golf", c:["Soccer","Golf","Tennis","Hockey"], a:1, fact:"Tiger Woods has won 15 major championships and is one of the greatest golfers ever."},
+  {q:"What sport did Wayne Gretzky play?", t:"hockey", c:["Baseball","Hockey","Football","Soccer"], a:1, fact:"Wayne Gretzky is called 'The Great One.' He's the greatest hockey player ever, with 4 Stanley Cup wins."},
+  {q:"What sport does Serena Williams play?", t:"tennis", c:["Tennis","Golf","Volleyball","Basketball"], a:0, fact:"Serena Williams has won 23 Grand Slam singles titles — more than any tennis player in the modern era."},
+  {q:"Lionel Messi is most famous for which sport?", t:"soccer", c:["Football (NFL)","Soccer","Hockey","Baseball"], a:1, fact:"Lionel Messi from Argentina has won 8 Ballon d'Or awards — more than any other soccer player."},
+
+  // TEAMS BASICS
+  {q:"Which sport do the New York Yankees play?", t:"baseball", c:["Football","Basketball","Baseball","Hockey"], a:2, fact:"The Yankees are baseball's most successful team, with 27 World Series titles."},
+  {q:"Which sport do the Los Angeles Lakers play?", t:"basketball", c:["Basketball","Baseball","Football","Soccer"], a:0, fact:"The Lakers play in the NBA and have won 17 championships — tied with the Boston Celtics for most all-time."},
+  {q:"Which sport do the Toronto Maple Leafs play?", t:"hockey", c:["Baseball","Hockey","Football","Soccer"], a:1, fact:"The Maple Leafs are an NHL team based in Toronto, Canada."},
+  {q:"Which sport do the Dallas Cowboys play?", t:"football", c:["Soccer","Football","Basketball","Hockey"], a:1, fact:"The Cowboys are an NFL team known as 'America's Team.'"},
+
+  // OLYMPIC BASICS
+  {q:"How often are the Summer Olympics held?", t:"olympics", c:["Every year","Every 2 years","Every 4 years","Every 10 years"], a:2, fact:"The Summer and Winter Olympics each happen every 4 years, but they alternate so there are Olympics every 2 years."},
+  {q:"What colour are Olympic gold medals?", t:"olympics", c:["Silver","Gold","Bronze","Blue"], a:1, fact:"Gold for 1st place, silver for 2nd, bronze for 3rd."},
+  {q:"How many rings are on the Olympic flag?", t:"olympics", c:["3","4","5","6"], a:2, fact:"The five Olympic rings represent the five inhabited continents joining together."},
+  {q:"In what city were the most recent Summer Olympics held (2024)?", t:"olympics", c:["Tokyo","Paris","London","Rio"], a:1, fact:"The 2024 Summer Olympics were held in Paris, France."},
+
+  // EQUIPMENT
+  {q:"What do you use to hit a baseball?", t:"baseball", c:["A racket","A bat","A club","A stick"], a:1, fact:"Baseball bats can be made of wood (in the major leagues) or metal (in youth leagues)."},
+  {q:"What is the long stick used in hockey called?", t:"hockey", c:["A bat","A club","A stick","A racket"], a:2, fact:"A hockey stick has a long shaft and a curved blade at the bottom for shooting the puck."},
+  {q:"What do you call the small black rubber thing used in hockey?", t:"hockey", c:["A ball","A puck","A disc","A rock"], a:1, fact:"A hockey puck is made of vulcanized rubber and is frozen before games to make it slide better!"},
+  {q:"What is the equipment you wear on your feet for ice skating?", t:"hockey", c:["Boots","Skates","Sneakers","Cleats"], a:1, fact:"Ice skates have a blade on the bottom that glides on the ice."},
+  {q:"In golf, what is a small wooden peg the ball sits on called?", t:"golf", c:["A peg","A pin","A tee","A spike"], a:2, fact:"You hit your first shot on each hole off a tee. The hole you're going to is also called a 'pin' (where the flag goes)."},
+
+  // ANIMALS & COLOURS (FUN STUFF)
+  {q:"What animal mascot do the Chicago Bulls have?", t:"basketball", c:["A bear","A bull","A bird","A horse"], a:1, fact:"A bull, of course! Michael Jordan made the Bulls one of the most famous teams in sports."},
+  {q:"What animal mascot does the Detroit Tigers baseball team have?", t:"baseball", c:["A lion","A tiger","A bear","An eagle"], a:1, fact:"The Tigers play in Detroit, Michigan."},
+
+  // NUMBERS
+  {q:"How many innings are in a regular baseball game?", t:"baseball", c:["5","7","9","11"], a:2, fact:"Nine innings is standard. Each team gets to bat in each inning until they make 3 outs."},
+  {q:"In basketball, how many points is a regular shot worth?", t:"basketball", c:["1","2","3","4"], a:1, fact:"A basket made inside the 3-point line is worth 2 points. Outside the line is 3. A free throw is 1."},
+  {q:"How many points is a free throw worth in basketball?", t:"basketball", c:["1","2","3","4"], a:0, fact:"A free throw is 1 point. You get them when the other team fouls you."},
+
+  // CONCEPTS
+  {q:"What is the championship game of the NFL called?", t:"football", c:["The World Series","The Super Bowl","The Stanley Cup","The Final Four"], a:1, fact:"The Super Bowl is the biggest single sporting event in the United States."},
+  {q:"What is the championship of the NBA called?", t:"basketball", c:["The Finals","The Super Bowl","The Cup","The Series"], a:0, fact:"The NBA Finals decides the basketball champion every June."},
+  {q:"What trophy do NHL champions win?", t:"hockey", c:["The Lombardi","The Stanley Cup","The Larry O'Brien","The Commissioner's Trophy"], a:1, fact:"The Stanley Cup is the oldest trophy in major North American sports."},
+  {q:"What is the championship of Major League Baseball called?", t:"baseball", c:["The Super Bowl","The World Series","The Stanley Cup","The Pennant"], a:1, fact:"The World Series is best-of-7 games — first team to 4 wins."},
+
+  // BASIC GEOGRAPHY OF SPORTS
+  {q:"Which sport is most popular in Brazil?", t:"soccer", c:["Cricket","Soccer","Hockey","Football"], a:1, fact:"Soccer is huge in Brazil — they've won the World Cup 5 times, more than any country."},
+  {q:"In which country was hockey invented (as the modern game)?", t:"hockey", c:["USA","Canada","Russia","Sweden"], a:1, fact:"Modern ice hockey developed in Canada in the 1800s."},
+  {q:"Sumo wrestling is a famous traditional sport from which country?", t:"culture", c:["China","Japan","Thailand","Korea"], a:1, fact:"Sumo is over 1,500 years old in Japan!"},
+
+  // TYPED (TIER 1)
+  {q:"What's the championship game of the NFL called? (type your answer)", t:"football", typed:true, a:"Super Bowl", aliases:["super bowl","superbowl","the super bowl"], fact:"The Super Bowl is played in early February."},
+  {q:"How many players are on a basketball court for one team? (type a number)", t:"basketball", typed:true, a:"5", aliases:["5","five"], fact:"Five players each, ten on the court total."},
+  {q:"What ball-and-bat sport has the Yankees and Red Sox? (type your answer)", t:"baseball", typed:true, a:"Baseball", aliases:["baseball","base ball"], fact:"Yankees vs. Red Sox is one of baseball's oldest rivalries."},
+  {q:"What's the small black rubber disc used in hockey called? (type your answer)", t:"hockey", typed:true, a:"Puck", aliases:["puck","a puck","the puck","hockey puck"], fact:"Pucks are frozen before games to keep them from bouncing."},
+  {q:"What country invented modern ice hockey? (type your answer)", t:"hockey", typed:true, a:"Canada", aliases:["canada","kanada"], fact:"Canada — the first organized indoor game was played in Montreal in 1875."},
+  {q:"How many Olympic rings are on the Olympic flag? (type a number)", t:"olympics", typed:true, a:"5", aliases:["5","five"], fact:"Five rings for the five continents."},
+  {q:"What sport does Tiger Woods play? (type your answer)", t:"golf", typed:true, a:"Golf", aliases:["golf"], fact:"Tiger has won 15 majors and 82 PGA Tour events."},
+];
+// ============== TIER 2: GRADE 4-5 ==============
+const TIER2 = [
+  // FAMOUS ATHLETES & THEIR SPORTS
+  {q:"What sport does Usain Bolt hold world records in?", t:"track", c:["Long jump","100m and 200m sprint","Marathon","Pole vault"], a:1, fact:"Bolt's records are 9.58 in the 100m and 19.19 in the 200m — both set in 2009."},
+  {q:"Babe Ruth was famous for hitting what?", t:"baseball", c:["Touchdowns","Home runs","Goals","Aces"], a:1, fact:"Babe Ruth hit 714 career home runs and changed baseball forever in the 1920s."},
+  {q:"What was Muhammad Ali's birth name?", t:"boxing", c:["Cassius Clay","Joe Louis","Sugar Ray","Mike Tyson"], a:0, fact:"He was born Cassius Marcellus Clay Jr. and changed his name when he joined the Nation of Islam in 1964."},
+  {q:"What sport is Michael Phelps the greatest at?", t:"swimming", c:["Diving","Swimming","Rowing","Water polo"], a:1, fact:"Phelps won 28 Olympic medals — 23 gold — across five Olympics."},
+  {q:"What sport does Simone Biles dominate?", t:"gymnastics", c:["Gymnastics","Figure skating","Diving","Track"], a:0, fact:"Simone Biles has 11 Olympic medals — 7 gold — the most by any American gymnast."},
+
+  // TEAMS & CITIES
+  {q:"The Lakers basketball team plays in which city?", t:"basketball", c:["Los Angeles","Las Vegas","Louisville","Lansing"], a:0, fact:"The LA Lakers moved from Minneapolis (the 'land of lakes') in 1960 — so the name doesn't really fit anymore!"},
+  {q:"The Celtics basketball team plays in which city?", t:"basketball", c:["Chicago","Boston","Cleveland","Cincinnati"], a:1, fact:"The Boston Celtics have won 18 NBA championships — the most in NBA history."},
+  {q:"The Yankees play in which city?", t:"baseball", c:["Boston","Chicago","New York","Detroit"], a:2, fact:"The New York Yankees are based in the Bronx, in 'Yankee Stadium.'"},
+  {q:"The Habs (Canadiens) are a hockey team from which city?", t:"hockey", c:["Toronto","Montreal","Vancouver","Calgary"], a:1, fact:"The Montreal Canadiens have won 24 Stanley Cups — the most of any NHL team."},
+  {q:"The Maple Leafs play hockey in which city?", t:"hockey", c:["Toronto","Ottawa","Calgary","Edmonton"], a:0, fact:"The Toronto Maple Leafs are one of the original 6 NHL teams."},
+  {q:"The Patriots NFL team is based near which city?", t:"football", c:["Pittsburgh","Boston","Philadelphia","Pasadena"], a:1, fact:"The New England Patriots play in Foxborough, Massachusetts, near Boston."},
+
+  // RECORDS & STATS
+  {q:"How many Super Bowls did Tom Brady win?", t:"football", c:["5","6","7","8"], a:2, fact:"Brady won 7 Super Bowls — 6 with New England, 1 with Tampa Bay. More than any team in NFL history."},
+  {q:"How many NBA championships did Michael Jordan win?", t:"basketball", c:["3","4","5","6"], a:3, fact:"Six championships, all with the Chicago Bulls — and he was Finals MVP all six times."},
+  {q:"How many Stanley Cups did Wayne Gretzky win?", t:"hockey", c:["2","3","4","5"], a:2, fact:"Gretzky won 4 Stanley Cups with the Edmonton Oilers in the 1980s."},
+  {q:"How many Olympic gold medals did Michael Phelps win in Beijing 2008?", t:"olympics", c:["6","7","8","9"], a:2, fact:"Eight golds in one Olympics — an all-time record. He swam in 8 events and won every single one."},
+
+  // RULES & TERMS
+  {q:"In soccer, what colour card means a player is sent off?", t:"soccer", c:["Yellow","Red","Blue","Green"], a:1, fact:"A red card is an immediate ejection. A yellow is a warning, and two yellows = a red."},
+  {q:"In baseball, what's it called when a batter hits the ball over the outfield fence?", t:"baseball", c:["A double","A triple","A home run","A grand slam"], a:2, fact:"A home run scores the batter (and any baserunners). A 'grand slam' is a home run with all bases loaded — 4 runs!"},
+  {q:"In basketball, how many points is a shot from beyond the arc?", t:"basketball", c:["1","2","3","4"], a:2, fact:"The three-point line was added to the NBA in 1979. Steph Curry has made the most career threes ever."},
+  {q:"In football, how many points is a field goal worth?", t:"football", c:["1","2","3","6"], a:2, fact:"A field goal is 3 points. A touchdown is 6, then 1 (kick) or 2 (run/pass)."},
+  {q:"In tennis, what's it called when you serve and the opponent can't even touch the ball?", t:"tennis", c:["A ace","An ace","A clear","A spike"], a:1, fact:"An ace is unreturned serve. Serena Williams hit thousands of aces in her career."},
+
+  // OLYMPIC SPORTS
+  {q:"Which of these is NOT a Summer Olympic sport?", t:"olympics", c:["Archery","Curling","Fencing","Equestrian"], a:1, fact:"Curling is a Winter Olympic sport — played on ice with stones and brooms."},
+  {q:"Where were the 2024 Summer Olympics held?", t:"olympics", c:["Tokyo","Rio","Paris","London"], a:2, fact:"Paris 2024. The opening ceremony was on the Seine River."},
+  {q:"How many medals did Simone Biles win at Paris 2024?", t:"olympics", c:["2","3","4","5"], a:2, fact:"Biles won 3 gold and 1 silver in Paris — bringing her career total to 11 Olympic medals."},
+
+  // SPORTS GEOGRAPHY
+  {q:"The FIFA World Cup is for which sport?", t:"soccer", c:["Tennis","Soccer","Cricket","Rugby"], a:1, fact:"The FIFA World Cup happens every 4 years. Argentina won in 2022 (Messi!) and France in 2018."},
+  {q:"Which sport is most popular in India?", t:"cricket", c:["Soccer","Cricket","Hockey","Tennis"], a:1, fact:"Cricket is huge in India — Virat Kohli is one of the most famous cricketers in the world."},
+  {q:"What sport is the Tour de France?", t:"cycling", c:["Running","Cycling","Driving","Sailing"], a:1, fact:"The Tour de France is a 3-week cycling race held every July, mostly in France."},
+  {q:"Wimbledon is a famous tournament in which sport?", t:"tennis", c:["Golf","Tennis","Cricket","Soccer"], a:1, fact:"Wimbledon is the oldest tennis tournament in the world — played on grass in London."},
+  {q:"The Masters is the most famous tournament in which sport?", t:"golf", c:["Tennis","Golf","Bowling","Snooker"], a:1, fact:"The Masters is played every April at Augusta National in Georgia. The winner gets a green jacket!"},
+
+  // POSITIONS
+  {q:"What position throws the ball to the batter in baseball?", t:"baseball", c:["Catcher","Pitcher","Shortstop","Outfielder"], a:1, fact:"The pitcher stands on the mound 60 feet 6 inches from home plate."},
+  {q:"What position protects the goal in soccer?", t:"soccer", c:["Striker","Goalkeeper","Defender","Midfielder"], a:1, fact:"The goalkeeper (goalie) is the only player allowed to use their hands — but only inside the penalty area."},
+  {q:"What position throws the ball in American football?", t:"football", c:["Running back","Quarterback","Wide receiver","Lineman"], a:1, fact:"The QB is usually the most famous and highest-paid player on the team."},
+  {q:"In hockey, the player who guards the net is called the...", t:"hockey", c:["Defender","Goalie","Forward","Center"], a:1, fact:"Goalies wear special padded equipment and are often nicknamed for their style."},
+
+  // SOCCER STARS
+  {q:"Which country does Lionel Messi play for internationally?", t:"soccer", c:["Brazil","Argentina","Spain","Portugal"], a:1, fact:"Messi led Argentina to win the 2022 World Cup, ending a 36-year wait."},
+  {q:"Which country won the most recent FIFA World Cup (2022)?", t:"soccer", c:["France","Argentina","Brazil","Germany"], a:1, fact:"Argentina beat France in a thrilling final that went to penalties. Messi won the Golden Ball."},
+  {q:"Which country has won the most FIFA World Cups?", t:"soccer", c:["Argentina","Germany","Italy","Brazil"], a:3, fact:"Brazil has won 5 World Cups — more than any other country."},
+
+  // TYPED (TIER 2)
+  {q:"What major US sports league does Tom Brady belong to? (type your answer)", t:"football", typed:true, a:"NFL", aliases:["nfl","national football league"], fact:"Tom Brady played 23 NFL seasons."},
+  {q:"How many Super Bowls did Tom Brady win? (type a number)", t:"football", typed:true, a:"7", aliases:["7","seven"], fact:"Seven — more than any player or franchise ever."},
+  {q:"Which country has won the most FIFA World Cups? (type your answer)", t:"soccer", typed:true, a:"Brazil", aliases:["brazil","brasil"], fact:"Brazil — five World Cup wins (1958, 1962, 1970, 1994, 2002)."},
+  {q:"What is the championship trophy of the NHL called? (type your answer)", t:"hockey", typed:true, a:"Stanley Cup", aliases:["stanley cup","the stanley cup","stanley-cup","stanly cup"], fact:"The Stanley Cup is the oldest trophy in major North American pro sports."},
+  {q:"Where will the 2026 FIFA World Cup be held? (type one of the three host countries)", t:"soccer", typed:true, a:"USA", aliases:["usa","united states","mexico","canada","united states of america","us","america","mexico","canada"], fact:"The 2026 World Cup is co-hosted by the USA, Canada, and Mexico — the first 48-team World Cup."},
+  {q:"What sport's championship is the World Series? (type your answer)", t:"baseball", typed:true, a:"Baseball", aliases:["baseball","mlb","major league baseball"], fact:"The World Series is best-of-7."},
+  {q:"What major auto racing series has the Monaco Grand Prix? (type your answer)", t:"racing", typed:true, a:"F1", aliases:["f1","formula 1","formula one","formula-1"], fact:"Formula 1 — the most prestigious motor racing series in the world."},
+  {q:"What's the most famous bicycle race in France? (type your answer)", t:"cycling", typed:true, a:"Tour de France", aliases:["tour de france","tour","the tour","tour-de-france"], fact:"It happens every July and lasts about 3 weeks."},
+];
+// ============== TIER 3: GRADE 6-8 ==============
+const TIER3 = [
+  // BASKETBALL DEEPER
+  {q:"Who scored 100 points in a single NBA game?", t:"basketball", c:["Michael Jordan","Wilt Chamberlain","LeBron James","Kobe Bryant"], a:1, fact:"Wilt Chamberlain scored 100 points in a single game on March 2, 1962 — a record that has stood for over 60 years."},
+  {q:"Who holds the NBA record for most career three-pointers made?", t:"basketball", c:["Ray Allen","Reggie Miller","Steph Curry","Klay Thompson"], a:2, fact:"Steph Curry broke Ray Allen's record in December 2021 and the gap keeps growing."},
+  {q:"Which player won 11 NBA championships — the most of any player?", t:"basketball", c:["Michael Jordan","Bill Russell","Kareem Abdul-Jabbar","Magic Johnson"], a:1, fact:"Bill Russell won 11 titles with the Boston Celtics, including 8 in a row from 1959–66."},
+  {q:"Who is the NBA's all-time leading scorer?", t:"basketball", c:["Michael Jordan","Kareem Abdul-Jabbar","LeBron James","Kobe Bryant"], a:2, fact:"LeBron James passed Kareem Abdul-Jabbar in February 2023."},
+
+  // FOOTBALL DEEPER
+  {q:"What team won Super Bowl LIX in February 2025?", t:"football", c:["Kansas City Chiefs","Philadelphia Eagles","San Francisco 49ers","Detroit Lions"], a:1, fact:"The Eagles beat the Chiefs 40-22, denying Kansas City their first-ever 'three-peat.'"},
+  {q:"Who was the QB of the Patriots dynasty for 20 years?", t:"football", c:["Peyton Manning","Tom Brady","Drew Brees","Aaron Rodgers"], a:1, fact:"Brady played 20 seasons in New England (2000-2019), then 3 more with Tampa Bay."},
+  {q:"Who holds the NFL record for most career touchdown passes?", t:"football", c:["Peyton Manning","Brett Favre","Drew Brees","Tom Brady"], a:3, fact:"Tom Brady — 649 career touchdown passes in the regular season."},
+  {q:"Which legendary running back said 'When you get into the end zone, act like you've been there before'?", t:"football", c:["Walter Payton","Barry Sanders","Jim Brown","Emmitt Smith"], a:0, fact:"Walter Payton was famous for his quiet class — he played his whole career for the Chicago Bears."},
+
+  // BASEBALL DEEPER
+  {q:"Who broke Roger Maris's single-season home run record in 1998?", t:"baseball", c:["Barry Bonds","Mark McGwire","Sammy Sosa","Ken Griffey Jr."], a:1, fact:"McGwire and Sosa both broke it in 1998 — McGwire finished with 70. Bonds broke the record again in 2001 with 73."},
+  {q:"Who has won the most MVP awards in MLB history?", t:"baseball", c:["Babe Ruth","Barry Bonds","Mike Trout","Lou Gehrig"], a:1, fact:"Barry Bonds won 7 NL MVPs. Shohei Ohtani now has 4."},
+  {q:"Shohei Ohtani's historic 2024 season was the first ever '50/50' — what does that mean?", t:"baseball", c:["50 wins, 50 saves","50 home runs, 50 stolen bases","50 hits, 50 strikeouts","50 doubles, 50 triples"], a:1, fact:"50 HR and 50 stolen bases in a single season — nobody had ever combined those numbers before. He finished with 54 HR and 59 SB."},
+  {q:"Where do the Boston Red Sox play their home games?", t:"baseball", c:["Wrigley Field","Fenway Park","Yankee Stadium","Comerica Park"], a:1, fact:"Fenway Park opened in 1912 — the oldest active MLB stadium. Famous for the 'Green Monster' wall in left field."},
+
+  // HOCKEY DEEPER
+  {q:"Wayne Gretzky scored how many goals in a single season (a record)?", t:"hockey", c:["66","78","92","100"], a:2, fact:"92 goals in 1981-82. The closest anyone has come is Alex Ovechkin with 65."},
+  {q:"Which player has been the NHL's most recent dominant superstar?", t:"hockey", c:["Sidney Crosby","Connor McDavid","Auston Matthews","Nathan MacKinnon"], a:1, fact:"McDavid has won 3 Hart Trophies (NHL MVP) and 6 Art Ross Trophies (top scorer) for the Edmonton Oilers."},
+  {q:"Who broke Wayne Gretzky's all-time NHL goals record (894) in April 2025?", t:"hockey", c:["Sidney Crosby","Connor McDavid","Alex Ovechkin","Steven Stamkos"], a:2, fact:"Alex Ovechkin broke Gretzky's career goals record in April 2025 — a record many thought would never fall."},
+
+  // SOCCER DEEPER
+  {q:"How many Ballon d'Or awards has Lionel Messi won?", t:"soccer", c:["6","7","8","9"], a:2, fact:"8 Ballon d'Ors — a record. Cristiano Ronaldo has 5."},
+  {q:"Cristiano Ronaldo plays for the national team of which country?", t:"soccer", c:["Spain","Portugal","Brazil","Argentina"], a:1, fact:"Ronaldo has more international goals than anyone in men's soccer history."},
+  {q:"Which famous club was Messi's home for most of his career?", t:"soccer", c:["Real Madrid","Manchester United","Barcelona","Juventus"], a:2, fact:"Messi played for Barcelona from 2004-2021, winning 35 trophies including 10 La Liga titles and 4 Champions Leagues."},
+  {q:"Which national team won the 2022 FIFA World Cup?", t:"soccer", c:["France","Argentina","Brazil","Germany"], a:1, fact:"Argentina beat France in penalties after a 3-3 draw — one of the greatest finals ever. Messi finally won his World Cup."},
+
+  // TENNIS DEEPER
+  {q:"Which Grand Slam is played on grass?", t:"tennis", c:["Australian Open","French Open","Wimbledon","US Open"], a:2, fact:"Wimbledon is the only major still played on grass."},
+  {q:"Who has the most men's Grand Slam singles titles?", t:"tennis", c:["Roger Federer","Rafael Nadal","Novak Djokovic","Pete Sampras"], a:2, fact:"Novak Djokovic has 24 men's Grand Slam singles titles — a record."},
+  {q:"How many Grand Slam singles titles did Serena Williams win?", t:"tennis", c:["20","22","23","25"], a:2, fact:"23 — most in the Open Era, just one short of Margaret Court's all-time record."},
+
+  // OLYMPICS
+  {q:"What 4-year cycle do the Winter Olympics follow?", t:"olympics", c:["Same year as Summer","2 years before Summer","2 years after Summer","Every other year"], a:1, fact:"Winter and Summer alternate every 2 years now. Beijing 2022, Paris 2024, Milan-Cortina 2026, LA 2028."},
+  {q:"Where will the 2028 Summer Olympics be held?", t:"olympics", c:["Brisbane","Los Angeles","Tokyo","Madrid"], a:1, fact:"LA 2028 — their third Olympics (1932, 1984, 2028)."},
+  {q:"Who became the youngest gymnast to score a perfect 10 at the Olympics in 1976?", t:"olympics", c:["Mary Lou Retton","Nadia Comăneci","Olga Korbut","Shannon Miller"], a:1, fact:"Romanian Nadia Comăneci scored seven perfect 10s at the 1976 Montreal Olympics — at age 14."},
+
+  // BOXING
+  {q:"Who was 'Iron Mike' — the youngest boxer ever to win a heavyweight title?", t:"boxing", c:["Mike Tyson","Muhammad Ali","George Foreman","Joe Frazier"], a:0, fact:"Mike Tyson won the WBC heavyweight title in 1986 at just 20 years and 4 months old."},
+  {q:"Where did Muhammad Ali fight George Foreman in 1974's 'Rumble in the Jungle'?", t:"boxing", c:["Madison Square Garden","Las Vegas","Zaire","Manila"], a:2, fact:"Zaire (now the DR Congo) — Ali shocked the world by knocking Foreman out in the 8th round."},
+
+  // OTHER SPORTS
+  {q:"What is the famous golf tournament played in Augusta, Georgia?", t:"golf", c:["US Open","British Open","The Masters","PGA Championship"], a:2, fact:"The Masters has been played at Augusta National every April since 1934. The winner gets the green jacket."},
+  {q:"How many holes are on a standard golf course?", t:"golf", c:["9","12","18","21"], a:2, fact:"18 holes is standard — though many courses have a 9-hole option."},
+  {q:"What is a 'hat trick' in hockey?", t:"hockey", c:["3 goals by one player","3 saves in a row","3 penalties","3 games in a row"], a:0, fact:"Three goals by one player in one game. Fans traditionally throw hats on the ice!"},
+  {q:"What is the maximum number of clubs you can carry in a golf bag (PGA rules)?", t:"golf", c:["10","12","14","16"], a:2, fact:"14 clubs maximum. Players pick their set based on the course."},
+  {q:"In cricket, what does it mean to score a 'century'?", t:"cricket", c:["100 runs by one batter","100 overs bowled","100 catches","100 wickets"], a:0, fact:"100 runs in a single innings is a 'century' — a major milestone. Virat Kohli has scored 84 international centuries."},
+
+  // TYPED (TIER 3)
+  {q:"Who broke Gretzky's NHL career goals record in April 2025? (type their last name)", t:"hockey", typed:true, a:"Ovechkin", aliases:["ovechkin","alex ovechkin","alexander ovechkin","ovetchkin","ovechken"], fact:"Alex Ovechkin of the Washington Capitals."},
+  {q:"What NBA team did Michael Jordan win all 6 of his titles with? (type city OR team name)", t:"basketball", typed:true, a:"Chicago Bulls", aliases:["bulls","chicago","chicago bulls","the bulls"], fact:"Chicago Bulls — six championships from 1991-98."},
+  {q:"Who has won the most Ballon d'Or awards in soccer? (type their last name)", t:"soccer", typed:true, a:"Messi", aliases:["messi","lionel messi","leo messi","messy"], fact:"Lionel Messi — 8 Ballons d'Or."},
+  {q:"Which legendary boxer changed his name from Cassius Clay? (type his name)", t:"boxing", typed:true, a:"Muhammad Ali", aliases:["muhammad ali","ali","mohammad ali","muhammed ali","mohamed ali"], fact:"He changed it in 1964 after joining the Nation of Islam."},
+  {q:"Who is the NBA's all-time leading scorer? (type their last name)", t:"basketball", typed:true, a:"LeBron James", aliases:["lebron","lebron james","james","king james","labron"], fact:"LeBron James passed Kareem Abdul-Jabbar in February 2023."},
+  {q:"What's the championship trophy of soccer's World Cup called? (just type 'World Cup' or its formal name)", t:"soccer", typed:true, a:"World Cup", aliases:["world cup","fifa world cup","the world cup","fifa wc"], fact:"The current trophy was first awarded in 1974, after Brazil retired the original Jules Rimet trophy."},
+  {q:"Which Grand Slam tennis tournament is played on grass courts? (type your answer)", t:"tennis", typed:true, a:"Wimbledon", aliases:["wimbledon","wimbleden","wimbeldon","wimbeldon","whimbledon"], fact:"Wimbledon — held every June/July in London."},
+  {q:"How many Olympic golds did Michael Phelps win at Beijing 2008? (type a number)", t:"olympics", typed:true, a:"8", aliases:["8","eight"], fact:"Eight golds — an all-time single-Olympics record."},
+  {q:"What team won Super Bowl LIX (Feb 2025)? (type the city or team name)", t:"football", typed:true, a:"Philadelphia Eagles", aliases:["eagles","philadelphia","philadelphia eagles","philly","the eagles"], fact:"The Eagles beat the Chiefs 40-22 in New Orleans."},
+  {q:"Who said 'I am the greatest!' and won the heavyweight championship 3 times? (type his name)", t:"boxing", typed:true, a:"Muhammad Ali", aliases:["muhammad ali","ali","mohammad ali","mohamed ali","muhammed ali"], fact:"Ali backed up his words like nobody else."},
+];
+// ============== TIER 4: HIGH SCHOOL ==============
+const TIER4 = [
+  // BASKETBALL ELITE
+  {q:"In what year did the NBA add the three-point line?", t:"basketball", c:["1976","1979","1983","1987"], a:1, fact:"The 3-point line was added for the 1979-80 season — borrowed from the ABA after their merger with the NBA."},
+  {q:"Who is the only player to win NBA MVP, Finals MVP, and Defensive Player of the Year in the same season?", t:"basketball", c:["LeBron James","Michael Jordan","Hakeem Olajuwon","Giannis Antetokounmpo"], a:2, fact:"Hakeem Olajuwon did it for the Rockets in 1993-94 — still the only player ever to achieve that triple."},
+  {q:"What's the most points scored in an NBA Finals game by one player?", t:"basketball", c:["50 (Jordan)","55 (Jordan)","61 (Elgin Baylor)","63 (Jordan)"], a:2, fact:"Elgin Baylor scored 61 in Game 5 of the 1962 Finals — record stood for 62+ years."},
+  {q:"Who won NBA MVP in 2024-25?", t:"basketball", c:["Nikola Jokić","Shai Gilgeous-Alexander","Giannis Antetokounmpo","Luka Dončić"], a:1, fact:"Shai Gilgeous-Alexander of OKC won the 2024-25 MVP and led the Thunder to the title."},
+
+  // FOOTBALL ELITE
+  {q:"What's the largest comeback in Super Bowl history?", t:"football", c:["20 points","25 points","28 points","31 points"], a:1, fact:"Patriots came back from 28-3 down to beat Atlanta 34-28 in Super Bowl LI (2017) — overcoming a 25-point deficit."},
+  {q:"Who holds the NFL record for most rushing yards in a single season?", t:"football", c:["Eric Dickerson","Adrian Peterson","Barry Sanders","O.J. Simpson"], a:0, fact:"Eric Dickerson — 2,105 yards for the Rams in 1984."},
+  {q:"Which NFL franchise has won the most Super Bowls (tied for most)?", t:"football", c:["Pittsburgh Steelers","Dallas Cowboys","San Francisco 49ers","Both Steelers and Patriots"], a:3, fact:"The Steelers and Patriots both have 6 Super Bowl wins."},
+  {q:"What is the 'Immaculate Reception' famous in NFL history?", t:"football", c:["A legendary catch by Franco Harris","A perfect spiral","A trick play","An interception"], a:0, fact:"Franco Harris's deflected catch for Pittsburgh against the Raiders in the 1972 playoffs."},
+
+  // BASEBALL ELITE
+  {q:"Cal Ripken Jr.'s consecutive games played streak ended at...", t:"baseball", c:["2,012","2,131","2,632","2,816"], a:2, fact:"2,632 consecutive games — broke Lou Gehrig's 'unbreakable' record of 2,130 in 1995."},
+  {q:"Who has the all-time MLB hits record?", t:"baseball", c:["Ty Cobb","Pete Rose","Hank Aaron","Stan Musial"], a:1, fact:"Pete Rose — 4,256 career hits. Banned from baseball for gambling but his hits record stands."},
+  {q:"Shohei Ohtani won how many MVP awards through 2025?", t:"baseball", c:["2","3","4","5"], a:2, fact:"4 MVPs (2021, 2023, 2024, 2025) — second only to Barry Bonds's 7."},
+  {q:"What's the longest game in MLB history (innings)?", t:"baseball", c:["20 innings","26 innings","33 innings","18 innings"], a:1, fact:"The 1920 Robins-Braves game went 26 innings — but ended in a 1-1 tie because of darkness (no lights)."},
+  {q:"Babe Ruth was traded from which team to the Yankees?", t:"baseball", c:["Boston Red Sox","Brooklyn Dodgers","Cleveland Indians","Philadelphia Athletics"], a:0, fact:"The 1919 sale started the 'Curse of the Bambino' — Boston didn't win another World Series until 2004."},
+
+  // HOCKEY ELITE
+  {q:"Connor McDavid has won how many Hart Trophies through 2025?", t:"hockey", c:["2","3","4","5"], a:1, fact:"McDavid has 3 Hart Trophies (2017, 2021, 2023). He also won the Conn Smythe in 2024."},
+  {q:"What's the 'Original Six' in the NHL?", t:"hockey", c:["The 6 founding teams from 1917","The 6 teams in NHL from 1942-67","The 6 best teams ever","The first 6 Stanley Cup winners"], a:1, fact:"From 1942 to 1967, the NHL had only 6 teams: Bruins, Blackhawks, Red Wings, Canadiens, Rangers, Maple Leafs."},
+  {q:"Who scored 'The Goal' for Canada in the 1972 Summit Series vs Soviet Union?", t:"hockey", c:["Bobby Orr","Phil Esposito","Paul Henderson","Yvan Cournoyer"], a:2, fact:"Paul Henderson scored with 34 seconds left in Game 8 — one of the most famous goals in hockey history."},
+  {q:"Wayne Gretzky was traded from Edmonton to which team in 1988?", t:"hockey", c:["NY Rangers","Toronto Maple Leafs","LA Kings","St. Louis Blues"], a:2, fact:"The trade to LA in August 1988 was treated as a national tragedy in Canada."},
+
+  // SOCCER ELITE
+  {q:"Which country has appeared in the most World Cup finals?", t:"soccer", c:["Brazil","Germany","Argentina","Italy"], a:1, fact:"Germany has 8 World Cup final appearances, winning 4. Brazil has 7 and won 5."},
+  {q:"Who scored the 'Hand of God' goal at the 1986 World Cup?", t:"soccer", c:["Pelé","Diego Maradona","Zidane","Romário"], a:1, fact:"Maradona punched the ball in vs. England in the quarterfinal — and then 4 minutes later scored the 'Goal of the Century'."},
+  {q:"What was the score of the 2022 World Cup final between Argentina and France?", t:"soccer", c:["3-3 (Arg won on pens)","2-2 (Arg won on pens)","4-2 Argentina","3-1 Argentina"], a:0, fact:"3-3 after extra time, Argentina won 4-2 on penalties. Mbappé hat-trick for France."},
+  {q:"What is UEFA?", t:"soccer", c:["European soccer governing body","World referee union","Olympic federation","Player's union"], a:0, fact:"UEFA = Union of European Football Associations. Runs the Champions League and Euros."},
+
+  // TENNIS ELITE
+  {q:"Who is the only player to win all 4 majors in the same year in the Open Era (men)?", t:"tennis", c:["Roger Federer","Rod Laver","Novak Djokovic","Pete Sampras"], a:1, fact:"Rod Laver won the Grand Slam (all 4 majors in one year) in 1962 and again in 1969 — the only player to do it twice."},
+  {q:"What is a 'bagel' in tennis slang?", t:"tennis", c:["A 6-0 set","A break of serve","An ace","A drop shot"], a:0, fact:"A 6-0 set is a 'bagel' because the 0 looks like a bagel. 6-0, 6-0, 6-0 is a 'triple bagel.'"},
+  {q:"Who won the most Wimbledon men's singles titles?", t:"tennis", c:["Roger Federer","Pete Sampras","Björn Borg","Novak Djokovic"], a:0, fact:"Federer has 8 Wimbledon titles. Djokovic has 7."},
+
+  // OLYMPICS DEEP
+  {q:"Who is the most decorated Olympian of all time?", t:"olympics", c:["Larisa Latynina","Michael Phelps","Mark Spitz","Carl Lewis"], a:1, fact:"Phelps — 28 total medals. Soviet gymnast Larisa Latynina is 2nd with 18 (record before Phelps)."},
+  {q:"In what year did the modern Olympic Games begin?", t:"olympics", c:["1888","1892","1896","1900"], a:2, fact:"Athens 1896 — organized by Pierre de Coubertin and based on the ancient Greek games."},
+  {q:"Jesse Owens famously won 4 gold medals at which Olympics?", t:"olympics", c:["Berlin 1936","London 1948","Helsinki 1952","Melbourne 1956"], a:0, fact:"Jesse Owens won 4 golds at Berlin 1936 — humiliating Hitler's 'master race' propaganda in his own country."},
+  {q:"What gymnastics skill is named after Simone Biles on vault?", t:"olympics", c:["Yurchenko double pike","Triple-double","Cheng salto","Tsukahara"], a:0, fact:"The 'Biles II' on vault is a Yurchenko double pike — so difficult no other female gymnast has done it in competition."},
+
+  // OTHER HARD
+  {q:"In F1, what was Michael Schumacher's record number of world championships?", t:"racing", c:["5","6","7","8"], a:2, fact:"7 — tied by Lewis Hamilton in 2020."},
+  {q:"Who won 7 consecutive Tour de France titles (later stripped)?", t:"cycling", c:["Lance Armstrong","Eddy Merckx","Bernard Hinault","Chris Froome"], a:0, fact:"Lance Armstrong won 7 straight (1999-2005) but had all titles stripped in 2012 after admitting to doping."},
+  {q:"What's the maximum break in snooker?", t:"snooker", c:["120","147","155","180"], a:1, fact:"147 — pot all 15 reds with blacks, then all 6 colours. Ronnie O'Sullivan has made the most 147s (15+)."},
+  {q:"In cricket, what is a 'duck'?", t:"cricket", c:["A bowling style","Getting out for 0 runs","A type of field","Three boundaries"], a:1, fact:"A duck is being dismissed for zero runs. A 'golden duck' is out on the very first ball you face."},
+  {q:"Which sport uses the term 'maiden over'?", t:"cricket", c:["Cricket","Polo","Rugby","Lacrosse"], a:0, fact:"A maiden over in cricket is six balls bowled with no runs scored — a great achievement for the bowler."},
+  {q:"What's the world record in the men's marathon (approximately)?", t:"track", c:["1:59:40 (unofficial)","2:00:35","2:02:57","2:04:00"], a:1, fact:"Kelvin Kiptum of Kenya set the official record at 2:00:35 in Chicago, October 2023. Eliud Kipchoge ran 1:59:40 unofficially in a 2019 controlled event."},
+  {q:"Mike Tyson's heavyweight title at age 20 set what record?", t:"boxing", c:["Most KOs in a year","Youngest heavyweight champ ever","Highest payday","Quickest fight"], a:1, fact:"At 20 years, 4 months old when he won the WBC title in 1986 — youngest ever."},
+
+  // TYPED (TIER 4)
+  {q:"Who scored the 'Hand of God' goal at the 1986 World Cup? (type their last name)", t:"soccer", typed:true, a:"Maradona", aliases:["maradona","diego maradona","maradonna"], fact:"Maradona's two goals vs. England in 1986 are two of the most famous in soccer history."},
+  {q:"Who has the men's tennis record for Grand Slam titles? (type their last name)", t:"tennis", typed:true, a:"Djokovic", aliases:["djokovic","novak djokovic","jokovic","djoković","djokovich"], fact:"Djokovic has 24 majors — and counting."},
+  {q:"What is Wayne Gretzky's nickname? (type the two words)", t:"hockey", typed:true, a:"The Great One", aliases:["the great one","great one","the-great-one"], fact:"Gretzky was 'The Great One.' His teammate Mark Messier was 'The Messiah.'"},
+  {q:"What's the maximum break in snooker? (type a number)", t:"snooker", typed:true, a:"147", aliases:["147","one hundred and forty seven","147 break"], fact:"The 'maximum' is 147."},
+  {q:"Who broke baseball's single-season HR record in 2001 with 73? (type their last name)", t:"baseball", typed:true, a:"Bonds", aliases:["bonds","barry bonds","bonds barry"], fact:"Barry Bonds — that record still stands."},
+  {q:"What's the official record holder in the men's marathon (Kenyan athlete)? (type their last name)", t:"track", typed:true, a:"Kiptum", aliases:["kiptum","kelvin kiptum"], fact:"Kelvin Kiptum set the record (2:00:35) in October 2023; he tragically died in a car accident in February 2024."},
+  {q:"What's the championship of European club soccer called? (type its common name)", t:"soccer", typed:true, a:"Champions League", aliases:["champions league","the champions league","uefa champions league","ucl"], fact:"The UEFA Champions League — the biggest club competition in soccer."},
+  {q:"What boxer beat Muhammad Ali in the 'Fight of the Century' in 1971? (type his last name)", t:"boxing", typed:true, a:"Frazier", aliases:["frazier","joe frazier","frazer"], fact:"Joe Frazier beat Ali in 1971 — Ali avenged it twice over the next four years, including the Thrilla in Manila."},
+  {q:"What's the formal name of the trophy given to the FIFA World Cup champion? (type your answer)", t:"soccer", typed:true, a:"FIFA World Cup Trophy", aliases:["fifa world cup trophy","world cup trophy","jules rimet trophy","jules rimet","fifa trophy","the world cup"], fact:"The Jules Rimet trophy was retired after Brazil won it 3 times — current trophy designed in 1974."},
+  {q:"What position did Joe Montana play? (type your answer)", t:"football", typed:true, a:"Quarterback", aliases:["quarterback","qb","quarter back"], fact:"Joe Montana — 4 Super Bowl wins, considered one of the greatest QBs ever."},
+  {q:"Who is the only player to win the Olympic 100m and 200m sprint at 3 straight Games? (type his last name)", t:"track", typed:true, a:"Bolt", aliases:["bolt","usain bolt"], fact:"Usain Bolt — Beijing 2008, London 2012, Rio 2016."},
+  {q:"Which legendary gymnast scored the first perfect 10 in Olympic history (1976)? (type her last name)", t:"olympics", typed:true, a:"Comăneci", aliases:["comaneci","comăneci","nadia","nadia comaneci","nadia comăneci","comanecci"], fact:"Nadia Comăneci of Romania, at age 14, in Montreal."},
+];
+// ============== GAME LOGIC ==============
+
+const ALL_TIERS = [TIER1, TIER2, TIER3, TIER4];
+const TIER_NAMES = ['Grade 1-3', 'Grade 4-5', 'Grade 6-8', 'High School'];
+
+const state = {
+  p1: { explorer: null, tier: null, hp: 100, used: new Set() },
+  p2: { explorer: null, tier: null, hp: 100, used: new Set() },
+  turn: 1, // 1 or 2
+  currentChoice: null, // 'home' or 'up'
+  currentQ: null,
+  currentQTier: null,
+  turnsPlayed: 0,
+  correctAnswers: { 1: 0, 2: 0 },
+  totalAnswers: { 1: 0, 2: 0 },
+  awaitingNext: false,
+};
+
+// =============== FUZZY ANSWER MATCHING ===============
+function normalize(s) {
+  return s.toLowerCase()
+    .trim()
+    .replace(/[''`]/g, "'")
+    .replace(/[^\w\s'-]/g, '')
+    .replace(/^(the|a|an|le|la|les)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripPunctSpaces(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({length: b.length + 1}, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i-1] === b[j-1]
+        ? prev
+        : Math.min(prev, dp[j], dp[j-1]) + 1;
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}
+
+function fuzzyMatch(input, answer, aliases) {
+  if (!input) return false;
+  const userNorm = normalize(input);
+  const userTight = stripPunctSpaces(input);
+  const allTargets = [answer, ...(aliases || [])];
+  for (const t of allTargets) {
+    const tNorm = normalize(t);
+    const tTight = stripPunctSpaces(t);
+    if (userNorm === tNorm) return true;
+    if (userTight === tTight) return true;
+    // tolerance scales with word length
+    const tol = tNorm.length <= 4 ? 0 : tNorm.length <= 7 ? 1 : tNorm.length <= 12 ? 2 : 3;
+    if (levenshtein(userNorm, tNorm) <= tol) return true;
+    if (levenshtein(userTight, tTight) <= tol) return true;
+  }
+  return false;
+}
+
+// =============== EXPLORER CARD BUILDING ===============
+// Iconic jersey/uniform numbers for each athlete (faded background visual)
+const JERSEY_NUMBERS = {
+  jordan: '23', ali: '01', serena: '01', gretzky: '99',
+  bolt: '09', messi: '10', ohtani: '17', biles: '11',
+  brady: '12', phelps: '08', tiger: '01', kohli: '18',
+};
+
+function buildExplorerGrid(playerNum) {
+  const grid = document.getElementById('p' + playerNum + '-fighters');
+  grid.innerHTML = '';
+  EXPLORERS.forEach((ex, idx) => {
+    const card = document.createElement('div');
+    card.className = 'fighter-card';
+    card.dataset.idx = idx;
+    card.dataset.player = playerNum;
+    card.dataset.jersey = JERSEY_NUMBERS[ex.id] || '';
+    card.innerHTML = `
+      <span class="fighter-emoji">${ex.emoji}</span>
+      <div class="fighter-name">${ex.name}</div>
+      <div class="fighter-era">${ex.era}</div>
+      <button class="story-btn" onclick="event.stopPropagation(); openStory(${idx})">📖 story</button>
+    `;
+    card.addEventListener('click', () => selectExplorer(playerNum, idx));
+    grid.appendChild(card);
+  });
+}
+
+function selectExplorer(playerNum, idx) {
+  const grid = document.getElementById('p' + playerNum + '-fighters');
+  grid.querySelectorAll('.fighter-card').forEach(c => {
+    c.classList.remove('selected-p1', 'selected-p2');
+  });
+  const card = grid.querySelector(`.fighter-card[data-idx="${idx}"]`);
+  card.classList.add('selected-p' + playerNum);
+  state['p' + playerNum].explorer = idx;
+  checkGoReady();
+}
+
+// =============== TIER CARD BUILDING ===============
+function buildTierGrid(playerNum) {
+  const grid = document.getElementById('p' + playerNum + '-tiers');
+  grid.innerHTML = '';
+  TIER_NAMES.forEach((name, idx) => {
+    const card = document.createElement('div');
+    card.className = 'tier-card';
+    card.dataset.tier = idx;
+    const ages = ['Ages 6-8','Ages 9-10','Ages 11-13','Ages 14+'];
+    card.innerHTML = `
+      <div class="tier-name">${name}</div>
+      <div class="tier-age">${ages[idx]}</div>
+    `;
+    card.addEventListener('click', () => selectTier(playerNum, idx));
+    grid.appendChild(card);
+  });
+}
+
+function selectTier(playerNum, idx) {
+  const grid = document.getElementById('p' + playerNum + '-tiers');
+  grid.querySelectorAll('.tier-card').forEach(c => {
+    c.classList.remove('selected-p1', 'selected-p2');
+  });
+  const card = grid.querySelector(`.tier-card[data-tier="${idx}"]`);
+  card.classList.add('selected-p' + playerNum);
+  state['p' + playerNum].tier = idx;
+  checkGoReady();
+}
+
+function checkGoReady() {
+  const ready = state.p1.explorer !== null && state.p1.tier !== null &&
+                state.p2.explorer !== null && state.p2.tier !== null;
+  document.getElementById('go-btn').disabled = !ready;
+}
+
+// =============== STORY MODAL ===============
+function openStory(idx) {
+  const ex = EXPLORERS[idx];
+  const dg = DIAGRAMS[ex.diagram];
+  document.getElementById('story-emoji').textContent = ex.emoji;
+  document.getElementById('story-name').textContent = ex.name;
+  document.getElementById('story-era').textContent = ex.era + ' · ' + ex.tagline;
+  document.getElementById('story-body').innerHTML = ex.story.map(p => `<p>${p}</p>`).join('');
+  const diagWrap = document.getElementById('story-diagram');
+  if (dg) {
+    diagWrap.innerHTML = dg.svg + `<div class="diagram-caption">${dg.caption}</div>`;
+    diagWrap.style.display = 'block';
+  } else {
+    diagWrap.style.display = 'none';
+  }
+  document.getElementById('story-overlay').classList.add('active');
+}
+function closeStory() {
+  document.getElementById('story-overlay').classList.remove('active');
+}
+
+// =============== START BATTLE ===============
+function startBattle() {
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+  renderArenaHeader();
+  beginTurn();
+  window.scrollTo(0, 0);
+}
+
+function renderArenaHeader() {
+  const p1 = EXPLORERS[state.p1.explorer];
+  const p2 = EXPLORERS[state.p2.explorer];
+
+  document.getElementById('p1-name').innerHTML = `<span style="font-size:1.2rem">${p1.emoji}</span> <span>${p1.name}</span>`;
+  document.getElementById('p2-name').innerHTML = `<span>${p2.name}</span> <span style="font-size:1.2rem">${p2.emoji}</span>`;
+  document.getElementById('p1-tier').textContent = TIER_NAMES[state.p1.tier];
+  document.getElementById('p2-tier').textContent = TIER_NAMES[state.p2.tier];
+  updateHP();
+}
+
+function updateHP() {
+  const p1pct = Math.max(0, state.p1.hp);
+  const p2pct = Math.max(0, state.p2.hp);
+  const p1fill = document.getElementById('p1-hp-fill');
+  const p2fill = document.getElementById('p2-hp-fill');
+  p1fill.style.width = p1pct + '%';
+  p2fill.style.width = p2pct + '%';
+  p1fill.classList.toggle('low', state.p1.hp <= 30);
+  p2fill.classList.toggle('low', state.p2.hp <= 30);
+  document.getElementById('p1-hp-text').textContent = `${Math.max(0,state.p1.hp)} / 100 HP`;
+  document.getElementById('p2-hp-text').textContent = `${Math.max(0,state.p2.hp)} / 100 HP`;
+}
+
+// =============== TURNS ===============
+function beginTurn() {
+  const me = state['p' + state.turn];
+  const ex = EXPLORERS[me.explorer];
+  const indicator = document.getElementById('turn-indicator');
+  indicator.textContent = `${ex.emoji} ${ex.name}'s Turn — choose a level`;
+  indicator.classList.toggle('p2-turn', state.turn === 2);
+
+  document.getElementById('turn-choice').style.display = 'grid';
+  document.getElementById('question-area').style.display = 'none';
+
+  const homeTierName = TIER_NAMES[me.tier];
+  const upTierName = me.tier < 3 ? TIER_NAMES[me.tier + 1] : null;
+
+  document.getElementById('choice-home-title').textContent = homeTierName;
+  document.getElementById('choice-home-sub').textContent = 'Your level · 11 dmg';
+
+  const upBtn = document.getElementById('choice-up-btn');
+  if (upTierName) {
+    upBtn.style.display = 'block';
+    document.getElementById('choice-up-title').textContent = upTierName;
+    document.getElementById('choice-up-sub').textContent = 'Reach up · 15 dmg';
+  } else {
+    upBtn.style.display = 'none';
+  }
+}
+
+function chooseLevel(which) {
+  const me = state['p' + state.turn];
+  const tierIdx = which === 'home' ? me.tier : me.tier + 1;
+  state.currentChoice = which;
+  state.currentQTier = tierIdx;
+
+  // pick a question this player hasn't used at this tier
+  const bank = ALL_TIERS[tierIdx];
+  const usedKey = 'tier' + tierIdx;
+  if (!me.used.has) me.used = new Set();
+  const seen = me.used;
+  const available = bank.map((_, i) => `${tierIdx}:${i}`).filter(k => !seen.has(k));
+  if (available.length === 0) {
+    // Reset that tier for this player if exhausted
+    bank.forEach((_, i) => seen.delete(`${tierIdx}:${i}`));
+  }
+  const pool = bank.map((_, i) => `${tierIdx}:${i}`).filter(k => !seen.has(k));
+  const pickKey = pool[Math.floor(Math.random() * pool.length)];
+  const qIdx = parseInt(pickKey.split(':')[1], 10);
+  seen.add(pickKey);
+
+  state.currentQ = bank[qIdx];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  document.getElementById('turn-choice').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+
+  const q = state.currentQ;
+  document.getElementById('q-topic').textContent = `${TIER_NAMES[state.currentQTier]} · ${q.t}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const choicesDiv = document.getElementById('q-choices');
+  const typedDiv = document.getElementById('q-typed');
+  const feedback = document.getElementById('q-feedback');
+  feedback.style.display = 'none';
+  feedback.innerHTML = '';
+
+  if (q.typed) {
+    choicesDiv.style.display = 'none';
+    typedDiv.style.display = 'flex';
+    const input = document.getElementById('q-input');
+    input.value = '';
+    input.classList.remove('correct', 'wrong');
+    input.disabled = false;
+    document.getElementById('q-submit').disabled = false;
+    setTimeout(() => input.focus(), 100);
+  } else {
+    typedDiv.style.display = 'none';
+    choicesDiv.style.display = 'grid';
+    choicesDiv.innerHTML = '';
+    const letters = ['A','B','C','D'];
+    q.c.forEach((choice, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choice}</span>`;
+      btn.addEventListener('click', () => answerMC(i));
+      choicesDiv.appendChild(btn);
+    });
+  }
+}
+
+function answerMC(idx) {
+  const q = state.currentQ;
+  const correct = idx === q.a;
+  const choices = document.querySelectorAll('#q-choices .choice');
+  choices.forEach((c, i) => {
+    c.disabled = true;
+    if (i === q.a) c.classList.add('correct');
+    if (i === idx && i !== q.a) c.classList.add('wrong');
+  });
+  resolveAnswer(correct);
+}
+
+function answerTyped() {
+  const q = state.currentQ;
+  const input = document.getElementById('q-input');
+  const userText = input.value.trim();
+  if (!userText) return;
+  const correct = fuzzyMatch(userText, q.a, q.aliases);
+  input.classList.add(correct ? 'correct' : 'wrong');
+  input.disabled = true;
+  document.getElementById('q-submit').disabled = true;
+  resolveAnswer(correct);
+}
+
+function resolveAnswer(correct) {
+  const q = state.currentQ;
+  const attacker = state.turn;
+  const defender = attacker === 1 ? 2 : 1;
+  const damage = state.currentChoice === 'home' ? 11 : 15;
+
+  state.totalAnswers[attacker]++;
+  if (correct) state.correctAnswers[attacker]++;
+  state.turnsPlayed++;
+
+  const feedback = document.getElementById('q-feedback');
+  feedback.style.display = 'block';
+
+  if (correct) {
+    feedback.className = 'feedback right';
+    feedback.innerHTML = `<b>Correct!</b> ${q.fact} <br><br>You deal <b>${damage} damage</b> to your opponent.`;
+    state['p' + defender].hp -= damage;
+    flashDamage(defender, damage);
+  } else {
+    feedback.className = 'feedback wrong';
+    const correctText = q.typed ? q.a : q.c[q.a];
+    feedback.innerHTML = `<b>Not quite!</b> The answer was: <b>${correctText}</b>. <br><br>${q.fact}<br><br>No damage dealt.`;
+  }
+
+  updateHP();
+
+  // Check for winner
+  if (state.p1.hp <= 0 || state.p2.hp <= 0) {
+    setTimeout(showWinner, 1600);
+    return;
+  }
+
+  // Add Next button
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'next-btn';
+  nextBtn.textContent = 'Next turn →';
+  nextBtn.onclick = nextTurn;
+  feedback.appendChild(nextBtn);
+}
+
+function flashDamage(targetPlayer, dmg) {
+  const target = document.getElementById('p' + targetPlayer + '-name').getBoundingClientRect();
+  const flash = document.createElement('div');
+  flash.className = 'dmg-flash';
+  flash.textContent = '-' + dmg;
+  flash.style.color = targetPlayer === 1 ? '#5be3ff' : '#ffb547';
+  flash.style.left = (target.left + target.width / 2) + 'px';
+  flash.style.top = (target.top + window.scrollY) + 'px';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 1200);
+}
+
+function nextTurn() {
+  state.turn = state.turn === 1 ? 2 : 1;
+  beginTurn();
+  document.getElementById('question-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// =============== WINNER ===============
+function showWinner() {
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('winner-screen').classList.add('active');
+
+  const winner = state.p1.hp > 0 ? 1 : 2;
+  const wEx = EXPLORERS[state['p' + winner].explorer];
+  document.getElementById('winner-name').textContent = wEx.name + ' triumphs!';
+  document.getElementById('winner-emoji').textContent = wEx.emoji;
+
+  const acc1 = state.totalAnswers[1] > 0
+    ? Math.round(100 * state.correctAnswers[1] / state.totalAnswers[1])
+    : 0;
+  const acc2 = state.totalAnswers[2] > 0
+    ? Math.round(100 * state.correctAnswers[2] / state.totalAnswers[2])
+    : 0;
+
+  document.getElementById('stat-turns').textContent = state.turnsPlayed;
+  document.getElementById('stat-acc1').textContent = acc1 + '%';
+  document.getElementById('stat-acc2').textContent = acc2 + '%';
+  window.scrollTo(0, 0);
+}
+
+function rematch() {
+  state.p1.hp = 100;
+  state.p2.hp = 100;
+  state.p1.used = new Set();
+  state.p2.used = new Set();
+  state.turn = 1;
+  state.turnsPlayed = 0;
+  state.correctAnswers = { 1: 0, 2: 0 };
+  state.totalAnswers = { 1: 0, 2: 0 };
+  document.getElementById('winner-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+  renderArenaHeader();
+  beginTurn();
+  window.scrollTo(0, 0);
+}
+
+function newGame() {
+  state.p1 = { explorer: null, tier: null, hp: 100, used: new Set() };
+  state.p2 = { explorer: null, tier: null, hp: 100, used: new Set() };
+  state.turn = 1;
+  state.turnsPlayed = 0;
+  state.correctAnswers = { 1: 0, 2: 0 };
+  state.totalAnswers = { 1: 0, 2: 0 };
+  document.getElementById('winner-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('setup-screen').classList.add('active');
+  buildExplorerGrid(1);
+  buildExplorerGrid(2);
+  buildTierGrid(1);
+  buildTierGrid(2);
+  document.getElementById('go-btn').disabled = true;
+  window.scrollTo(0, 0);
+}
+
+// =============== INIT ===============
+window.addEventListener('DOMContentLoaded', () => {
+  buildExplorerGrid(1);
+  buildExplorerGrid(2);
+  buildTierGrid(1);
+  buildTierGrid(2);
+
+  document.getElementById('go-btn').addEventListener('click', startBattle);
+  document.getElementById('choice-home-btn').addEventListener('click', () => chooseLevel('home'));
+  document.getElementById('choice-up-btn').addEventListener('click', () => chooseLevel('up'));
+  document.getElementById('q-submit').addEventListener('click', answerTyped);
+  document.getElementById('q-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') answerTyped();
+  });
+  document.getElementById('modal-close').addEventListener('click', closeStory);
+  document.getElementById('story-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'story-overlay') closeStory();
+  });
+  document.getElementById('rematch-btn').addEventListener('click', rematch);
+  document.getElementById('new-game-btn').addEventListener('click', newGame);
+});
+</script>
+
+</body>
+</html>

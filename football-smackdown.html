@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Smackdown — Tactics Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ========== CHALKBOARD TACTICS BOARD THEME ========== */
+:root {
+  --pitch-dark: #0d2818;
+  --pitch: #143d24;
+  --pitch-mid: #1a4a2c;
+  --pitch-light: #1f5934;
+  --chalk: #f4f1e8;
+  --chalk-dim: #b9b3a0;
+  --chalk-faded: rgba(244, 241, 232, 0.4);
+  --yellow: #fff04d;
+  --orange: #ff9933;
+  --cyan: #6ee7ff;
+  --red: #ff5577;
+  --p1: #6ee7ff;
+  --p2: #fff04d;
+  --line: rgba(244, 241, 232, 0.15);
+  --line-strong: rgba(244, 241, 232, 0.35);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+  color: var(--chalk);
+  background: var(--pitch-dark);
+  overflow-x: hidden;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(110, 231, 255, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 90%, rgba(255, 240, 77, 0.03) 0%, transparent 55%),
+    linear-gradient(180deg, var(--pitch) 0%, var(--pitch-dark) 100%);
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Chalkboard texture — subtle noise + grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(244,241,232,0.018) 39px, rgba(244,241,232,0.018) 40px),
+    repeating-linear-gradient(0deg, transparent 0, transparent 39px, rgba(244,241,232,0.018) 39px, rgba(244,241,232,0.018) 40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Chalk dust noise */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(244,241,232,0.015) 0%, transparent 8%),
+    radial-gradient(circle at 75% 60%, rgba(244,241,232,0.02) 0%, transparent 10%),
+    radial-gradient(circle at 40% 80%, rgba(244,241,232,0.012) 0%, transparent 7%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 14px 80px;
+}
+
+/* ========== SCREENS ========== */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== TITLE BLOCK ========== */
+.title-block {
+  text-align: center;
+  padding: 24px 12px 18px;
+  position: relative;
+}
+
+.matchday-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  color: var(--yellow);
+  margin-bottom: 14px;
+  letter-spacing: 0.05em;
+}
+.matchday-tag::before,
+.matchday-tag::after {
+  content: '';
+  width: 30px;
+  height: 1px;
+  background: var(--chalk-faded);
+}
+
+.game-title {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: clamp(3.2rem, 11vw, 6.5rem);
+  line-height: 0.95;
+  color: var(--chalk);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  margin-bottom: 4px;
+  position: relative;
+}
+.game-title .smackdown {
+  color: var(--yellow);
+  display: block;
+  font-size: 1.05em;
+  transform: rotate(-2deg);
+  margin-top: -8px;
+}
+/* Hand-drawn underline */
+.game-title::after {
+  content: '';
+  display: block;
+  width: 80%;
+  height: 6px;
+  margin: -8px auto 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6' preserveAspectRatio='none'%3E%3Cpath d='M2 3 Q 50 0, 100 3 T 198 3' stroke='%23fff04d' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+  background-size: 100% 100%;
+}
+
+.game-sub {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  color: var(--chalk-dim);
+  max-width: 600px;
+  margin: 16px auto 0;
+}
+
+/* ========== SETUP SECTIONS — like clipboard sheets ========== */
+.setup-section {
+  margin: 24px 0;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 4px;
+  padding: 22px 18px;
+  position: relative;
+}
+
+/* Corner markers like chalk tactic boards */
+.setup-section::before {
+  content: '+';
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  color: var(--chalk-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+.setup-section::after {
+  content: '+';
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  color: var(--chalk-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.setup-section h2 {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: var(--chalk);
+}
+
+.p1c { color: var(--p1); }
+.p2c { color: var(--p2); }
+
+.setup-hint {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--chalk-dim);
+  margin-bottom: 14px;
+}
+
+/* ========== ATHLETE GRID (FIGHTER CARDS) ========== */
+.fighter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+/* Player position circle behind each card */
+.fighter-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 14px 10px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Position label (RW, ST, CM etc) chalked in corner */
+.fighter-card::before {
+  content: attr(data-position);
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  color: var(--chalk-faded);
+  text-transform: uppercase;
+}
+
+/* Big faded shirt number */
+.fighter-card::after {
+  content: attr(data-jersey);
+  position: absolute;
+  top: -8px;
+  right: 4px;
+  font-family: 'Caveat', cursive;
+  font-size: 3rem;
+  font-weight: 700;
+  color: rgba(244,241,232,0.07);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.fighter-card:hover {
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+  background: rgba(255, 240, 77, 0.06);
+}
+
+.fighter-card.selected-p1 {
+  border-color: var(--p1);
+  background: rgba(110, 231, 255, 0.12);
+  box-shadow: 0 0 16px rgba(110, 231, 255, 0.3);
+}
+.fighter-card.selected-p2 {
+  border-color: var(--p2);
+  background: rgba(255, 240, 77, 0.15);
+  box-shadow: 0 0 16px rgba(255, 240, 77, 0.3);
+}
+
+.fighter-emoji {
+  font-size: 2.2rem;
+  display: block;
+  margin: 6px 0 4px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.fighter-name {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1.05;
+  color: var(--chalk);
+  margin-bottom: 2px;
+}
+
+.fighter-era {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--chalk-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+
+.story-btn {
+  background: transparent;
+  border: 1px dashed rgba(255, 240, 77, 0.5);
+  color: var(--yellow);
+  font-family: 'Caveat', cursive;
+  font-size: 0.95rem;
+  padding: 1px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.story-btn:hover {
+  background: rgba(255, 240, 77, 0.12);
+  border-color: var(--yellow);
+}
+
+/* ========== TIER GRID ========== */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.tier-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 14px 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.tier-card:hover {
+  border-color: var(--yellow);
+  border-style: solid;
+  transform: translateY(-2px);
+}
+
+.tier-card.selected-p1 {
+  border-color: var(--p1);
+  border-style: solid;
+  background: rgba(110, 231, 255, 0.12);
+  box-shadow: 0 0 14px rgba(110, 231, 255, 0.25);
+}
+.tier-card.selected-p2 {
+  border-color: var(--p2);
+  border-style: solid;
+  background: rgba(255, 240, 77, 0.12);
+  box-shadow: 0 0 14px rgba(255, 240, 77, 0.25);
+}
+
+.tier-name {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.tier-age {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--chalk-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ========== RULES BOX ========== */
+.rules-box {
+  background: rgba(255, 240, 77, 0.04);
+  border-left: 3px dashed var(--yellow);
+  padding: 14px 16px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: var(--chalk);
+}
+.rules-box b { color: var(--yellow); font-weight: 700; }
+.up { color: var(--cyan); font-weight: 700; }
+
+/* ========== GO BUTTON ========== */
+.btn-go {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  margin: 28px auto 0;
+  background: var(--yellow);
+  color: var(--pitch-dark);
+  border: 2px solid var(--chalk);
+  border-radius: 8px;
+  padding: 16px 24px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(255, 240, 77, 0.35), 4px 4px 0 rgba(0,0,0,0.4);
+  transition: all 0.2s;
+}
+.btn-go:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 0 0 50px rgba(255, 240, 77, 0.5), 6px 6px 0 rgba(0,0,0,0.5);
+}
+.btn-go:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ========== BATTLE ARENA ========== */
+.arena-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  background: rgba(0,0,0,0.3);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 16px 18px;
+  position: relative;
+}
+.arena-header::before {
+  content: '+';
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  color: var(--chalk-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.arena-header::after {
+  content: '+';
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  color: var(--chalk-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.player-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.player-panel.right { text-align: right; align-items: flex-end; }
+
+.panel-name {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.player-panel.right .panel-name { flex-direction: row-reverse; }
+
+.panel-tier {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--chalk-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.hp-bar {
+  height: 14px;
+  background: rgba(0,0,0,0.5);
+  border: 1px dashed var(--chalk-faded);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.hp-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hp-fill.p1 {
+  background: linear-gradient(90deg, var(--cyan), #2899bb);
+  box-shadow: 0 0 10px rgba(110, 231, 255, 0.4);
+}
+.hp-fill.p2 {
+  background: linear-gradient(90deg, var(--yellow), var(--orange));
+  box-shadow: 0 0 10px rgba(255, 240, 77, 0.4);
+}
+.hp-fill.low {
+  background: linear-gradient(90deg, var(--red), #aa1133);
+  animation: pulse 0.7s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.hp-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--chalk-dim);
+  letter-spacing: 0.05em;
+}
+
+.vs-badge {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2.4rem;
+  color: var(--yellow);
+  text-shadow: 0 0 14px rgba(255, 240, 77, 0.4);
+  transform: rotate(-6deg);
+}
+
+/* ========== TURN INDICATOR ========== */
+.turn-indicator {
+  text-align: center;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.7rem;
+  margin: 16px 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+  background: rgba(110, 231, 255, 0.06);
+  transition: all 0.3s;
+}
+.turn-indicator.p2-turn {
+  background: rgba(255, 240, 77, 0.08);
+}
+
+/* ========== TURN CHOICE ========== */
+.turn-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.choice-btn {
+  background: rgba(0,0,0,0.3);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 8px;
+  padding: 16px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--chalk);
+  text-align: center;
+  transition: all 0.2s;
+}
+.choice-btn:hover {
+  border-color: var(--cyan);
+  border-style: solid;
+  transform: translateY(-2px);
+}
+.choice-btn.reachup {
+  border-color: rgba(255, 153, 51, 0.5);
+}
+.choice-btn.reachup:hover {
+  border-color: var(--orange);
+  border-style: solid;
+}
+
+.choice-title {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.65rem;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.choice-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--chalk-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.choice-damage {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.9rem;
+  color: var(--cyan);
+  margin-top: 4px;
+  line-height: 1;
+}
+.choice-btn.reachup .choice-damage { color: var(--orange); }
+
+/* ========== QUESTION CARD ========== */
+.question-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px dashed var(--chalk-faded);
+  border-radius: 8px;
+  padding: 22px 22px;
+  margin: 16px 0;
+  position: relative;
+}
+
+.question-card::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 20px; right: 20px;
+  height: 3px;
+  background: var(--yellow);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.q-topic {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--yellow);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: 1px dashed rgba(255, 240, 77, 0.4);
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 14px;
+}
+
+.q-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  margin-bottom: 20px;
+}
+
+.choices-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.choice {
+  background: rgba(0,0,0,0.3);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.98rem;
+  color: var(--chalk);
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.choice:hover:not(:disabled) {
+  border-color: var(--cyan);
+  border-style: solid;
+  background: rgba(110, 231, 255, 0.07);
+}
+.choice .letter {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--cyan);
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px dashed var(--cyan);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.choice.correct {
+  border-color: #4ade80;
+  border-style: solid;
+  background: rgba(74, 222, 128, 0.12);
+}
+.choice.correct .letter { background: #4ade80; color: var(--pitch-dark); border-color: #4ade80; }
+.choice.wrong {
+  border-color: var(--red);
+  border-style: solid;
+  background: rgba(255, 85, 119, 0.1);
+}
+.choice.wrong .letter { background: var(--red); color: var(--chalk); border-color: var(--red); }
+.choice:disabled { cursor: default; opacity: 0.85; }
+
+.typed-row {
+  display: flex;
+  gap: 10px;
+}
+.typed-input {
+  flex: 1;
+  background: rgba(0,0,0,0.4);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--chalk);
+  outline: none;
+}
+.typed-input:focus { border-color: var(--cyan); border-style: solid; }
+.typed-input.correct { border-color: #4ade80; border-style: solid; }
+.typed-input.wrong { border-color: var(--red); border-style: solid; }
+
+.submit-btn {
+  background: var(--yellow);
+  color: var(--pitch-dark);
+  border: none;
+  border-radius: 6px;
+  padding: 0 22px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.submit-btn:hover { background: var(--chalk); }
+
+/* ========== FEEDBACK ========== */
+.feedback {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.feedback.right {
+  background: rgba(74, 222, 128, 0.08);
+  border-left: 3px dashed #4ade80;
+}
+.feedback.wrong {
+  background: rgba(255, 85, 119, 0.08);
+  border-left: 3px dashed var(--red);
+}
+.feedback b { color: var(--yellow); }
+
+.next-btn {
+  display: block;
+  margin: 16px auto 0;
+  background: var(--yellow);
+  color: var(--pitch-dark);
+  border: none;
+  border-radius: 6px;
+  padding: 11px 30px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.next-btn:hover { background: var(--chalk); }
+
+/* ========== STORY MODAL ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-overlay.active { display: flex; }
+
+.story-modal {
+  background:
+    repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(244,241,232,0.018) 39px, rgba(244,241,232,0.018) 40px),
+    repeating-linear-gradient(0deg, transparent 0, transparent 39px, rgba(244,241,232,0.018) 39px, rgba(244,241,232,0.018) 40px),
+    linear-gradient(170deg, var(--pitch) 0%, var(--pitch-dark) 100%);
+  border: 2px dashed var(--yellow);
+  border-radius: 8px;
+  max-width: 740px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px 26px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 60px rgba(255, 240, 77, 0.1);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: rgba(244, 241, 232, 0.06);
+  border: 1px dashed var(--chalk-faded);
+  color: var(--chalk);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.modal-close:hover { background: rgba(244, 241, 232, 0.15); border-style: solid; }
+
+.story-emoji {
+  font-size: 3.5rem;
+  text-align: center;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+
+.story-name {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2.6rem;
+  text-align: center;
+  line-height: 1;
+  margin: 6px 0 4px;
+}
+
+.story-era {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--yellow);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.story-body p {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  color: var(--chalk);
+}
+.story-body b { color: var(--yellow); }
+.story-body i { color: var(--cyan); font-style: italic; }
+
+.diagram-wrap {
+  background: rgba(0,0,0,0.4);
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 18px;
+  text-align: center;
+}
+.diagram-wrap svg { max-width: 100%; height: auto; }
+.diagram-caption {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--chalk-dim);
+  margin-top: 8px;
+}
+
+/* ========== WINNER SCREEN ========== */
+.winner-screen {
+  text-align: center;
+  padding: 40px 16px;
+}
+.winner-banner {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 11vw, 6rem);
+  color: var(--yellow);
+  line-height: 1;
+  text-shadow: 0 0 40px rgba(255, 240, 77, 0.4), 4px 4px 0 rgba(0,0,0,0.3);
+  margin-bottom: 16px;
+  transform: rotate(-2deg);
+}
+.winner-emoji { font-size: 5rem; margin: 12px 0; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6)); }
+.winner-name {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 30px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  max-width: 600px;
+  margin: 0 auto 30px;
+}
+.stat-box {
+  background: rgba(0,0,0,0.3);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 6px;
+  padding: 14px;
+}
+.stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--chalk-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--yellow);
+}
+
+.winner-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.action-btn {
+  background: var(--yellow);
+  color: var(--pitch-dark);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 26px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+.action-btn.secondary {
+  background: transparent;
+  color: var(--chalk);
+  border: 1.5px dashed var(--chalk-faded);
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255, 240, 77, 0.3); }
+
+/* ========== UTILS ========== */
+.dmg-flash {
+  position: fixed;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 4rem;
+  pointer-events: none;
+  z-index: 200;
+  animation: dmgFloat 1.2s ease-out forwards;
+}
+@keyframes dmgFloat {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.5) rotate(-5deg); }
+  20% { opacity: 1; transform: translate(-50%, -20px) scale(1.2) rotate(-5deg); }
+  100% { opacity: 0; transform: translate(-50%, -80px) scale(1) rotate(-5deg); }
+}
+
+@media (max-width: 560px) {
+  .arena-header { grid-template-columns: 1fr; }
+  .player-panel.right { text-align: left; align-items: flex-start; }
+  .player-panel.right .panel-name { flex-direction: row; }
+  .vs-badge { display: none; }
+  .turn-choice { grid-template-columns: 1fr; }
+  .fighter-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ SETUP SCREEN ============ -->
+  <div id="setup-screen" class="screen active">
+    <div class="title-block">
+      <div class="matchday-tag">MATCHDAY · 12 LEGENDS · 4 TIERS</div>
+      <h1 class="game-title">Football<br><span class="smackdown">Smackdown</span></h1>
+      <p class="game-sub">Twelve of the greatest footballers of all time. Two teams, two captains, and a tactics board between you. Pick your champion, pick your level, and play for the trophy.</p>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p1c">PLAYER 1</span> — Pick Your Footballer</h2>
+      <p class="setup-hint">Tap the story button to read about anyone before you pick.</p>
+      <div class="fighter-grid" id="p1-fighters"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p1c">PLAYER 1</span> — Pick Your Home Level</h2>
+      <p class="setup-hint">This is your default difficulty. You can reach up one tier for more damage.</p>
+      <div class="tier-grid" id="p1-tiers"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p2c">PLAYER 2</span> — Pick Your Footballer</h2>
+      <div class="fighter-grid" id="p2-fighters"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2><span class="p2c">PLAYER 2</span> — Pick Your Home Level</h2>
+      <div class="tier-grid" id="p2-tiers"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2>The Rules</h2>
+      <div class="rules-box">
+        Each player starts with <b>100 HP</b>. On your turn, choose to answer a question at your <b>home level</b> for <b>11 damage</b>, or <span class="up">reach up</span> one tier for <b>15 damage</b>. Wrong answers do nothing — but you learn something either way. Questions are a mix of multiple choice and typed answers (don't worry about exact spelling — close is fine). First to drop the opponent's HP to zero wins.
+      </div>
+    </div>
+
+    <button id="go-btn" class="btn-go" disabled>⚽ Kick Off ⚽</button>
+  </div>
+
+  <!-- ============ BATTLE SCREEN ============ -->
+  <div id="battle-screen" class="screen">
+    <div class="arena-header">
+      <div class="player-panel">
+        <div class="panel-name p1c" id="p1-name"></div>
+        <div class="panel-tier" id="p1-tier"></div>
+        <div class="hp-bar"><div class="hp-fill p1" id="p1-hp-fill" style="width:100%"></div></div>
+        <div class="hp-text" id="p1-hp-text">100 / 100 HP</div>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="player-panel right">
+        <div class="panel-name p2c" id="p2-name"></div>
+        <div class="panel-tier" id="p2-tier"></div>
+        <div class="hp-bar"><div class="hp-fill p2" id="p2-hp-fill" style="width:100%"></div></div>
+        <div class="hp-text" id="p2-hp-text">100 / 100 HP</div>
+      </div>
+    </div>
+
+    <div class="turn-indicator" id="turn-indicator">Player 1's turn</div>
+
+    <div class="turn-choice" id="turn-choice">
+      <button class="choice-btn" id="choice-home-btn">
+        <div class="choice-title" id="choice-home-title">Home</div>
+        <div class="choice-sub" id="choice-home-sub">Your level</div>
+        <div class="choice-damage">11 DMG</div>
+      </button>
+      <button class="choice-btn reachup" id="choice-up-btn">
+        <div class="choice-title" id="choice-up-title">Reach Up</div>
+        <div class="choice-sub" id="choice-up-sub">One tier higher</div>
+        <div class="choice-damage">15 DMG</div>
+      </button>
+    </div>
+
+    <div class="question-area" id="question-area" style="display:none">
+      <div class="question-card">
+        <span class="q-topic" id="q-topic"></span>
+        <div class="q-text" id="q-text"></div>
+        <div class="choices-grid" id="q-choices"></div>
+        <div class="typed-row" id="q-typed" style="display:none">
+          <input type="text" class="typed-input" id="q-input" placeholder="Type your answer…" autocomplete="off" spellcheck="false">
+          <button class="submit-btn" id="q-submit">Submit</button>
+        </div>
+        <div class="feedback" id="q-feedback" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WINNER SCREEN ============ -->
+  <div id="winner-screen" class="screen">
+    <div class="winner-screen">
+      <div class="winner-banner">FULL TIME</div>
+      <div class="winner-emoji" id="winner-emoji">🏆</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Turns Played</div>
+          <div class="stat-value" id="stat-turns">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">P1 Accuracy</div>
+          <div class="stat-value" id="stat-acc1">0%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">P2 Accuracy</div>
+          <div class="stat-value" id="stat-acc2">0%</div>
+        </div>
+      </div>
+      <div class="winner-actions">
+        <button class="action-btn" id="rematch-btn">Rematch (same setup)</button>
+        <button class="action-btn secondary" id="new-game-btn">New Setup</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ STORY MODAL ============ -->
+<div class="modal-overlay" id="story-overlay">
+  <div class="story-modal" id="story-modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="story-emoji" id="story-emoji"></div>
+    <div class="story-name" id="story-name"></div>
+    <div class="story-era" id="story-era"></div>
+    <div class="story-body" id="story-body"></div>
+    <div class="diagram-wrap" id="story-diagram"></div>
+  </div>
+</div>
+
+<script>
+// ============== 12 FOOTBALL LEGENDS ==============
+const EXPLORERS = [
+  {
+    id: 'pele',
+    name: 'Pelé',
+    emoji: '🇧🇷',
+    era: 'Brazil · 1940–2022',
+    position: 'FW',
+    jersey: '10',
+    tagline: 'Three-time World Cup winner',
+    story: [
+      "Born <b>Edson Arantes do Nascimento</b> in the poor town of Três Corações, Brazil, he learned to play soccer with a sock stuffed with rags because his family couldn't afford a real ball. He shined shoes to earn money. By 15 he had signed with Santos FC. By 16 he had debuted for the Brazilian national team.",
+      "At <b>17 years old</b>, he scored a hat-trick in the World Cup semifinal against France in 1958 and two more in the final against Sweden. Brazil won the title — Pelé was the youngest player ever to win a World Cup. He cried into his teammate's shoulder when the whistle blew.",
+      "He went on to win <b>three World Cups</b> (1958, 1962, 1970) — the only player in history to do so. He scored over <b>1,280 career goals</b> by his own count. He played his entire prime in Brazil because the Brazilian government declared him a 'national treasure' to prevent European clubs from buying him.",
+      "Late in his career he joined the <b>New York Cosmos</b> and almost singlehandedly introduced soccer to America. FIFA named him Player of the Century in 1999. He was simply <i>O Rei</i> — The King. When he died in December 2022, all of Brazil mourned for three days.",
+    ],
+    diagram: 'pele',
+  },
+  {
+    id: 'maradona',
+    name: 'Diego Maradona',
+    emoji: '🇦🇷',
+    era: 'Argentina · 1960–2020',
+    position: 'AM',
+    jersey: '10',
+    tagline: "'86 World Cup · the Hand of God",
+    story: [
+      "He grew up in <b>Villa Fiorito</b>, a slum outside Buenos Aires, in a small shack with seven brothers and sisters. He was given a soccer ball at age three and slept with it under his arm. By 10 he was performing ball-juggling tricks at halftime of professional matches.",
+      "His defining moment came at the <b>1986 World Cup in Mexico</b>. In the quarterfinal against England — just four years after the Falklands War — <b>Diego Maradona</b> scored twice within four minutes. The first goal he punched in with his hand, telling reporters it was 'a little with the head of Maradona and a little with the <i>Hand of God</i>.'",
+      "The second goal four minutes later was voted the <b>Goal of the Century</b>. He picked the ball up in his own half, dribbled past five England players over 60 yards, and slotted it home. He went on to win the World Cup almost single-handedly. He was 25.",
+      "His club career peaked at <b>Napoli</b> in southern Italy, where he won the only two league titles in the club's history (1987, 1990). He struggled with cocaine addiction, was banned from the 1994 World Cup for failing a drug test, and battled health problems for decades. When he died in 2020, Argentina held three days of national mourning.",
+    ],
+    diagram: 'maradona',
+  },
+  {
+    id: 'messi',
+    name: 'Lionel Messi',
+    emoji: '🐐',
+    era: 'Argentina · 1987',
+    position: 'RW',
+    jersey: '10',
+    tagline: '8 Ballons d\'Or · 2022 World Cup',
+    story: [
+      "Diagnosed with growth hormone deficiency at age 11 in his hometown of Rosario, Argentina, his family couldn't afford the $900-a-month treatment. <b>FC Barcelona</b> agreed to pay for it if he and his father moved to Spain. He signed the contract — famously — on a napkin in a restaurant.",
+      "<b>Lionel Messi</b> debuted for Barcelona's senior team at 17 and quickly became the best player in the world. He won the <b>Ballon d'Or eight times</b> — more than any player in history. He scored a record <b>91 goals in one calendar year</b> in 2012. He is Barcelona's all-time leading scorer with 672 goals.",
+      "For years he was haunted by Argentina losing in major finals — the 2014 World Cup, three Copa América finals. Then in 2021 he finally lifted a major international trophy, the <b>Copa América</b>. In December 2022, in his fifth and probably final attempt, he led Argentina to win the <b>FIFA World Cup</b> in Qatar — scoring twice in the final against France. He won the Golden Ball, again.",
+      "He left Barcelona in tears in 2021, played two seasons with PSG, then signed with <b>Inter Miami</b> in 2023 — and promptly won their first trophy. In 2025 he led them to their first MLS Cup. He holds the record for most career trophies of any footballer in history.",
+    ],
+    diagram: 'messi',
+  },
+  {
+    id: 'ronaldo',
+    name: 'Cristiano Ronaldo',
+    emoji: '🇵🇹',
+    era: 'Portugal · 1985',
+    position: 'ST',
+    jersey: '07',
+    tagline: 'Most international goals ever',
+    story: [
+      "Born on the island of <b>Madeira</b>, Portugal, he was named after Ronald Reagan — his father's favourite actor. He was so obsessed with football as a kid that he was expelled from school at 14 for throwing a chair at a teacher. He went pro with Sporting Lisbon shortly after.",
+      "Manchester United signed him at <b>18</b>, where he developed into one of the best players in the world under Sir Alex Ferguson. He won three Premier League titles and a Champions League in 2008. He moved to <b>Real Madrid</b> in 2009 for a then-world-record fee, and over nine seasons scored an absurd <b>450 goals in 438 games</b> for the club.",
+      "He has won <b>5 Ballons d'Or</b> (second-most ever, behind Messi's 8). He has scored more international goals than anyone in men's football history — over <b>140 for Portugal</b>. He won the <b>2016 European Championship</b> and the inaugural 2019 UEFA Nations League with Portugal. He has won the Champions League five times.",
+      "After Madrid he went to Juventus, briefly returned to Manchester United, and in 2023 signed with <b>Al-Nassr</b> in Saudi Arabia for a reported $200+ million per year — making him the highest-paid athlete in any sport in the world. The Messi-Ronaldo rivalry defined two decades of football.",
+    ],
+    diagram: 'ronaldo',
+  },
+  {
+    id: 'cruyff',
+    name: 'Johan Cruyff',
+    emoji: '🇳🇱',
+    era: 'Netherlands · 1947–2016',
+    position: 'CF',
+    jersey: '14',
+    tagline: 'Inventor of Total Football',
+    story: [
+      "He grew up across the street from Ajax Amsterdam's training ground and joined the club at age 10. By 17 he was scoring goals in the senior team. Tall, skinny, chain-smoking, and impossibly intelligent on the ball — <b>Johan Cruyff</b> would become the most influential figure in football history.",
+      "He won <b>three consecutive European Cups</b> with Ajax (1971, 1972, 1973) playing a revolutionary style called <b>Total Football</b>, where every outfield player could play any position. Cruyff was the central figure — a number 14 (rejecting the traditional number 9) who dropped deep, drifted wide, and created chaos.",
+      "At the 1974 World Cup he led the Netherlands to the final and gave the world the <b>Cruyff Turn</b> — a feint where you fake a pass, pull the ball behind your standing foot, and accelerate away. Defenders still get fooled by it 50 years later. The Dutch lost the final to West Germany. He was named Player of the Tournament.",
+      "He went to <b>Barcelona</b> as a player, then returned as a coach — and rebuilt the club from top to bottom. His <i>La Masia</i> academy and tactical philosophy directly produced Pep Guardiola, Xavi, Iniesta, Messi, and modern football itself. Almost every team that plays attacking, possession-based football today owes Cruyff a debt.",
+    ],
+    diagram: 'cruyff',
+  },
+  {
+    id: 'zidane',
+    name: 'Zinedine Zidane',
+    emoji: '🇫🇷',
+    era: 'France · 1972',
+    position: 'AM',
+    jersey: '10',
+    tagline: '\'98 World Cup · two-time Champions League winner as coach',
+    story: [
+      "Born to <b>Algerian immigrant parents</b> in a tough neighbourhood of Marseille, <b>Zinedine Zidane</b> learned football on a concrete square called Place Tartane. He was famously hot-tempered as a kid, getting into fights regularly. He'd play through the night, then go straight to school.",
+      "At the <b>1998 World Cup</b> on home soil, he scored twice with his head in the final against Brazil. France won its first World Cup. The image of his bald head meeting Brazilian crosses became national iconography. He won the Ballon d'Or that year. Paris was painted in his face.",
+      "In 2001 he moved to Real Madrid for a then-world-record fee. In the <b>2002 Champions League final</b> he scored one of the most beautiful goals ever scored — a left-footed volley from the edge of the box against Bayer Leverkusen. He won everything — three FIFA World Player of the Year awards.",
+      "His career ended infamously: in the <b>2006 World Cup final</b>, with the game tied in extra time, he headbutted Italian defender Marco Materazzi in the chest after an exchange of insults. Red card. Italy won on penalties. He retired immediately. Years later he came back as Real Madrid's coach and won <b>three consecutive Champions Leagues</b> (2016-2018) — a feat that may never be repeated.",
+    ],
+    diagram: 'zidane',
+  },
+  {
+    id: 'mbappe',
+    name: 'Kylian Mbappé',
+    emoji: '⚡',
+    era: 'France · 1998',
+    position: 'ST',
+    jersey: '10',
+    tagline: '2018 World Cup · European Golden Boot',
+    story: [
+      "Born in <b>Bondy</b>, a tough suburb of Paris, he was raised on stories of Zidane, Henry, and Ronaldo. His childhood bedroom had Cristiano posters covering every wall. At 13 he was offered a trial at Real Madrid — Zidane personally guided him around the training ground. He chose to stay in France with AS Monaco.",
+      "At <b>18 years old</b> at the <b>2018 World Cup</b>, he scored against Argentina in the round of 16, scored in the final against Croatia (becoming only the second teenager after Pelé to score in a World Cup final), and won the trophy. He was named the tournament's best young player. France crowned him heir to the throne.",
+      "He went to <b>Paris Saint-Germain</b> in 2017 (initially on loan, then permanent), where he scored over 200 goals in seven seasons and won six Ligue 1 titles. He won the <b>2022 World Cup Golden Boot</b> (8 goals) including a stunning <b>hat-trick in the final</b> against Argentina — but his France lost to Messi's Argentina on penalties. He's the first player to score a hat-trick in a World Cup final in 56 years.",
+      "In 2024 he finally made the move to <b>Real Madrid</b>. He scored 44 goals in his debut season — a club record — and won the <b>2024-25 European Golden Boot</b> (top scorer across all of Europe). At 27 he's already considered one of the best in the world, with multiple World Cups likely still ahead.",
+    ],
+    diagram: 'mbappe',
+  },
+  {
+    id: 'haaland',
+    name: 'Erling Haaland',
+    emoji: '🇳🇴',
+    era: 'Norway · 2000',
+    position: 'ST',
+    jersey: '09',
+    tagline: 'Premier League single-season goal record',
+    story: [
+      "Born in <b>Leeds, England</b> while his father Alf-Inge was playing in the Premier League for Leeds United. His mother is a former Norwegian heptathlon champion. He grew up in Norway and was scoring goals at unbelievable rates from his teenage years — 28 goals in 30 games for Norway's U20s, including a single match where he scored <b>9 goals against Honduras</b>.",
+      "<b>Erling Haaland</b> made his name at <b>Red Bull Salzburg</b> in Austria (where he scored 28 goals in 22 games) and then <b>Borussia Dortmund</b> in Germany. He moved to <b>Manchester City</b> in 2022 for a relatively bargain fee — and immediately broke the Premier League single-season scoring record.",
+      "In his debut Premier League season (2022-23) he scored <b>36 goals in 35 games</b>. The previous record (Andy Cole, Alan Shearer) was 34, but those were in a 42-game season. Haaland did it in 38. He finished the year with 52 goals across all competitions — also a club record.",
+      "That same season he won the <b>Champions League</b> — Manchester City's first ever. He has now passed <b>150 career goals for Manchester City</b> in record time. He's a 6'4\" wrecking ball with the touch of a poacher and the pace of a winger. He may break every goal record in football before he turns 30.",
+    ],
+    diagram: 'haaland',
+  },
+  {
+    id: 'bellingham',
+    name: 'Jude Bellingham',
+    emoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    era: 'England · 2003',
+    position: 'AM',
+    jersey: '05',
+    tagline: 'England\'s leader at 22',
+    story: [
+      "He grew up in <b>Stourbridge</b>, England, and broke into the senior <b>Birmingham City</b> first team at 16. He was so good so quickly that Birmingham retired his number 22 when he left — the first time any club had retired a number for a teenager.",
+      "<b>Borussia Dortmund</b> bought him in 2020 at 17. He spent three years in Germany, captaining the side and becoming one of the most coveted young players in football. He made his England debut at 17 and started for them at the 2022 World Cup.",
+      "In 2023 he signed for <b>Real Madrid</b> for around €103 million — and exploded. He scored <b>13 goals in his first 13 La Liga games</b>, the best start any Real Madrid player has ever had. He won La Liga and the Champions League in his debut season. He was named the world's best player by some pundits before his 21st birthday.",
+      "He captains England regularly and is widely seen as their first true superstar of his generation. <b>Jude Bellingham</b> won the Kopa Trophy (best player under 21) in 2023 and the Golden Boy award the same year. He's already one of the most marketable footballers on the planet — and he's still only 22.",
+    ],
+    diagram: 'bellingham',
+  },
+  {
+    id: 'salah',
+    name: 'Mohamed Salah',
+    emoji: '🇪🇬',
+    era: 'Egypt · 1992',
+    position: 'RW',
+    jersey: '11',
+    tagline: 'The Egyptian King · Liverpool record-breaker',
+    story: [
+      "He grew up in <b>Nagrig</b>, a small village in the Egyptian Nile Delta, riding a bus three hours each way to attend his youth team's training. His first major club was Cairo's El Mokawloon. He moved to <b>Basel</b> in Switzerland at 19, then to <b>Chelsea</b> at 21 — where he barely played and was loaned out to Italy.",
+      "Most football fans had written him off. Then in 2017 <b>Liverpool</b> bought him for £37 million — what looked at the time like an enormous risk. In his debut season he scored <b>32 Premier League goals</b> in a 38-game season — a record. He won the Premier League Golden Boot four times and was twice voted FWA Footballer of the Year.",
+      "He helped Liverpool win the <b>2019 UEFA Champions League</b> (their first in 14 years) and the <b>2019-20 Premier League</b> (their first in 30 years). He is now Liverpool's all-time top scorer in the Premier League era, with over <b>190 PL goals</b> and counting. He's the highest-scoring African player in Premier League history by a huge margin.",
+      "At Egypt's national team he is a god. He has carried Egypt to the African Cup of Nations final and is the country's all-time top scorer. He's known as <i>The Egyptian King</i> — and after a decade dominating English football for Liverpool, <b>Mohamed Salah</b> leaves a Liverpool legend at the end of the current season.",
+    ],
+    diagram: 'salah',
+  },
+  {
+    id: 'sinclair',
+    name: 'Christine Sinclair',
+    emoji: '🇨🇦',
+    era: 'Canada · 1983',
+    position: 'ST',
+    jersey: '12',
+    tagline: 'All-time international goals leader',
+    story: [
+      "Born in <b>Burnaby, British Columbia</b>, <b>Christine Sinclair</b> grew up in a soccer family — her uncles Bruce and Brian both played for Canada's men's team. She joined the national team at age 16 in 2000. Over the next 23 years she would become the greatest international goalscorer in the history of the sport — men's or women's.",
+      "She scored <b>190 goals in 331 appearances</b> for Canada — more than any player in football history. The next closest was American Abby Wambach (184), then Cristiano Ronaldo (now closing in). She passed Mia Hamm in 2015 and Wambach in 2020.",
+      "Her defining moment came at the <b>Tokyo 2020 Olympics</b> (held in 2021) when Canada won <b>Olympic gold</b> — their first ever major international tournament title. Sinclair was the captain. The final was won on penalties against Sweden, and the entire country watched. She had previously won Olympic bronze in 2012 and 2016.",
+      "She played in <b>six FIFA Women's World Cups</b> (2003-2023) — only her and Brazilian legend Formiga have ever played in six. She was named Canadian Female Athlete of the Year a record <b>14 times</b>. She retired from international football in December 2023, the most decorated Canadian athlete of her generation.",
+    ],
+    diagram: 'sinclair',
+  },
+  {
+    id: 'fleming',
+    name: 'Jessie Fleming',
+    emoji: '🇨🇦',
+    era: 'Canada · 1998',
+    position: 'CM',
+    jersey: '17',
+    tagline: 'Olympic gold-winning penalty taker',
+    story: [
+      "Born in <b>London, Ontario</b>, <b>Jessie Fleming</b> was identified as a special talent early — she made her senior Canada debut at <b>15 years old</b> in 2013, the second-youngest debutante in Canadian women's national team history. She played at UCLA in college, winning the Hermann Trophy as the best college player in America in 2019.",
+      "She joined <b>Chelsea</b> in the Women's Super League in 2020 and won the league three times in four seasons (2020-21, 2021-22, 2022-23). A clever, two-footed central midfielder, she's known for staying calm in the biggest moments.",
+      "At the <b>Tokyo 2020 Olympics</b>, with Canada down 1-0 to the USA in the semifinal, Fleming stepped up and converted a penalty in the 75th minute. Canada won 1-0 and ended a 20-year losing streak against the United States. In the final, she scored a penalty in regulation against Sweden — Canada won the gold medal on penalties.",
+      "She moved to <b>Portland Thorns</b> in the NWSL in 2024 and was named to the NWSL Best XI. She inherited the captain's armband from Sinclair when the legend retired and now leads Canada into a new era. At 27, she's the heart of the Canadian midfield.",
+    ],
+    diagram: 'fleming',
+  },
+];
+// ============== CHALKBOARD-STYLE DIAGRAMS ==============
+// Tactical board look: dashed lines, chalk text, formation diagrams
+const CHALK = '#f4f1e8';
+const CHALK_DIM = '#b9b3a0';
+const YELLOW = '#fff04d';
+const CYAN = '#6ee7ff';
+
+const DIAGRAMS = {
+
+  pele: {
+    caption: "Three World Cups · the only player ever to do it",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="32" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">O REI · The King</text>
+
+      <!-- Three trophies on a timeline -->
+      <line x1="60" y1="160" x2="540" y2="160" stroke="#b9b3a0" stroke-width="2" stroke-dasharray="6 4"/>
+
+      <g transform="translate(140, 160)">
+        <circle r="22" fill="none" stroke="#fff04d" stroke-width="3" stroke-dasharray="3 2"/>
+        <text x="0" y="6" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">'58</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#f4f1e8">Sweden</text>
+        <text x="0" y="-22" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">aged 17</text>
+        <text x="0" y="48" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">5-2 vs Sweden</text>
+      </g>
+      <g transform="translate(300, 160)">
+        <circle r="22" fill="none" stroke="#fff04d" stroke-width="3" stroke-dasharray="3 2"/>
+        <text x="0" y="6" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">'62</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#f4f1e8">Chile</text>
+        <text x="0" y="-22" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">injured early</text>
+        <text x="0" y="48" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">3-1 vs CZE</text>
+      </g>
+      <g transform="translate(460, 160)">
+        <circle r="22" fill="none" stroke="#fff04d" stroke-width="3" stroke-dasharray="3 2"/>
+        <text x="0" y="6" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">'70</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#f4f1e8">Mexico</text>
+        <text x="0" y="-22" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">greatest team ever</text>
+        <text x="0" y="48" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">4-1 vs Italy</text>
+      </g>
+
+      <!-- Bottom stat -->
+      <g transform="translate(0, 230)">
+        <text x="200" y="20" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="32" fill="#fff04d">1,280+</text>
+        <text x="200" y="38" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">CAREER GOALS</text>
+        <text x="400" y="20" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="32" fill="#fff04d">3 / 4</text>
+        <text x="400" y="38" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">WORLD CUPS WON OF PLAYED</text>
+      </g>
+    </svg>`
+  },
+
+  maradona: {
+    caption: "Mexico 1986 · the World Cup of one man",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">QUARTERFINAL · ENG vs ARG · 22 JUNE 1986</text>
+
+      <!-- Pitch outline -->
+      <rect x="60" y="60" width="480" height="160" fill="none" stroke="#b9b3a0" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="300" y1="60" x2="300" y2="220" stroke="#b9b3a0" stroke-width="1" stroke-dasharray="3 3"/>
+      <circle cx="300" cy="140" r="25" fill="none" stroke="#b9b3a0" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- Goal of the century — dribble path -->
+      <path d="M 95 140 Q 130 130, 165 138 Q 200 145, 230 130 Q 265 115, 295 130 Q 330 142, 365 125 Q 400 110, 440 130 Q 475 145, 510 140" stroke="#6ee7ff" stroke-width="2.5" fill="none" stroke-dasharray="6 3"/>
+
+      <!-- Defender X marks -->
+      <g font-family="JetBrains Mono, monospace" font-size="14" fill="#ff5577" text-anchor="middle">
+        <text x="165" y="142">✗</text>
+        <text x="230" y="134">✗</text>
+        <text x="295" y="135">✗</text>
+        <text x="365" y="128">✗</text>
+        <text x="440" y="135">✗</text>
+      </g>
+
+      <!-- Start & end labels -->
+      <circle cx="95" cy="140" r="6" fill="#6ee7ff"/>
+      <text x="95" y="170" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#6ee7ff">10 (D.M.)</text>
+      <circle cx="515" cy="140" r="6" fill="#fff04d"/>
+      <text x="515" y="170" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">⚽ GOAL</text>
+
+      <!-- Caption -->
+      <text x="300" y="245" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">"The Goal of the Century"</text>
+      <text x="300" y="265" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#b9b3a0" font-style="italic">60-yard solo dribble past 5 England players · 4 minutes after the "Hand of God"</text>
+    </svg>`
+  },
+
+  messi: {
+    caption: "World Cup champion · 8 Ballons d'Or · most trophies ever",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">THE TROPHY CABINET</text>
+
+      <!-- Big central trophy -->
+      <g transform="translate(300, 130)">
+        <rect x="-110" y="-40" width="220" height="80" fill="none" stroke="#fff04d" stroke-width="2.5" stroke-dasharray="5 3" rx="6"/>
+        <text x="0" y="-8" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">WORLD CUP 2022</text>
+        <text x="0" y="14" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">vs France · Qatar · 3-3 (4-2 pens)</text>
+        <text x="0" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">7 goals · Golden Ball winner</text>
+      </g>
+
+      <!-- 8 Ballons d'Or -->
+      <g transform="translate(60, 195)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="9" fill="#b9b3a0" letter-spacing="2">BALLONS D'OR (RECORD)</text>
+        <g transform="translate(0, 14)">
+          <g font-family="Caveat, cursive" font-weight="700" font-size="13" fill="#0d2818" text-anchor="middle">
+            <circle cx="14" cy="12" r="12" fill="#fff04d"/><text x="14" y="16">'09</text>
+            <circle cx="44" cy="12" r="12" fill="#fff04d"/><text x="44" y="16">'10</text>
+            <circle cx="74" cy="12" r="12" fill="#fff04d"/><text x="74" y="16">'11</text>
+            <circle cx="104" cy="12" r="12" fill="#fff04d"/><text x="104" y="16">'12</text>
+            <circle cx="134" cy="12" r="12" fill="#fff04d"/><text x="134" y="16">'15</text>
+            <circle cx="164" cy="12" r="12" fill="#fff04d"/><text x="164" y="16">'19</text>
+            <circle cx="194" cy="12" r="12" fill="#fff04d"/><text x="194" y="16">'21</text>
+            <circle cx="224" cy="12" r="12" fill="#fff04d"/><text x="224" y="16">'23</text>
+          </g>
+          <text x="270" y="16" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">= 8</text>
+        </g>
+      </g>
+
+      <!-- Right side: club -->
+      <g transform="translate(380, 195)">
+        <text x="0" y="0" font-family="JetBrains Mono, monospace" font-size="9" fill="#b9b3a0" letter-spacing="2">MAJOR CLUB TROPHIES</text>
+        <g transform="translate(0, 14)" font-family="Inter, sans-serif" font-size="10" fill="#f4f1e8">
+          <text x="0" y="14">12× League titles</text>
+          <text x="120" y="14">4× Champions League</text>
+          <text x="0" y="34">2× Copa América</text>
+          <text x="120" y="34">2025 MLS Cup (MIA)</text>
+        </g>
+      </g>
+    </svg>`
+  },
+
+  ronaldo: {
+    caption: "Goal machine across four leagues · most international goals ever",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="30" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">CR7 · GOALS BY CLUB</text>
+
+      <!-- Club bars -->
+      <g transform="translate(60, 60)">
+        <!-- Sporting -->
+        <text x="0" y="14" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Sporting</text>
+        <rect x="90" y="3" width="${(5/450)*400}" height="16" fill="#6ee7ff" stroke="#f4f1e8" stroke-width="1"/>
+        <text x="95" y="16" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#f4f1e8">5</text>
+
+        <!-- Man Utd 1 -->
+        <text x="0" y="44" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Man United (1)</text>
+        <rect x="90" y="33" width="${(118/450)*400}" height="16" fill="#6ee7ff" stroke="#f4f1e8" stroke-width="1"/>
+        <text x="${90 + (118/450)*400 + 6}" y="46" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">118</text>
+
+        <!-- Real Madrid -->
+        <text x="0" y="74" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Real Madrid</text>
+        <rect x="90" y="63" width="${(450/450)*400}" height="16" fill="#fff04d" stroke="#f4f1e8" stroke-width="1"/>
+        <text x="${90 + 400 - 6}" y="76" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818" text-anchor="end">450</text>
+
+        <!-- Juve -->
+        <text x="0" y="104" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Juventus</text>
+        <rect x="90" y="93" width="${(101/450)*400}" height="16" fill="#6ee7ff" stroke="#f4f1e8" stroke-width="1"/>
+        <text x="${90 + (101/450)*400 + 6}" y="106" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">101</text>
+
+        <!-- Man Utd 2 -->
+        <text x="0" y="134" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Man United (2)</text>
+        <rect x="90" y="123" width="${(27/450)*400}" height="16" fill="#6ee7ff" stroke="#f4f1e8" stroke-width="1"/>
+        <text x="${90 + (27/450)*400 + 6}" y="136" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">27</text>
+
+        <!-- Al-Nassr -->
+        <text x="0" y="164" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Al-Nassr</text>
+        <rect x="90" y="153" width="${(95/450)*400}" height="16" fill="#fff04d" stroke="#f4f1e8" stroke-width="1"/>
+        <text x="${90 + (95/450)*400 + 6}" y="166" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">95+</text>
+      </g>
+
+      <!-- Bottom -->
+      <g transform="translate(0, 240)">
+        <text x="200" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">140+ goals for Portugal</text>
+        <text x="200" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">MEN'S INTERNATIONAL RECORD</text>
+        <text x="430" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">5× Champions League</text>
+        <text x="430" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">5× Ballon d'Or · Euro 2016</text>
+      </g>
+    </svg>`
+  },
+
+  cruyff: {
+    caption: "Total Football — every player can play every position",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">TOTAL FOOTBALL · "Voetbal Totaal"</text>
+
+      <!-- Pitch with positional cluster -->
+      <rect x="80" y="55" width="440" height="180" fill="none" stroke="#b9b3a0" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="300" y1="55" x2="300" y2="235" stroke="#b9b3a0" stroke-width="1" stroke-dasharray="3 3"/>
+      <circle cx="300" cy="145" r="22" fill="none" stroke="#b9b3a0" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- Position dots — players swap with arrows -->
+      <g font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818" text-anchor="middle">
+        <circle cx="110" cy="145" r="13" fill="#fff04d"/><text x="110" y="150">GK</text>
+        <circle cx="180" cy="90" r="13" fill="#fff04d"/><text x="180" y="95">DF</text>
+        <circle cx="180" cy="200" r="13" fill="#fff04d"/><text x="180" y="205">DF</text>
+        <circle cx="260" cy="120" r="13" fill="#fff04d"/><text x="260" y="125">CM</text>
+        <circle cx="260" cy="170" r="13" fill="#fff04d"/><text x="260" y="175">CM</text>
+        <circle cx="340" cy="90" r="13" fill="#fff04d"/><text x="340" y="95">WG</text>
+        <circle cx="340" cy="200" r="13" fill="#fff04d"/><text x="340" y="205">WG</text>
+        <circle cx="420" cy="145" r="15" fill="#6ee7ff" stroke="#fff04d" stroke-width="2"/><text x="420" y="150">14</text>
+        <circle cx="480" cy="120" r="13" fill="#fff04d"/><text x="480" y="125">ST</text>
+        <circle cx="480" cy="170" r="13" fill="#fff04d"/><text x="480" y="175">ST</text>
+      </g>
+
+      <!-- Swap arrows showing fluidity -->
+      <g stroke="#6ee7ff" stroke-width="1.5" stroke-dasharray="4 3" fill="none">
+        <path d="M 270 130 Q 280 145, 270 160" marker-end="url(#arr)"/>
+        <path d="M 350 100 Q 405 120, 410 135" marker-end="url(#arr)"/>
+        <path d="M 195 100 Q 225 110, 250 115" marker-end="url(#arr)"/>
+      </g>
+      <defs>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <polygon points="0 0, 6 3, 0 6" fill="#6ee7ff"/>
+        </marker>
+      </defs>
+
+      <text x="420" y="245" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#6ee7ff">№14 — drops, drifts, creates</text>
+      <text x="200" y="260" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">3× European Cups with Ajax · 1971, 72, 73</text>
+    </svg>`
+  },
+
+  zidane: {
+    caption: "Player and coach · two careers, both legendary",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">ZIZOU · TWO CAREERS</text>
+
+      <!-- Two columns -->
+      <g transform="translate(40, 60)">
+        <rect width="250" height="180" fill="none" stroke="#6ee7ff" stroke-width="2" stroke-dasharray="5 3" rx="6"/>
+        <text x="125" y="26" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#6ee7ff">AS A PLAYER</text>
+        <line x1="20" y1="38" x2="230" y2="38" stroke="#b9b3a0" stroke-dasharray="3 2"/>
+        <g font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">
+          <text x="20" y="60">⚽ 1998 World Cup</text>
+          <text x="40" y="76" font-style="italic" fill="#b9b3a0">2 headers vs Brazil in final</text>
+          <text x="20" y="98">🥇 Euro 2000</text>
+          <text x="20" y="120">🏆 2002 Champions League</text>
+          <text x="40" y="136" font-style="italic" fill="#b9b3a0">legendary volley vs Leverkusen</text>
+          <text x="20" y="158">3× FIFA Player of the Year</text>
+        </g>
+      </g>
+
+      <g transform="translate(310, 60)">
+        <rect width="250" height="180" fill="none" stroke="#fff04d" stroke-width="2" stroke-dasharray="5 3" rx="6"/>
+        <text x="125" y="26" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#fff04d">AS A COACH</text>
+        <line x1="20" y1="38" x2="230" y2="38" stroke="#b9b3a0" stroke-dasharray="3 2"/>
+        <g font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">
+          <text x="20" y="60">🏆 3× CONSECUTIVE</text>
+          <text x="20" y="78" font-weight="700" fill="#fff04d">Champions Leagues</text>
+          <text x="40" y="96" font-style="italic" fill="#b9b3a0">2016 · 2017 · 2018</text>
+          <text x="20" y="120">⭐ Real Madrid's coach</text>
+          <text x="40" y="136" font-style="italic" fill="#b9b3a0">never done before, may never be done again</text>
+        </g>
+      </g>
+
+      <text x="300" y="265" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#ff5577">— but, the 2006 WC final headbutt 🟥 —</text>
+    </svg>`
+  },
+
+  mbappe: {
+    caption: "Teenage World Cup winner · Real Madrid's record-breaker",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">FROM BONDY TO MADRID</text>
+
+      <!-- Big moments timeline -->
+      <line x1="60" y1="160" x2="540" y2="160" stroke="#b9b3a0" stroke-width="2" stroke-dasharray="5 3"/>
+
+      <g transform="translate(110, 160)">
+        <circle r="10" fill="#fff04d"/>
+        <text x="0" y="-22" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#fff04d">2018</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#f4f1e8">World Cup 🇫🇷</text>
+        <text x="0" y="-54" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#b9b3a0" font-style="italic">aged 19</text>
+        <text x="0" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#b9b3a0">scored in final</text>
+      </g>
+
+      <g transform="translate(245, 160)">
+        <circle r="10" fill="#fff04d"/>
+        <text x="0" y="-22" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#fff04d">2022</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#f4f1e8">WC Final hat-trick</text>
+        <text x="0" y="-54" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#b9b3a0" font-style="italic">vs Argentina</text>
+        <text x="0" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#ff5577">lost on penalties</text>
+      </g>
+
+      <g transform="translate(380, 160)">
+        <circle r="10" fill="#fff04d"/>
+        <text x="0" y="-22" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#fff04d">2024</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#f4f1e8">Real Madrid debut</text>
+        <text x="0" y="-54" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#b9b3a0" font-style="italic">€0 transfer (free)</text>
+        <text x="0" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#b9b3a0">44 goals year 1</text>
+      </g>
+
+      <g transform="translate(500, 160)">
+        <circle r="10" fill="#6ee7ff"/>
+        <text x="0" y="-22" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#6ee7ff">2025</text>
+        <text x="0" y="-40" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#f4f1e8">European Golden Boot</text>
+        <text x="0" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#b9b3a0">31 La Liga goals</text>
+      </g>
+
+      <text x="300" y="240" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#fff04d">425+ career goals · still only 27</text>
+    </svg>`
+  },
+
+  haaland: {
+    caption: "Goal machine · the Premier League record holder",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">22-23 PREMIER LEAGUE · DEBUT SEASON</text>
+
+      <!-- Huge stat -->
+      <g transform="translate(140, 70)">
+        <rect width="320" height="120" fill="none" stroke="#fff04d" stroke-width="3" stroke-dasharray="6 3" rx="8"/>
+        <text x="160" y="60" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="80" fill="#fff04d">36</text>
+        <text x="160" y="88" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#f4f1e8">PREMIER LEAGUE GOALS</text>
+        <text x="160" y="106" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">in just 35 matches · 38-game season record</text>
+      </g>
+
+      <!-- Bottom stats -->
+      <g transform="translate(0, 215)">
+        <text x="150" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="24" fill="#6ee7ff">52</text>
+        <text x="150" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">22-23 ALL COMPS · CITY RECORD</text>
+
+        <text x="300" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="24" fill="#6ee7ff">150+</text>
+        <text x="300" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">CITY CAREER GOALS</text>
+
+        <text x="450" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="24" fill="#6ee7ff">🏆 2023</text>
+        <text x="450" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">CHAMPIONS LEAGUE</text>
+      </g>
+
+      <text x="300" y="265" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">6'4" tall · ridiculously fast · genetic outlier</text>
+    </svg>`
+  },
+
+  bellingham: {
+    caption: "13 goals in his first 13 La Liga games at Real Madrid",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">JUDE · STORMED MADRID</text>
+
+      <!-- 13/13 -->
+      <g transform="translate(45, 60)">
+        <rect width="240" height="110" fill="none" stroke="#fff04d" stroke-width="2.5" stroke-dasharray="5 3" rx="6"/>
+        <text x="120" y="56" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="56" fill="#fff04d">13 / 13</text>
+        <text x="120" y="80" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">GOALS IN FIRST 13 LA LIGA GAMES</text>
+        <text x="120" y="98" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">best start in Real Madrid history</text>
+      </g>
+
+      <!-- right column -->
+      <g transform="translate(310, 60)">
+        <rect width="245" height="110" fill="none" stroke="#6ee7ff" stroke-width="2.5" stroke-dasharray="5 3" rx="6"/>
+        <text x="122" y="26" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#6ee7ff">FIRST SEASON HAUL</text>
+        <line x1="20" y1="36" x2="225" y2="36" stroke="#b9b3a0" stroke-dasharray="3 2"/>
+        <g font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">
+          <text x="20" y="56">🏆 La Liga (2023-24)</text>
+          <text x="20" y="74">🏆 Champions League</text>
+          <text x="20" y="92">⭐ Kopa Trophy (best U-21)</text>
+        </g>
+      </g>
+
+      <!-- bottom -->
+      <g transform="translate(0, 195)">
+        <text x="150" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">debut season</text>
+        <text x="150" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">— immediately central to Madrid</text>
+
+        <text x="300" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">22 years old</text>
+        <text x="300" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">— England's #1 player already</text>
+
+        <text x="450" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">£103m</text>
+        <text x="450" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">— transfer from Dortmund 2023</text>
+      </g>
+
+      <text x="300" y="265" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#fff04d">Birmingham retired his shirt — for a teenager</text>
+    </svg>`
+  },
+
+  salah: {
+    caption: "Premier League single-season scoring record (38 games) · 32 goals",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">THE EGYPTIAN KING</text>
+
+      <!-- Liverpool record -->
+      <g transform="translate(45, 60)">
+        <rect width="510" height="84" fill="none" stroke="#fff04d" stroke-width="2.5" stroke-dasharray="5 3" rx="6"/>
+        <text x="255" y="34" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="32" fill="#fff04d">255 goals in 435 games for LFC</text>
+        <text x="255" y="56" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">3rd in club history · behind only Rush (346) &amp; Hunt (285)</text>
+        <text x="255" y="74" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">all-time Liverpool top scorer in the Premier League era</text>
+      </g>
+
+      <!-- Trophies row -->
+      <g transform="translate(0, 170)">
+        <text x="150" y="18" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#6ee7ff">🏆 2019</text>
+        <text x="150" y="36" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">CHAMPIONS LEAGUE</text>
+
+        <text x="300" y="18" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#6ee7ff">🏆 2019-20</text>
+        <text x="300" y="36" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">PREMIER LEAGUE</text>
+
+        <text x="450" y="18" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="22" fill="#6ee7ff">🏆 2024-25</text>
+        <text x="450" y="36" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">PREMIER LEAGUE</text>
+      </g>
+
+      <g transform="translate(0, 220)">
+        <text x="300" y="18" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">4× Premier League Golden Boot</text>
+        <text x="300" y="36" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="18" fill="#fff04d">17-18 · 18-19 · 21-22 · 24-25</text>
+      </g>
+
+      <text x="300" y="270" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#b9b3a0">+ 65 goals for Egypt — all-time top scorer</text>
+    </svg>`
+  },
+
+  sinclair: {
+    caption: "190 international goals — more than any player in football history",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">ALL-TIME INTERNATIONAL GOAL LEADERS</text>
+
+      <!-- Horizontal bars -->
+      <g transform="translate(60, 60)">
+        <!-- Sinclair 190 -->
+        <text x="0" y="14" font-family="Inter, sans-serif" font-size="11" fill="#fff04d" font-weight="700">SINCLAIR 🇨🇦</text>
+        <rect x="120" y="3" width="${(190/190)*340}" height="18" fill="#fff04d"/>
+        <text x="${120+(190/190)*340-6}" y="17" text-anchor="end" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818">190</text>
+
+        <!-- Wambach 184 -->
+        <text x="0" y="44" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Wambach 🇺🇸</text>
+        <rect x="120" y="33" width="${(184/190)*340}" height="18" fill="#6ee7ff"/>
+        <text x="${120+(184/190)*340-6}" y="47" text-anchor="end" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818">184</text>
+
+        <!-- Ronaldo (closing) 140+ -->
+        <text x="0" y="74" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Ronaldo 🇵🇹</text>
+        <rect x="120" y="63" width="${(140/190)*340}" height="18" fill="#6ee7ff"/>
+        <text x="${120+(140/190)*340-6}" y="77" text-anchor="end" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818">140+</text>
+
+        <!-- Mia Hamm 158 -->
+        <text x="0" y="104" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Hamm 🇺🇸</text>
+        <rect x="120" y="93" width="${(158/190)*340}" height="18" fill="#6ee7ff"/>
+        <text x="${120+(158/190)*340-6}" y="107" text-anchor="end" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818">158</text>
+
+        <!-- Marta 119 -->
+        <text x="0" y="134" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">Marta 🇧🇷</text>
+        <rect x="120" y="123" width="${(119/190)*340}" height="18" fill="#6ee7ff"/>
+        <text x="${120+(119/190)*340-6}" y="137" text-anchor="end" font-family="Caveat, cursive" font-weight="700" font-size="14" fill="#0d2818">119</text>
+      </g>
+
+      <!-- Bottom call-outs -->
+      <g transform="translate(0, 225)">
+        <text x="150" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">🥇 Tokyo 2020</text>
+        <text x="150" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">CAPTAIN · OLYMPIC GOLD</text>
+        <text x="300" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">6× World Cups</text>
+        <text x="300" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">FROM 2003 → 2023</text>
+        <text x="450" y="14" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">23 years</text>
+        <text x="450" y="32" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">CANADA CAREER</text>
+      </g>
+    </svg>`
+  },
+
+  fleming: {
+    caption: "Two cool-as-ice Olympic penalties · Canada's new captain",
+    svg: `<svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="280" fill="#0d2818"/>
+      <text x="300" y="28" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="26" fill="#fff04d">TOKYO 2020 · ICE IN HER VEINS</text>
+
+      <!-- Penalty spot graphic -->
+      <g transform="translate(80, 60)">
+        <rect width="200" height="180" fill="none" stroke="#b9b3a0" stroke-width="2" stroke-dasharray="4 3" rx="4"/>
+        <text x="100" y="20" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="16" fill="#fff04d">SEMIFINAL · vs USA</text>
+        <line x1="20" y1="30" x2="180" y2="30" stroke="#b9b3a0" stroke-dasharray="3 2"/>
+
+        <text x="100" y="62" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="44" fill="#fff04d">75'</text>
+        <text x="100" y="84" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">PENALTY</text>
+        <text x="100" y="100" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="30" fill="#6ee7ff">FLEMING ✓</text>
+        <text x="100" y="124" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">1-0 win</text>
+        <text x="100" y="144" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">— first WIN over USA in 20 years</text>
+        <text x="100" y="164" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">in any competitive game</text>
+      </g>
+
+      <g transform="translate(310, 60)">
+        <rect width="210" height="180" fill="none" stroke="#fff04d" stroke-width="2" stroke-dasharray="4 3" rx="4"/>
+        <text x="105" y="20" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="16" fill="#fff04d">FINAL · vs SWEDEN</text>
+        <line x1="20" y1="30" x2="190" y2="30" stroke="#b9b3a0" stroke-dasharray="3 2"/>
+
+        <text x="105" y="62" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="44" fill="#fff04d">67'</text>
+        <text x="105" y="84" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#f4f1e8">PENALTY</text>
+        <text x="105" y="100" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="30" fill="#6ee7ff">FLEMING ✓</text>
+        <text x="105" y="124" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0" font-style="italic">1-1 (3-2 on pens)</text>
+        <text x="105" y="148" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="20" fill="#fff04d">🥇 GOLD</text>
+        <text x="105" y="166" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#b9b3a0">Canada's first ever major title</text>
+      </g>
+
+      <text x="300" y="265" text-anchor="middle" font-family="Caveat, cursive" font-weight="700" font-size="16" fill="#fff04d">Now Canada's captain · 3× WSL champion at Chelsea</text>
+    </svg>`
+  },
+
+};
+// ============== TIER 1: GRADE 1-3 ==============
+const TIER1 = [
+  // BASIC RULES
+  {q:"How many players are on a soccer team on the field?", t:"rules", c:["9","10","11","12"], a:2, fact:"Each team has 11 players — 1 goalkeeper and 10 outfield players."},
+  {q:"How long is a regular soccer match?", t:"rules", c:["60 minutes","75 minutes","90 minutes","120 minutes"], a:2, fact:"90 minutes — two halves of 45 minutes each."},
+  {q:"What is the round thing players try to kick into the goal called?", t:"rules", c:["A puck","A ball","A disc","A pellet"], a:1, fact:"It's a ball! Soccer balls have 32 panels: 12 black pentagons and 20 white hexagons (classically)."},
+  {q:"How many points do you get for scoring once in soccer?", t:"rules", c:["1","2","3","6"], a:0, fact:"One goal = one point. Soccer games are usually low-scoring!"},
+  {q:"What colour card means a player gets kicked out of the game?", t:"rules", c:["Yellow","Red","Blue","Green"], a:1, fact:"Red card = sent off immediately. Yellow is a warning. Two yellows in one game = a red."},
+  {q:"What position is the only player allowed to use their hands?", t:"rules", c:["Striker","Goalkeeper","Defender","Midfielder"], a:1, fact:"The goalkeeper — but only inside their own penalty area (the big box near their goal)."},
+  {q:"What's it called when the ball goes into the net?", t:"rules", c:["A touchdown","A score","A goal","A point"], a:2, fact:"GOAAAAL! Soccer goals are big celebrations."},
+
+  // EQUIPMENT
+  {q:"What do soccer players wear on their feet?", t:"gear", c:["Skates","Boots (cleats)","Sneakers","Sandals"], a:1, fact:"Soccer boots have studs on the bottom for grip on grass."},
+  {q:"What do goalkeepers wear that outfield players don't?", t:"gear", c:["Helmet","Gloves","Pads","Mask"], a:1, fact:"Goalkeeper gloves protect their hands and help them grip the ball."},
+  {q:"What two big sticks form the goal in soccer?", t:"gear", c:["Beams","Posts","Pipes","Sticks"], a:1, fact:"Two goalposts and a crossbar — with a net behind them."},
+
+  // FAMOUS PLAYERS
+  {q:"Lionel Messi plays for which country's national team?", t:"players", c:["Brazil","Argentina","Spain","Portugal"], a:1, fact:"Messi led Argentina to win the 2022 World Cup."},
+  {q:"Cristiano Ronaldo plays for which country?", t:"players", c:["Spain","Brazil","Portugal","Italy"], a:2, fact:"Cristiano Ronaldo has scored more goals for his country than any man in history."},
+  {q:"Which Brazilian legend is nicknamed 'The King' (O Rei)?", t:"players", c:["Ronaldinho","Pelé","Neymar","Romário"], a:1, fact:"Pelé won three World Cups (1958, 1962, 1970) — the only player ever to do so."},
+  {q:"Which Canadian player scored more international goals than anyone in soccer history?", t:"players", c:["Mia Hamm","Christine Sinclair","Marta","Megan Rapinoe"], a:1, fact:"Christine Sinclair scored 190 international goals for Canada — more than any player, man or woman."},
+
+  // BIG TOURNAMENTS
+  {q:"What is the most famous soccer tournament held every 4 years?", t:"tournaments", c:["World Series","Olympics","World Cup","Super Bowl"], a:2, fact:"The FIFA World Cup is the biggest sporting event on the planet."},
+  {q:"How often is the FIFA World Cup held?", t:"tournaments", c:["Every year","Every 2 years","Every 4 years","Every 5 years"], a:2, fact:"Every 4 years. The next men's World Cup is 2026, hosted by USA, Canada, and Mexico together."},
+  {q:"Which country won the 2022 men's World Cup?", t:"tournaments", c:["France","Argentina","Brazil","Germany"], a:1, fact:"Argentina! Messi finally won his World Cup, beating France in penalty kicks."},
+
+  // COLOURS, JERSEYS, COUNTRIES
+  {q:"What colour is Brazil's national soccer team kit?", t:"countries", c:["Blue","Yellow","Red","Green"], a:1, fact:"Yellow and green — Brazil's famous canary-yellow shirts."},
+  {q:"What colour does Argentina's team wear (their home shirt)?", t:"countries", c:["Yellow","Light blue & white stripes","All red","All green"], a:1, fact:"Argentina's famous sky-blue and white stripes."},
+  {q:"What colour is Canada's national team kit?", t:"countries", c:["Red & white","Blue & white","Green & gold","Black"], a:0, fact:"Red and white — same as the Canadian flag."},
+  {q:"What soccer-mad country is Pelé from?", t:"countries", c:["Argentina","Spain","Brazil","Mexico"], a:2, fact:"Pelé is Brazilian — the country that's won the most World Cups (5)."},
+
+  // BASIC TEAMS
+  {q:"Real Madrid is a famous club from which country?", t:"clubs", c:["Italy","France","Spain","Germany"], a:2, fact:"Madrid is the capital of Spain. Real Madrid has won the Champions League more than any other team."},
+  {q:"FC Barcelona is from which country?", t:"clubs", c:["Brazil","Spain","Portugal","Italy"], a:1, fact:"Barcelona is a famous Spanish city. Messi played there for most of his career."},
+  {q:"Liverpool FC plays in which country?", t:"clubs", c:["Italy","Germany","England","Scotland"], a:2, fact:"Liverpool is a city in northwest England. Their famous song is 'You'll Never Walk Alone.'"},
+  {q:"Manchester United plays in which country?", t:"clubs", c:["Spain","England","France","USA"], a:1, fact:"Manchester is a major city in England. Cristiano Ronaldo played there twice in his career."},
+
+  // SIMPLE CONCEPTS
+  {q:"What's it called when a player scores 3 goals in one game?", t:"rules", c:["A trio","A hat-trick","A treble","A perfect"], a:1, fact:"A hat-trick — three goals in one match. It's a big deal!"},
+  {q:"In soccer, what do you call the official who blows the whistle?", t:"rules", c:["The umpire","The referee","The judge","The captain"], a:1, fact:"The referee runs around the pitch with a whistle and shows yellow or red cards when needed."},
+  {q:"What's the corner of the field called where you take a corner kick?", t:"rules", c:["The arc","The corner","The flag","The angle"], a:1, fact:"From the corner! Each corner has a flag, and you place the ball in the arc-shaped corner spot."},
+  {q:"What do players do if the ball goes off the side of the field?", t:"rules", c:["Corner kick","Throw-in","Free kick","Penalty"], a:1, fact:"A throw-in — players use both hands above their head to throw the ball back into play."},
+
+  // NUMBERS & FACTS
+  {q:"How many teams play in a single World Cup match?", t:"rules", c:["1","2","3","4"], a:1, fact:"Two teams! 11 players each, 22 total on the pitch."},
+  {q:"What is the famous big trophy you win at the World Cup?", t:"tournaments", c:["The Cup","The World Cup trophy","The Globe","The Sphere"], a:1, fact:"The FIFA World Cup trophy is solid gold and stands 36 cm tall!"},
+
+  // TYPED (TIER 1)
+  {q:"How many players are on the field for one soccer team? (type a number)", t:"rules", typed:true, a:"11", aliases:["11","eleven"], fact:"Eleven — one goalkeeper plus ten outfield players."},
+  {q:"Which player is nicknamed 'O Rei' (The King)? (type his name)", t:"players", typed:true, a:"Pelé", aliases:["pele","pelé","o rei"], fact:"Pelé — Brazil legend, 3-time World Cup winner."},
+  {q:"Which country has won the most men's World Cups? (type your answer)", t:"countries", typed:true, a:"Brazil", aliases:["brazil","brasil"], fact:"Brazil — 5 World Cup titles (1958, 1962, 1970, 1994, 2002)."},
+  {q:"Lionel Messi plays for which country's national team? (type your answer)", t:"players", typed:true, a:"Argentina", aliases:["argentina","argentinian"], fact:"Argentina — they won the 2022 World Cup."},
+  {q:"What's it called when one player scores 3 goals in one match? (type your answer)", t:"rules", typed:true, a:"hat-trick", aliases:["hat-trick","hat trick","hattrick"], fact:"A hat-trick — comes from cricket originally."},
+  {q:"Cristiano Ronaldo plays for which country? (type your answer)", t:"players", typed:true, a:"Portugal", aliases:["portugal","portuguese"], fact:"Ronaldo is Portuguese — he has more international goals than any man ever."},
+  {q:"What major Canadian women's soccer player retired in 2023 with the most international goals ever? (type her last name)", t:"players", typed:true, a:"Sinclair", aliases:["sinclair","christine sinclair","sinclar"], fact:"Christine Sinclair — 190 international goals for Canada."},
+];
+// ============== TIER 2: GRADE 4-5 ==============
+const TIER2 = [
+  // RULES (DEEPER)
+  {q:"How many minutes is a full World Cup match (regulation, not extra time)?", t:"rules", c:["60","75","90","120"], a:2, fact:"90 minutes plus added (stoppage) time. If it's a knockout game and tied, you play 30 minutes of extra time."},
+  {q:"What is 'offside' in soccer?", t:"rules", c:["When a player kicks the ball out","When an attacker is closer to the goal than the defenders when receiving the ball","When the referee calls a foul","When the goalie leaves the box"], a:1, fact:"Offside means an attacker must have a defender between them and the goal line when the ball is played to them."},
+  {q:"How long is the break between halves?", t:"rules", c:["5 minutes","15 minutes","20 minutes","30 minutes"], a:1, fact:"15 minutes for halftime."},
+  {q:"What happens when both teams are tied in a knockout match after extra time?", t:"rules", c:["Both teams advance","Replay tomorrow","Penalty kicks","Coin flip"], a:2, fact:"Penalty shootout — each team takes 5 penalties, then sudden death if still tied."},
+  {q:"From where do you take a penalty kick?", t:"rules", c:["The corner","12 yards from goal","The center spot","The goal line"], a:1, fact:"From the penalty spot — 12 yards (11 metres) from goal."},
+  {q:"What's it called when a player accidentally kicks the ball into their own goal?", t:"rules", c:["A free goal","An own goal","A mistake","A defender goal"], a:1, fact:"An own goal — counts for the other team. Embarrassing!"},
+
+  // FAMOUS PLAYERS DEEPER
+  {q:"Which country has Lionel Messi won the World Cup with?", t:"players", c:["Spain","Argentina","France","Brazil"], a:1, fact:"Argentina won the 2022 World Cup in Qatar — Messi's only World Cup."},
+  {q:"How many Ballon d'Or trophies has Cristiano Ronaldo won?", t:"players", c:["3","4","5","6"], a:2, fact:"Five — second only to Messi's record 8."},
+  {q:"Where did Messi play for most of his career before joining MLS?", t:"players", c:["Real Madrid","Barcelona","Manchester City","Bayern Munich"], a:1, fact:"FC Barcelona — he was there for 17 years from 2004-2021."},
+  {q:"Mohamed Salah plays for which Premier League club?", t:"players", c:["Manchester City","Liverpool","Arsenal","Chelsea"], a:1, fact:"Salah has been at Liverpool since 2017 — known as 'The Egyptian King'."},
+  {q:"Erling Haaland plays for which country's national team?", t:"players", c:["Sweden","Denmark","Norway","Iceland"], a:2, fact:"Haaland is Norwegian — though he was actually born in Leeds, England."},
+  {q:"Who scored a hat-trick in the 2022 World Cup final?", t:"players", c:["Lionel Messi","Kylian Mbappé","Ángel Di María","Olivier Giroud"], a:1, fact:"Mbappé scored 3 goals — but France still lost on penalties to Argentina."},
+  {q:"Jude Bellingham is from which country?", t:"players", c:["Wales","Scotland","England","Ireland"], a:2, fact:"England — he made his senior debut at age 17 and now plays for Real Madrid."},
+  {q:"Which Canadian midfielder scored the gold-medal-winning penalty against Sweden at Tokyo 2020?", t:"players", c:["Jessie Fleming","Janine Beckie","Sophie Schmidt","Quinn"], a:0, fact:"Jessie Fleming converted the crucial penalty kick in regulation. Canada won on penalties for gold."},
+
+  // CLUBS
+  {q:"Which club has won the Champions League/European Cup more times than any other?", t:"clubs", c:["AC Milan","Real Madrid","Bayern Munich","Barcelona"], a:1, fact:"Real Madrid has won the Champions League/European Cup 15 times — more than double the next-best."},
+  {q:"What's the name of Liverpool's famous home stadium?", t:"clubs", c:["Old Trafford","Emirates","Anfield","Stamford Bridge"], a:2, fact:"Anfield — known for the 'You'll Never Walk Alone' anthem before kickoff."},
+  {q:"What's Manchester United's famous home stadium called?", t:"clubs", c:["Old Trafford","Etihad","Wembley","Anfield"], a:0, fact:"Old Trafford — also known as 'The Theatre of Dreams.'"},
+  {q:"Bayern Munich is based in which country?", t:"clubs", c:["Austria","Switzerland","Germany","Belgium"], a:2, fact:"Germany — Bayern have won the Bundesliga more than any other club, including 11 in a row from 2013-2023."},
+  {q:"Inter Miami is the MLS team for which legendary player?", t:"clubs", c:["Cristiano Ronaldo","Neymar","Lionel Messi","Luis Suárez"], a:2, fact:"Messi joined Inter Miami in 2023 and led them to their first MLS Cup in 2025."},
+  {q:"Real Madrid plays in which Spanish city?", t:"clubs", c:["Barcelona","Madrid","Valencia","Seville"], a:1, fact:"Madrid! Their iconic stadium is the Santiago Bernabéu."},
+
+  // COUNTRIES & TEAMS
+  {q:"Which Canadian city hosted matches at the 2015 Women's World Cup?", t:"countries", c:["Toronto","Vancouver","Montreal","All of these (and more)"], a:3, fact:"Vancouver, Edmonton, Winnipeg, Ottawa, Montreal, and Moncton all hosted matches."},
+  {q:"What colour is the home shirt of England's national team?", t:"countries", c:["Blue","Red","White","Green"], a:2, fact:"White shirts — the 'Three Lions' badge is on the chest."},
+  {q:"Which country won the first ever men's World Cup in 1930?", t:"countries", c:["Brazil","Italy","Uruguay","Argentina"], a:2, fact:"Uruguay — who also hosted the tournament and beat Argentina 4-2 in the final."},
+  {q:"Which country has won the most Women's World Cups?", t:"countries", c:["USA","Germany","Norway","Japan"], a:0, fact:"USA — won in 1991, 1999, 2015, and 2019. Four titles."},
+
+  // TOURNAMENTS
+  {q:"What's the name of the top European club competition?", t:"tournaments", c:["Europa League","Champions League","World Cup","Premier League"], a:1, fact:"UEFA Champions League — the biggest club tournament in soccer."},
+  {q:"What's the famous European national team tournament held every 4 years?", t:"tournaments", c:["European Championship (Euros)","Champions Cup","World Cup","Nations League"], a:0, fact:"The Euros — UEFA European Championship. Spain won the 2024 edition."},
+  {q:"Where will the 2026 men's World Cup be held?", t:"tournaments", c:["Brazil","USA, Canada, Mexico (co-hosted)","Saudi Arabia","Qatar"], a:1, fact:"The 2026 World Cup is the first 48-team World Cup, co-hosted by the USA, Canada, and Mexico."},
+  {q:"Where was the 2022 men's World Cup held?", t:"tournaments", c:["Russia","Qatar","Brazil","France"], a:1, fact:"Qatar — the first World Cup in the Middle East and the first ever held in November/December."},
+
+  // BASIC TACTICS / TERMS
+  {q:"What does a midfielder do?", t:"tactics", c:["Score goals","Defend the goal","Link defense and attack","Goalkeeper"], a:2, fact:"Midfielders are the link — they help defend AND attack, controlling the middle of the pitch."},
+  {q:"What's a 'striker' in soccer?", t:"tactics", c:["A defender","A midfielder","A forward whose main job is to score","A referee"], a:2, fact:"Strikers play closest to the opposition's goal — their main job is to score."},
+  {q:"What's it called when two teams play each other twice in a tournament?", t:"tactics", c:["Double","Two-legged tie","Replay","Series"], a:1, fact:"A two-legged tie — one home, one away. Used in Champions League knockouts."},
+
+  // TYPED (TIER 2)
+  {q:"How many minutes long is a regulation soccer match? (type a number)", t:"rules", typed:true, a:"90", aliases:["90","ninety","90 minutes"], fact:"90 minutes — two 45-minute halves."},
+  {q:"Which Liverpool player nicknamed 'The Egyptian King' is leaving the club at end of current season? (type his name)", t:"players", typed:true, a:"Salah", aliases:["salah","mohamed salah","mo salah","mohammed salah","mohamad salah"], fact:"Mohamed Salah — Liverpool legend since 2017."},
+  {q:"What is Liverpool's famous stadium called? (type your answer)", t:"clubs", typed:true, a:"Anfield", aliases:["anfield","anfield road"], fact:"Anfield — capacity ~61,000."},
+  {q:"Which country has Cristiano Ronaldo led to a European Championship win? (type your answer)", t:"players", typed:true, a:"Portugal", aliases:["portugal","portuguese"], fact:"Portugal won Euro 2016, beating France in the final."},
+  {q:"What city does Inter Miami play in? (type your answer)", t:"clubs", typed:true, a:"Miami", aliases:["miami","miami fl"], fact:"Miami, Florida — Messi's MLS team since 2023."},
+  {q:"What's the name of the top European club tournament? (type the two words)", t:"tournaments", typed:true, a:"Champions League", aliases:["champions league","uefa champions league","ucl","the champions league"], fact:"UEFA Champions League — the biggest club competition in football."},
+  {q:"Which country's flag has the famous 'Three Lions' that Englands national team wears? (type the country)", t:"countries", typed:true, a:"England", aliases:["england","english"], fact:"The Three Lions are the symbol of the England national football team."},
+];
+// ============== TIER 3: GRADE 6-8 ==============
+const TIER3 = [
+  // WORLD CUP DEEPER
+  {q:"Brazil has won the most men's World Cups. How many?", t:"tournaments", c:["3","4","5","6"], a:2, fact:"5 — 1958, 1962, 1970, 1994, and 2002. They're also the only country to play in every World Cup."},
+  {q:"Germany has won how many men's World Cups?", t:"tournaments", c:["3","4","5","6"], a:1, fact:"4 — 1954, 1974, 1990, and 2014. They have 8 World Cup final appearances, the most ever."},
+  {q:"Who won the 2018 men's World Cup in Russia?", t:"tournaments", c:["Croatia","France","Germany","England"], a:1, fact:"France — Mbappé scored as an 18-year-old in the final. France beat Croatia 4-2."},
+  {q:"What was the score of the 2022 World Cup final between Argentina and France?", t:"tournaments", c:["2-2 (Arg won on pens)","3-3 (Arg won on pens)","4-2 to Argentina","3-1 Argentina"], a:1, fact:"3-3 after extra time, Argentina won 4-2 on penalties. Mbappé scored a hat-trick in the final."},
+  {q:"Which country has been the runner-up in the World Cup the most times without winning?", t:"tournaments", c:["Netherlands","Czech Republic","Hungary","Sweden"], a:0, fact:"Netherlands has lost 3 World Cup finals (1974, 1978, 2010) without winning. The 'best team never to win.'"},
+
+  // FAMOUS GOALS & MOMENTS
+  {q:"Who scored the 'Hand of God' goal at the 1986 World Cup?", t:"history", c:["Pelé","Diego Maradona","Zidane","Romário"], a:1, fact:"Maradona punched the ball into the net vs. England. The referee didn't see it. Argentina advanced and won the World Cup."},
+  {q:"What infamous act ended Zinedine Zidane's career in the 2006 World Cup final?", t:"history", c:["He missed a penalty","He headbutted an Italian player","He scored an own goal","He was injured"], a:1, fact:"Zidane headbutted Marco Materazzi in the chest. Red card. Italy won the final on penalties."},
+  {q:"Who scored the 'Goal of the Century' at the 1986 World Cup?", t:"history", c:["Cruyff","Maradona","Pelé","Ronaldo"], a:1, fact:"Maradona — same game as the Hand of God, just 4 minutes later. A 60-yard solo dribble past 5 England players."},
+
+  // CHAMPIONS LEAGUE
+  {q:"Which club has won the most Champions Leagues?", t:"clubs", c:["AC Milan","Bayern Munich","Liverpool","Real Madrid"], a:3, fact:"Real Madrid — 15 European Cups/Champions Leagues. The next-best is AC Milan with 7."},
+  {q:"Which manager won 3 consecutive Champions Leagues with Real Madrid (2016-2018)?", t:"clubs", c:["Carlo Ancelotti","José Mourinho","Pep Guardiola","Zinedine Zidane"], a:3, fact:"Zidane won 3 in a row as Real Madrid's coach — unprecedented in the Champions League era."},
+  {q:"Who is the all-time top scorer in Champions League history?", t:"players", c:["Lionel Messi","Cristiano Ronaldo","Robert Lewandowski","Karim Benzema"], a:1, fact:"Cristiano Ronaldo — over 140 Champions League goals. Messi is second."},
+  {q:"What manager won the 2008 Champions League with Manchester United?", t:"clubs", c:["José Mourinho","Pep Guardiola","Sir Alex Ferguson","Arsène Wenger"], a:2, fact:"Sir Alex Ferguson — beat Chelsea in the final. The team had Ronaldo, Rooney, Tevez, Carrick, etc."},
+
+  // PLAYERS DEEPER
+  {q:"How many Ballons d'Or has Lionel Messi won?", t:"players", c:["6","7","8","9"], a:2, fact:"8 — more than any player in history. The next-closest is Ronaldo with 5."},
+  {q:"In which year did Messi win his first World Cup?", t:"players", c:["2014","2018","2022","2026"], a:2, fact:"2022 in Qatar — at age 35, in his 5th and probably final World Cup. He scored twice in the final."},
+  {q:"Where did Erling Haaland play before joining Manchester City?", t:"players", c:["Bayern Munich","Borussia Dortmund","Real Madrid","Juventus"], a:1, fact:"Borussia Dortmund (2020-2022) — where he was already a superstar before Man City paid for him."},
+  {q:"What is Haaland's record number of Premier League goals in a single season?", t:"players", c:["30","32","34","36"], a:3, fact:"36 in 2022-23 — broke the 38-game Premier League record (previously 32 by Mohamed Salah)."},
+  {q:"In what year did Jude Bellingham join Real Madrid?", t:"players", c:["2021","2022","2023","2024"], a:2, fact:"2023 — Madrid paid Borussia Dortmund around €103m. He scored 13 goals in his first 13 La Liga games."},
+  {q:"Who is the all-time top scorer in men's international football?", t:"players", c:["Pelé","Lionel Messi","Cristiano Ronaldo","Ferenc Puskás"], a:2, fact:"Cristiano Ronaldo — over 140 goals for Portugal. Pelé is at 77."},
+
+  // CLUBS / RIVALRIES
+  {q:"What is the famous match between Barcelona and Real Madrid called?", t:"clubs", c:["The Big One","El Clásico","The Spanish Derby","La Batalla"], a:1, fact:"El Clásico — one of the biggest rivalries in world sport. Watched by hundreds of millions globally."},
+  {q:"What is the rivalry match between Liverpool and Manchester United called?", t:"clubs", c:["The North-West Derby","The Big Match","The English Clásico","The Reds Derby"], a:0, fact:"North-West Derby — England's biggest rivalry, with Liverpool and Manchester being major rival cities."},
+  {q:"Who was the manager of Barcelona's famous tiki-taka team (2008-2012)?", t:"clubs", c:["Luis Enrique","Pep Guardiola","Frank Rijkaard","Tito Vilanova"], a:1, fact:"Pep Guardiola — Barcelona won 14 trophies in 4 years, including 2 Champions Leagues with Messi, Xavi, Iniesta."},
+
+  // CANADIAN WOMEN'S TEAM
+  {q:"At which Olympics did Canada win women's soccer gold?", t:"history", c:["London 2012","Rio 2016","Tokyo 2020","Paris 2024"], a:2, fact:"Tokyo 2020 (held in 2021) — Canada beat Sweden on penalties in the final. Their first ever major international title."},
+  {q:"Christine Sinclair retired from international football in what year?", t:"players", c:["2020","2021","2023","2024"], a:2, fact:"December 2023 — after 23 years and 190 international goals."},
+  {q:"In how many FIFA Women's World Cups did Christine Sinclair play?", t:"players", c:["3","4","5","6"], a:3, fact:"6 — from 2003 to 2023. Only Sinclair and Brazil's Formiga have ever played in 6 Women's World Cups."},
+
+  // EUROPEAN CHAMPIONSHIP
+  {q:"Which country won the 2024 European Championship (Euros)?", t:"tournaments", c:["England","Germany","Spain","France"], a:2, fact:"Spain won Euro 2024, beating England 2-1 in the final in Berlin."},
+  {q:"Who won the 2016 European Championship?", t:"tournaments", c:["France","Italy","Portugal","Germany"], a:2, fact:"Portugal — beating hosts France in the final. Ronaldo got injured early but still lifted the trophy."},
+
+  // GOLDEN BOOTS / TOP SCORERS
+  {q:"Who won the 2022 World Cup Golden Boot (most goals)?", t:"tournaments", c:["Lionel Messi","Kylian Mbappé","Olivier Giroud","Julián Álvarez"], a:1, fact:"Mbappé — 8 goals including a hat-trick in the final."},
+
+  // TYPED (TIER 3)
+  {q:"Who scored the 'Hand of God' goal in 1986? (type the last name)", t:"history", typed:true, a:"Maradona", aliases:["maradona","diego maradona","maradonna"], fact:"Diego Maradona's infamous handball goal vs. England."},
+  {q:"How many men's World Cups has Brazil won? (type a number)", t:"tournaments", typed:true, a:"5", aliases:["5","five"], fact:"5 — more than any other country."},
+  {q:"Which Spanish manager led Barcelona's tiki-taka era? (type his first name OR last name)", t:"clubs", typed:true, a:"Guardiola", aliases:["guardiola","pep","pep guardiola"], fact:"Pep Guardiola — coached Barcelona 2008-2012, then Bayern, then Man City."},
+  {q:"Who is the all-time top scorer in men's international football? (type last name)", t:"players", typed:true, a:"Ronaldo", aliases:["ronaldo","cristiano ronaldo","cr7","cristiano"], fact:"Cristiano Ronaldo — over 140 goals for Portugal."},
+  {q:"Which country won the 2024 European Championship? (type your answer)", t:"tournaments", typed:true, a:"Spain", aliases:["spain","la roja","spanish"], fact:"Spain beat England 2-1 in the final in Berlin."},
+  {q:"What's the famous match between Barcelona and Real Madrid called? (type the two-word name)", t:"clubs", typed:true, a:"El Clásico", aliases:["el clasico","el clásico","clasico","clásico","el clàssic"], fact:"El Clásico — the biggest club rivalry in world football."},
+  {q:"At which Olympics did Canada's women win soccer gold? (type the host city OR year)", t:"history", typed:true, a:"Tokyo", aliases:["tokyo","tokio","2020","2021","tokyo 2020","tokyo 2021"], fact:"Tokyo 2020 (held in 2021) — beating Sweden in the final."},
+  {q:"In what year did Lionel Messi finally win the World Cup with Argentina? (type a year)", t:"tournaments", typed:true, a:"2022", aliases:["2022","'22"], fact:"December 2022 in Qatar — beating France in penalties."},
+  {q:"What is Liverpool FC's famous anthem? (type the 5-word phrase, hyphens or apostrophes optional)", t:"clubs", typed:true, a:"You'll Never Walk Alone", aliases:["youll never walk alone","you'll never walk alone","ynwa","you will never walk alone"], fact:"YNWA — sung before every Liverpool home game at Anfield."},
+];
+// ============== TIER 4: HIGH SCHOOL ==============
+const TIER4 = [
+  // RECORDS & DEEP TRIVIA
+  {q:"Who held the record for most international goals before Cristiano Ronaldo broke it?", t:"players", c:["Ali Daei","Pelé","Puskás","Klose"], a:0, fact:"Ali Daei of Iran scored 109 international goals. Ronaldo broke that in September 2021."},
+  {q:"Who scored the famous 'Maracanazo' goal that gave Uruguay the 1950 World Cup?", t:"history", c:["Alcides Ghiggia","Schiaffino","Obdulio Varela","Míguez"], a:0, fact:"Alcides Ghiggia silenced 200,000 fans at the Maracanã. Uruguay 2-1 Brazil. Brazilians still mourn this game."},
+  {q:"Which player has scored the most goals in a single calendar year (91)?", t:"players", c:["Cristiano Ronaldo","Pelé","Lionel Messi","Gerd Müller"], a:2, fact:"Messi scored 91 goals in 2012 — a Guinness World Record."},
+  {q:"What's the most goals scored by a single player in one World Cup match?", t:"history", c:["3","4","5","6"], a:2, fact:"5 — by Oleg Salenko of Russia, vs Cameroon at USA 1994."},
+  {q:"How many men's World Cups has the host country won?", t:"history", c:["3","4","5","6"], a:3, fact:"6 hosts have won: Uruguay 1930, Italy 1934, England 1966, West Germany 1974, Argentina 1978, France 1998."},
+
+  // TACTICS / SYSTEMS
+  {q:"What's the term for the Dutch attacking philosophy popularized by Johan Cruyff?", t:"tactics", c:["Catenaccio","Total Football","Tiki-taka","Gegenpressing"], a:1, fact:"Total Football (Voetbal Totaal) — every outfield player can play any position. Cruyff was central to it."},
+  {q:"What's 'gegenpressing'?", t:"tactics", c:["A back-three formation","Counter-pressing immediately after losing the ball","Long-ball strategy","Sitting deep"], a:1, fact:"Counter-pressing — winning the ball back quickly after losing it. Made famous by Jürgen Klopp."},
+  {q:"What's the Italian defensive system based on a sweeper called?", t:"tactics", c:["Catenaccio","Verticale","Difesa","Libero"], a:0, fact:"Catenaccio means 'door bolt' in Italian — built around a sweeper (libero) behind the defenders."},
+  {q:"What's the term for the famous Cruyff move where you fake a pass and pull the ball behind your standing foot?", t:"tactics", c:["The Maradona Spin","The Rabona","The Cruyff Turn","The Elastico"], a:2, fact:"The Cruyff Turn — invented by Johan Cruyff at the 1974 World Cup vs Sweden. Still being used today."},
+
+  // FAMOUS GAMES & COMEBACKS
+  {q:"In what year did Barcelona beat PSG 6-1 in a famous Champions League comeback (after losing 4-0 in the first leg)?", t:"history", c:["2015","2016","2017","2018"], a:2, fact:"March 2017 — known as 'La Remontada.' Barcelona overturned a 4-0 first-leg deficit."},
+  {q:"What was the score of the 2014 World Cup semifinal between Germany and Brazil?", t:"history", c:["3-1","5-1","7-1","4-2"], a:2, fact:"7-1 to Germany in Brazil. The most one-sided result in a World Cup semifinal ever — a national trauma in Brazil."},
+  {q:"Which team won the Champions League final against Bayern Munich in 1999 with two stoppage-time goals?", t:"history", c:["Arsenal","Liverpool","Manchester United","Chelsea"], a:2, fact:"Manchester United — Sheringham and Solskjær scored in injury time. Sir Alex Ferguson: 'Football, bloody hell.'"},
+  {q:"In what year did Greece shock the world to win Euro 2004?", t:"history", c:["1996","2000","2004","2008"], a:2, fact:"Greece in 2004 — beating Portugal twice (the opener and the final) at 150-1 pre-tournament odds."},
+  {q:"At the 1950 World Cup, the US shocked which European powerhouse 1-0?", t:"history", c:["England","Italy","France","Germany"], a:0, fact:"USA 1-0 England in Belo Horizonte — one of the biggest upsets in football history."},
+
+  // INDIVIDUAL ACHIEVEMENTS / AWARDS
+  {q:"Who is the only goalkeeper ever to win the Ballon d'Or?", t:"players", c:["Gianluigi Buffon","Iker Casillas","Lev Yashin","Manuel Neuer"], a:2, fact:"Lev Yashin of the Soviet Union — won the 1963 Ballon d'Or. No goalie has won since."},
+  {q:"Who won the 2025 Ballon d'Or?", t:"players", c:["Mbappé","Vinícius Jr.","Ousmane Dembélé","Erling Haaland"], a:2, fact:"Ousmane Dembélé of PSG won the 2025 Ballon d'Or."},
+  {q:"What is the FIFA award given to the World Cup's best young player?", t:"tournaments", c:["Golden Ball","Golden Boot","Young Player Award","Silver Ball"], a:2, fact:"The Young Player Award. Mbappé won it in 2018 at age 19."},
+  {q:"Who scored a goal directly from a corner kick (a so-called 'Olimpico') in the most famous example at the 1996 Olympics?", t:"history", c:["Marta","Mia Hamm","Sissi","Carli Lloyd"], a:0, fact:"This question is tough — actually corner-kick goals are common. Olimpico goals as a phrase comes from Argentina in 1924 (vs Uruguay)."},
+
+  // FAMOUS PLAYERS DEEPER
+  {q:"Which player did Manchester United replace Cristiano Ronaldo with when he left for Real Madrid in 2009?", t:"history", c:["Antonio Valencia","Dimitar Berbatov","Nani","Wayne Rooney already there"], a:0, fact:"Antonio Valencia was the wide replacement, though United also kept Nani and Rooney. United paid £80M for Ronaldo, world record at the time."},
+  {q:"Who is the youngest player ever to play in a World Cup?", t:"history", c:["Pelé","Norman Whiteside","Diego Maradona","Mbappé"], a:1, fact:"Norman Whiteside of Northern Ireland — 17 years 41 days at Spain 1982."},
+  {q:"Who scored the legendary 'Where were you when…' bicycle kick volley vs Real Madrid in the 2018 Champions League final preview match?", t:"history", c:["Cristiano Ronaldo","Lionel Messi","Gareth Bale","Ronaldinho"], a:0, fact:"Cristiano Ronaldo's bicycle kick vs Juventus in April 2018. Even Juve fans applauded."},
+  {q:"Which player scored the winning header in the 2014 World Cup final for Germany?", t:"history", c:["Thomas Müller","Mario Götze","Miroslav Klose","Mesut Özil"], a:1, fact:"Mario Götze in extra time. Germany 1-0 Argentina."},
+
+  // OBSCURE / DEEPER
+  {q:"What's the official name of the Maracanã stadium in Rio?", t:"clubs", c:["Estádio do Maracanã","Mário Filho Stadium","Estádio Jornalista Mário Filho","Rio Olympic Stadium"], a:2, fact:"Estádio Jornalista Mário Filho — named after a famous Brazilian sports journalist. 'Maracanã' is the nickname."},
+  {q:"What's the most expensive transfer in football history (as of 2025)?", t:"players", c:["Neymar (€222M to PSG, 2017)","Mbappé (€180M to PSG)","Pogba (€105M)","Hazard (€100M)"], a:0, fact:"Neymar from Barcelona to PSG in 2017 — €222 million. Still the record."},
+  {q:"Who is the all-time top scorer in the men's Champions League era (since 1992)?", t:"players", c:["Lionel Messi","Cristiano Ronaldo","Robert Lewandowski","Karim Benzema"], a:1, fact:"Cristiano Ronaldo — over 140 goals. Messi is second with 129."},
+  {q:"In what year was the modern Premier League founded?", t:"history", c:["1990","1992","1995","1998"], a:1, fact:"1992 — England's top division split off from the Football League."},
+  {q:"Who is the only player to win the World Cup as both a player AND a coach?", t:"history", c:["Franz Beckenbauer","Mário Zagallo","Both A and B","Carlos Bilardo"], a:2, fact:"Both! Mário Zagallo (Brazil — won as player 1958, 1962; coach 1970). Franz Beckenbauer (West Germany — won as player 1974; coach 1990). Didier Deschamps later joined them."},
+
+  // CANADIAN WOMEN'S DEEP
+  {q:"In what year did Canada's women's team win Olympic bronze (their first Olympic medal)?", t:"history", c:["2008","2012","2016","Both 2012 and 2016"], a:3, fact:"Bronze at both London 2012 and Rio 2016, then gold at Tokyo 2020."},
+  {q:"Who was the head coach when Canada's women won Olympic gold at Tokyo 2020?", t:"players", c:["John Herdman","Bev Priestman","Kenneth Heiner-Møller","Andy Spence"], a:1, fact:"Bev Priestman, an Englishwoman, was the head coach."},
+
+  // OBSCURE LEGENDS
+  {q:"Which Hungarian forward was a star of the 'Mighty Magyars' team of the 1950s?", t:"history", c:["Ferenc Puskás","Sándor Kocsis","Both","Neither"], a:2, fact:"Both — Hungary went 32 games unbeaten in the 1950s. Puskás later won 3 European Cups with Real Madrid."},
+  {q:"Who is widely considered England's greatest player ever — the only Englishman to win a World Cup as captain?", t:"history", c:["Bobby Charlton","Bobby Moore","Sir Stanley Matthews","Gary Lineker"], a:1, fact:"Bobby Moore — captained England to the 1966 World Cup win on home soil."},
+
+  // TYPED (TIER 4)
+  {q:"Who scored Germany's winning goal in extra time of the 2014 World Cup final? (type last name)", t:"history", typed:true, a:"Götze", aliases:["gotze","götze","mario gotze","mario götze","goetze","goetzer"], fact:"Mario Götze's 113th-minute volley."},
+  {q:"What's the football term for winning the ball back immediately after losing it? (type your answer)", t:"tactics", typed:true, a:"gegenpressing", aliases:["gegenpressing","counter pressing","counter-pressing","gegen pressing","gegen press"], fact:"Gegenpressing — pioneered by Ralf Rangnick and Jürgen Klopp."},
+  {q:"What's the famous 'turn' move named after a Dutch legend? (type the two words)", t:"tactics", typed:true, a:"Cruyff Turn", aliases:["cruyff turn","cruyff","the cruyff turn","cruijff turn"], fact:"Cruyff Turn — invented vs Sweden at 1974 World Cup."},
+  {q:"What was the score of the 2014 WC semifinal: Germany vs Brazil? (type as X-Y, Germany's score first)", t:"history", typed:true, a:"7-1", aliases:["7-1","71","7 1","7:1","7 to 1","seven one"], fact:"7-1. A Brazilian national trauma."},
+  {q:"In what year did the Premier League begin as we know it today? (type a year)", t:"history", typed:true, a:"1992", aliases:["1992","92"], fact:"1992 — split from the Football League."},
+  {q:"Who is the most expensive player ever (the player Barcelona sold to PSG in 2017 for €222m)? (type last name)", t:"history", typed:true, a:"Neymar", aliases:["neymar","neymar jr","neymar junior"], fact:"Neymar — still the record transfer."},
+  {q:"Which Hungarian legend won 3 European Cups with Real Madrid in the late 1950s? (type last name)", t:"history", typed:true, a:"Puskás", aliases:["puskas","puskás","ferenc puskas","ferenc puskás"], fact:"Ferenc Puskás — FIFA's goal-of-the-year award is named after him."},
+  {q:"Which Portuguese striker won 5 Ballons d'Or and plays for Al-Nassr? (type his last name)", t:"players", typed:true, a:"Ronaldo", aliases:["ronaldo","cristiano","cristiano ronaldo","cr7"], fact:"Cristiano Ronaldo — joined Al-Nassr in Saudi Arabia in 2023."},
+  {q:"Christine Sinclair's career international goal total is what number? (within 5 is fine)", t:"players", typed:true, a:"190", aliases:["190","189","191","188","192","193","185","186","187","194","195","one hundred ninety","one hundred and ninety"], fact:"190 international goals — more than any player ever."},
+  {q:"Who won the 2025 Ballon d'Or? (type last name)", t:"players", typed:true, a:"Dembélé", aliases:["dembele","dembélé","ousmane dembele","ousmane dembélé","dembelle"], fact:"Ousmane Dembélé of PSG."},
+  {q:"What's the formal name of Real Madrid's stadium? (type your answer — first part or full name)", t:"clubs", typed:true, a:"Santiago Bernabéu", aliases:["bernabeu","bernabéu","santiago bernabeu","santiago bernabéu","estadio santiago bernabeu","estadio bernabeu","the bernabeu"], fact:"Santiago Bernabéu Stadium — named after the legendary Madrid president."},
+];
+// ============== GAME LOGIC ==============
+
+const ALL_TIERS = [TIER1, TIER2, TIER3, TIER4];
+const TIER_NAMES = ['Grade 1-3', 'Grade 4-5', 'Grade 6-8', 'High School'];
+
+const state = {
+  p1: { explorer: null, tier: null, hp: 100, used: new Set() },
+  p2: { explorer: null, tier: null, hp: 100, used: new Set() },
+  turn: 1, // 1 or 2
+  currentChoice: null, // 'home' or 'up'
+  currentQ: null,
+  currentQTier: null,
+  turnsPlayed: 0,
+  correctAnswers: { 1: 0, 2: 0 },
+  totalAnswers: { 1: 0, 2: 0 },
+  awaitingNext: false,
+};
+
+// =============== FUZZY ANSWER MATCHING ===============
+function normalize(s) {
+  return s.toLowerCase()
+    .trim()
+    .replace(/[''`]/g, "'")
+    .replace(/[^\w\s'-]/g, '')
+    .replace(/^(the|a|an|le|la|les)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripPunctSpaces(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({length: b.length + 1}, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i-1] === b[j-1]
+        ? prev
+        : Math.min(prev, dp[j], dp[j-1]) + 1;
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}
+
+function fuzzyMatch(input, answer, aliases) {
+  if (!input) return false;
+  const userNorm = normalize(input);
+  const userTight = stripPunctSpaces(input);
+  const allTargets = [answer, ...(aliases || [])];
+  for (const t of allTargets) {
+    const tNorm = normalize(t);
+    const tTight = stripPunctSpaces(t);
+    if (userNorm === tNorm) return true;
+    if (userTight === tTight) return true;
+    // tolerance scales with word length
+    const tol = tNorm.length <= 4 ? 0 : tNorm.length <= 7 ? 1 : tNorm.length <= 12 ? 2 : 3;
+    if (levenshtein(userNorm, tNorm) <= tol) return true;
+    if (levenshtein(userTight, tTight) <= tol) return true;
+  }
+  return false;
+}
+
+// =============== EXPLORER CARD BUILDING ===============
+// Footballers carry their own position and shirt number in their data.
+
+function buildExplorerGrid(playerNum) {
+  const grid = document.getElementById('p' + playerNum + '-fighters');
+  grid.innerHTML = '';
+  EXPLORERS.forEach((ex, idx) => {
+    const card = document.createElement('div');
+    card.className = 'fighter-card';
+    card.dataset.idx = idx;
+    card.dataset.player = playerNum;
+    card.dataset.jersey = ex.jersey || '';
+    card.dataset.position = ex.position || '';
+    card.innerHTML = `
+      <span class="fighter-emoji">${ex.emoji}</span>
+      <div class="fighter-name">${ex.name}</div>
+      <div class="fighter-era">${ex.era}</div>
+      <button class="story-btn" onclick="event.stopPropagation(); openStory(${idx})">📖 story</button>
+    `;
+    card.addEventListener('click', () => selectExplorer(playerNum, idx));
+    grid.appendChild(card);
+  });
+}
+
+function selectExplorer(playerNum, idx) {
+  const grid = document.getElementById('p' + playerNum + '-fighters');
+  grid.querySelectorAll('.fighter-card').forEach(c => {
+    c.classList.remove('selected-p1', 'selected-p2');
+  });
+  const card = grid.querySelector(`.fighter-card[data-idx="${idx}"]`);
+  card.classList.add('selected-p' + playerNum);
+  state['p' + playerNum].explorer = idx;
+  checkGoReady();
+}
+
+// =============== TIER CARD BUILDING ===============
+function buildTierGrid(playerNum) {
+  const grid = document.getElementById('p' + playerNum + '-tiers');
+  grid.innerHTML = '';
+  TIER_NAMES.forEach((name, idx) => {
+    const card = document.createElement('div');
+    card.className = 'tier-card';
+    card.dataset.tier = idx;
+    const ages = ['Ages 6-8','Ages 9-10','Ages 11-13','Ages 14+'];
+    card.innerHTML = `
+      <div class="tier-name">${name}</div>
+      <div class="tier-age">${ages[idx]}</div>
+    `;
+    card.addEventListener('click', () => selectTier(playerNum, idx));
+    grid.appendChild(card);
+  });
+}
+
+function selectTier(playerNum, idx) {
+  const grid = document.getElementById('p' + playerNum + '-tiers');
+  grid.querySelectorAll('.tier-card').forEach(c => {
+    c.classList.remove('selected-p1', 'selected-p2');
+  });
+  const card = grid.querySelector(`.tier-card[data-tier="${idx}"]`);
+  card.classList.add('selected-p' + playerNum);
+  state['p' + playerNum].tier = idx;
+  checkGoReady();
+}
+
+function checkGoReady() {
+  const ready = state.p1.explorer !== null && state.p1.tier !== null &&
+                state.p2.explorer !== null && state.p2.tier !== null;
+  document.getElementById('go-btn').disabled = !ready;
+}
+
+// =============== STORY MODAL ===============
+function openStory(idx) {
+  const ex = EXPLORERS[idx];
+  const dg = DIAGRAMS[ex.diagram];
+  document.getElementById('story-emoji').textContent = ex.emoji;
+  document.getElementById('story-name').textContent = ex.name;
+  document.getElementById('story-era').textContent = ex.era + ' · ' + ex.tagline;
+  document.getElementById('story-body').innerHTML = ex.story.map(p => `<p>${p}</p>`).join('');
+  const diagWrap = document.getElementById('story-diagram');
+  if (dg) {
+    diagWrap.innerHTML = dg.svg + `<div class="diagram-caption">${dg.caption}</div>`;
+    diagWrap.style.display = 'block';
+  } else {
+    diagWrap.style.display = 'none';
+  }
+  document.getElementById('story-overlay').classList.add('active');
+}
+function closeStory() {
+  document.getElementById('story-overlay').classList.remove('active');
+}
+
+// =============== START BATTLE ===============
+function startBattle() {
+  document.getElementById('setup-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+  renderArenaHeader();
+  beginTurn();
+  window.scrollTo(0, 0);
+}
+
+function renderArenaHeader() {
+  const p1 = EXPLORERS[state.p1.explorer];
+  const p2 = EXPLORERS[state.p2.explorer];
+
+  document.getElementById('p1-name').innerHTML = `<span style="font-size:1.2rem">${p1.emoji}</span> <span>${p1.name}</span>`;
+  document.getElementById('p2-name').innerHTML = `<span>${p2.name}</span> <span style="font-size:1.2rem">${p2.emoji}</span>`;
+  document.getElementById('p1-tier').textContent = TIER_NAMES[state.p1.tier];
+  document.getElementById('p2-tier').textContent = TIER_NAMES[state.p2.tier];
+  updateHP();
+}
+
+function updateHP() {
+  const p1pct = Math.max(0, state.p1.hp);
+  const p2pct = Math.max(0, state.p2.hp);
+  const p1fill = document.getElementById('p1-hp-fill');
+  const p2fill = document.getElementById('p2-hp-fill');
+  p1fill.style.width = p1pct + '%';
+  p2fill.style.width = p2pct + '%';
+  p1fill.classList.toggle('low', state.p1.hp <= 30);
+  p2fill.classList.toggle('low', state.p2.hp <= 30);
+  document.getElementById('p1-hp-text').textContent = `${Math.max(0,state.p1.hp)} / 100 HP`;
+  document.getElementById('p2-hp-text').textContent = `${Math.max(0,state.p2.hp)} / 100 HP`;
+}
+
+// =============== TURNS ===============
+function beginTurn() {
+  const me = state['p' + state.turn];
+  const ex = EXPLORERS[me.explorer];
+  const indicator = document.getElementById('turn-indicator');
+  indicator.textContent = `${ex.emoji} ${ex.name}'s Turn — choose a level`;
+  indicator.classList.toggle('p2-turn', state.turn === 2);
+
+  document.getElementById('turn-choice').style.display = 'grid';
+  document.getElementById('question-area').style.display = 'none';
+
+  const homeTierName = TIER_NAMES[me.tier];
+  const upTierName = me.tier < 3 ? TIER_NAMES[me.tier + 1] : null;
+
+  document.getElementById('choice-home-title').textContent = homeTierName;
+  document.getElementById('choice-home-sub').textContent = 'Your level · 11 dmg';
+
+  const upBtn = document.getElementById('choice-up-btn');
+  if (upTierName) {
+    upBtn.style.display = 'block';
+    document.getElementById('choice-up-title').textContent = upTierName;
+    document.getElementById('choice-up-sub').textContent = 'Reach up · 15 dmg';
+  } else {
+    upBtn.style.display = 'none';
+  }
+}
+
+function chooseLevel(which) {
+  const me = state['p' + state.turn];
+  const tierIdx = which === 'home' ? me.tier : me.tier + 1;
+  state.currentChoice = which;
+  state.currentQTier = tierIdx;
+
+  // pick a question this player hasn't used at this tier
+  const bank = ALL_TIERS[tierIdx];
+  const usedKey = 'tier' + tierIdx;
+  if (!me.used.has) me.used = new Set();
+  const seen = me.used;
+  const available = bank.map((_, i) => `${tierIdx}:${i}`).filter(k => !seen.has(k));
+  if (available.length === 0) {
+    // Reset that tier for this player if exhausted
+    bank.forEach((_, i) => seen.delete(`${tierIdx}:${i}`));
+  }
+  const pool = bank.map((_, i) => `${tierIdx}:${i}`).filter(k => !seen.has(k));
+  const pickKey = pool[Math.floor(Math.random() * pool.length)];
+  const qIdx = parseInt(pickKey.split(':')[1], 10);
+  seen.add(pickKey);
+
+  state.currentQ = bank[qIdx];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  document.getElementById('turn-choice').style.display = 'none';
+  document.getElementById('question-area').style.display = 'block';
+
+  const q = state.currentQ;
+  document.getElementById('q-topic').textContent = `${TIER_NAMES[state.currentQTier]} · ${q.t}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const choicesDiv = document.getElementById('q-choices');
+  const typedDiv = document.getElementById('q-typed');
+  const feedback = document.getElementById('q-feedback');
+  feedback.style.display = 'none';
+  feedback.innerHTML = '';
+
+  if (q.typed) {
+    choicesDiv.style.display = 'none';
+    typedDiv.style.display = 'flex';
+    const input = document.getElementById('q-input');
+    input.value = '';
+    input.classList.remove('correct', 'wrong');
+    input.disabled = false;
+    document.getElementById('q-submit').disabled = false;
+    setTimeout(() => input.focus(), 100);
+  } else {
+    typedDiv.style.display = 'none';
+    choicesDiv.style.display = 'grid';
+    choicesDiv.innerHTML = '';
+    const letters = ['A','B','C','D'];
+    q.c.forEach((choice, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${choice}</span>`;
+      btn.addEventListener('click', () => answerMC(i));
+      choicesDiv.appendChild(btn);
+    });
+  }
+}
+
+function answerMC(idx) {
+  const q = state.currentQ;
+  const correct = idx === q.a;
+  const choices = document.querySelectorAll('#q-choices .choice');
+  choices.forEach((c, i) => {
+    c.disabled = true;
+    if (i === q.a) c.classList.add('correct');
+    if (i === idx && i !== q.a) c.classList.add('wrong');
+  });
+  resolveAnswer(correct);
+}
+
+function answerTyped() {
+  const q = state.currentQ;
+  const input = document.getElementById('q-input');
+  const userText = input.value.trim();
+  if (!userText) return;
+  const correct = fuzzyMatch(userText, q.a, q.aliases);
+  input.classList.add(correct ? 'correct' : 'wrong');
+  input.disabled = true;
+  document.getElementById('q-submit').disabled = true;
+  resolveAnswer(correct);
+}
+
+function resolveAnswer(correct) {
+  const q = state.currentQ;
+  const attacker = state.turn;
+  const defender = attacker === 1 ? 2 : 1;
+  const damage = state.currentChoice === 'home' ? 11 : 15;
+
+  state.totalAnswers[attacker]++;
+  if (correct) state.correctAnswers[attacker]++;
+  state.turnsPlayed++;
+
+  const feedback = document.getElementById('q-feedback');
+  feedback.style.display = 'block';
+
+  if (correct) {
+    feedback.className = 'feedback right';
+    feedback.innerHTML = `<b>Correct!</b> ${q.fact} <br><br>You deal <b>${damage} damage</b> to your opponent.`;
+    state['p' + defender].hp -= damage;
+    flashDamage(defender, damage);
+  } else {
+    feedback.className = 'feedback wrong';
+    const correctText = q.typed ? q.a : q.c[q.a];
+    feedback.innerHTML = `<b>Not quite!</b> The answer was: <b>${correctText}</b>. <br><br>${q.fact}<br><br>No damage dealt.`;
+  }
+
+  updateHP();
+
+  // Check for winner
+  if (state.p1.hp <= 0 || state.p2.hp <= 0) {
+    setTimeout(showWinner, 1600);
+    return;
+  }
+
+  // Add Next button
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'next-btn';
+  nextBtn.textContent = 'Next turn →';
+  nextBtn.onclick = nextTurn;
+  feedback.appendChild(nextBtn);
+}
+
+function flashDamage(targetPlayer, dmg) {
+  const target = document.getElementById('p' + targetPlayer + '-name').getBoundingClientRect();
+  const flash = document.createElement('div');
+  flash.className = 'dmg-flash';
+  flash.textContent = '-' + dmg;
+  flash.style.color = targetPlayer === 1 ? '#5be3ff' : '#ffb547';
+  flash.style.left = (target.left + target.width / 2) + 'px';
+  flash.style.top = (target.top + window.scrollY) + 'px';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 1200);
+}
+
+function nextTurn() {
+  state.turn = state.turn === 1 ? 2 : 1;
+  beginTurn();
+  document.getElementById('question-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// =============== WINNER ===============
+function showWinner() {
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('winner-screen').classList.add('active');
+
+  const winner = state.p1.hp > 0 ? 1 : 2;
+  const wEx = EXPLORERS[state['p' + winner].explorer];
+  document.getElementById('winner-name').textContent = wEx.name + ' triumphs!';
+  document.getElementById('winner-emoji').textContent = wEx.emoji;
+
+  const acc1 = state.totalAnswers[1] > 0
+    ? Math.round(100 * state.correctAnswers[1] / state.totalAnswers[1])
+    : 0;
+  const acc2 = state.totalAnswers[2] > 0
+    ? Math.round(100 * state.correctAnswers[2] / state.totalAnswers[2])
+    : 0;
+
+  document.getElementById('stat-turns').textContent = state.turnsPlayed;
+  document.getElementById('stat-acc1').textContent = acc1 + '%';
+  document.getElementById('stat-acc2').textContent = acc2 + '%';
+  window.scrollTo(0, 0);
+}
+
+function rematch() {
+  state.p1.hp = 100;
+  state.p2.hp = 100;
+  state.p1.used = new Set();
+  state.p2.used = new Set();
+  state.turn = 1;
+  state.turnsPlayed = 0;
+  state.correctAnswers = { 1: 0, 2: 0 };
+  state.totalAnswers = { 1: 0, 2: 0 };
+  document.getElementById('winner-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.add('active');
+  renderArenaHeader();
+  beginTurn();
+  window.scrollTo(0, 0);
+}
+
+function newGame() {
+  state.p1 = { explorer: null, tier: null, hp: 100, used: new Set() };
+  state.p2 = { explorer: null, tier: null, hp: 100, used: new Set() };
+  state.turn = 1;
+  state.turnsPlayed = 0;
+  state.correctAnswers = { 1: 0, 2: 0 };
+  state.totalAnswers = { 1: 0, 2: 0 };
+  document.getElementById('winner-screen').classList.remove('active');
+  document.getElementById('battle-screen').classList.remove('active');
+  document.getElementById('setup-screen').classList.add('active');
+  buildExplorerGrid(1);
+  buildExplorerGrid(2);
+  buildTierGrid(1);
+  buildTierGrid(2);
+  document.getElementById('go-btn').disabled = true;
+  window.scrollTo(0, 0);
+}
+
+// =============== INIT ===============
+window.addEventListener('DOMContentLoaded', () => {
+  buildExplorerGrid(1);
+  buildExplorerGrid(2);
+  buildTierGrid(1);
+  buildTierGrid(2);
+
+  document.getElementById('go-btn').addEventListener('click', startBattle);
+  document.getElementById('choice-home-btn').addEventListener('click', () => chooseLevel('home'));
+  document.getElementById('choice-up-btn').addEventListener('click', () => chooseLevel('up'));
+  document.getElementById('q-submit').addEventListener('click', answerTyped);
+  document.getElementById('q-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') answerTyped();
+  });
+  document.getElementById('modal-close').addEventListener('click', closeStory);
+  document.getElementById('story-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'story-overlay') closeStory();
+  });
+  document.getElementById('rematch-btn').addEventListener('click', rematch);
+  document.getElementById('new-game-btn').addEventListener('click', newGame);
+});
+</script>
+
+</body>
+</html>
