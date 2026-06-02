@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Iron Throne — A Song of Ice and Fire Trivia Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#06080e; --bg1:#0a0e16; --bg2:#131a26;
+    --ink:#e9e2d0; --ink-dim:#b3aa92; --ink-faint:#7a7358;
+    --gold:#c8a24a; --gold-bright:#e8cf86; --gold-deep:#876a26;
+    --accent:#e0894e; --accent-glow:rgba(224,137,78,.5);
+    --shadow-red:#5f8fb2; --shadow-glow:rgba(120,190,230,.5);
+    --good:#74c69d; --bad:#e07a6a;
+    --line:rgba(201,164,76,.28);
+    --card:rgba(20,16,40,.72);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    color:var(--ink);
+    background:var(--bg0);
+    min-height:100vh;
+    line-height:1.5;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* atmosphere */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-3;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #16202e 0%, transparent 55%),
+      radial-gradient(900px 700px at 85% 110%, #0f1722 0%, transparent 60%),
+      linear-gradient(160deg,var(--bg1),var(--bg0) 70%);
+  }
+  /* faint seven-pointed star watermark */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.1' opacity='0.5'><circle cx='300' cy='300' r='250'/><circle cx='300' cy='300' r='180'/><circle cx='300' cy='300' r='70'/>%SPOKES%</g></svg>");
+    background-repeat:no-repeat;background-position:center 22%;
+    background-size:min(86vw,720px);
+    opacity:.05;
+  }
+  .stars{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5}
+  .stars span{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.4;animation:tw 4s infinite ease-in-out}
+  @keyframes tw{0%,100%{opacity:.12}50%{opacity:.7}}
+
+  .wrap{max-width:760px;margin:0 auto;padding:26px 18px 60px;position:relative}
+
+  /* ---------- shared bits ---------- */
+  .kicker{font-family:'Marcellus',serif;letter-spacing:.32em;text-transform:uppercase;font-size:.66rem;color:var(--gold);opacity:.85}
+  h1{font-family:'Marcellus',serif;font-weight:700;letter-spacing:.04em;line-height:1.05;margin:.25em 0 .15em;
+     font-size:clamp(2rem,7vw,3.1rem);
+     background:linear-gradient(180deg,var(--gold-bright),var(--gold) 55%,var(--gold-deep));
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 2px 30px rgba(201,164,76,.18)}
+  .serpent{display:block;width:min(58vw,180px);margin:6px auto 2px}
+  .lead{color:var(--ink-dim);font-size:1.08rem;max-width:46ch;margin:0 auto}
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px 20px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .center{text-align:center}
+
+  button{font-family:inherit;cursor:pointer;color:inherit;border:none;background:none}
+  .btn{
+    font-family:'Marcellus',serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    font-size:.82rem;
+    padding:14px 22px;border-radius:11px;
+    border:1px solid var(--gold-deep);
+    background:linear-gradient(180deg,rgba(201,164,76,.22),rgba(201,164,76,.06));
+    color:var(--gold-bright);
+    transition:transform .12s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(201,164,76,.22);background:linear-gradient(180deg,rgba(201,164,76,.34),rgba(201,164,76,.1))}
+  .btn:active{transform:translateY(0)}
+  .btn[disabled]{opacity:.4;cursor:default;transform:none;box-shadow:none}
+  .btn-ghost{border-color:var(--line);background:rgba(255,255,255,.03);color:var(--ink-dim)}
+  .btn-ghost:hover{box-shadow:none;color:var(--ink)}
+
+  .fade{animation:fade .55s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .hide{display:none !important}
+
+  /* ---------- start screen ---------- */
+  #start .hero{text-align:center;margin-bottom:26px}
+  .stage-title{font-family:'Marcellus',serif;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:.82rem;text-align:center;margin:30px 0 14px}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mode{
+    text-align:left;border:1px solid var(--line);border-radius:14px;padding:18px 16px;
+    background:rgba(255,255,255,.025);transition:all .18s ease;position:relative;overflow:hidden;
+  }
+  .mode .mt{font-family:'Marcellus',serif;letter-spacing:.08em;color:var(--gold-bright);font-size:1.02rem}
+  .mode .md{color:var(--ink-faint);font-size:.92rem;margin-top:4px}
+  .mode:hover,.mode.sel{border-color:var(--gold);background:rgba(201,164,76,.1);transform:translateY(-2px)}
+  .mode.sel::after{content:"✦";position:absolute;top:10px;right:12px;color:var(--gold-bright)}
+
+  .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+  .char{
+    border:1px solid var(--line);border-radius:13px;padding:14px 12px 13px;text-align:center;
+    background:rgba(255,255,255,.02);transition:all .16s ease;position:relative;overflow:hidden;
+  }
+  .char .ring{width:46px;height:46px;margin:0 auto 8px;border-radius:50%;
+    display:grid;place-items:center;font-family:'Marcellus',serif;font-weight:700;font-size:1.2rem;
+    color:#0b0813;background:radial-gradient(circle at 35% 30%, #fff7, transparent 60%), var(--cc,#888);
+    box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 0 18px 2px var(--ccg,transparent);
+  }
+  .char .cn{font-family:'Marcellus',serif;font-size:.86rem;letter-spacing:.04em;color:var(--ink)}
+  .char .ct{font-size:.78rem;color:var(--ink-faint);margin-top:2px;min-height:2.1em}
+  .char .cp{font-size:.72rem;color:var(--cc,var(--gold));margin-top:6px;letter-spacing:.06em;text-transform:uppercase;font-family:'Marcellus',serif}
+  .char:hover,.char.sel{transform:translateY(-3px);border-color:var(--cc,var(--gold))}
+  .char.sel{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px var(--cc), 0 10px 30px -8px var(--ccg)}
+
+  .pick-head{display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap;margin:24px 0 6px}
+  .pick-head h2{font-family:'Marcellus',serif;font-weight:600;font-size:1.18rem;margin:0;color:var(--ink)}
+  .pick-sub{color:var(--ink-faint);font-size:.95rem;text-align:center;margin:0 0 16px}
+
+  .perk-line{font-size:.92rem;color:var(--ink-dim);margin-top:14px;min-height:1.4em;text-align:center}
+  .perk-line b{color:var(--gold-bright);font-family:'Marcellus',serif;font-weight:600;letter-spacing:.04em}
+
+  .footer-note{margin-top:20px;color:var(--ink-faint);font-size:.84rem;text-align:center}
+  .start-actions{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+
+  /* ---------- game screen ---------- */
+  .bars{display:flex;gap:14px;align-items:stretch;margin-bottom:6px}
+  .barbox{flex:1;min-width:0}
+  .barbox .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+  .barbox .name{font-family:'Marcellus',serif;font-size:.86rem;letter-spacing:.03em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barbox .pwr{font-size:.72rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;font-family:'Marcellus',serif}
+  .barbox .hpnum{font-variant-numeric:tabular-nums;color:var(--ink-dim);font-size:.84rem}
+  .track{height:16px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);overflow:hidden;position:relative}
+  .fill{height:100%;border-radius:9px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
+  .fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35));mix-blend-mode:overlay;animation:shine 2.6s linear infinite}
+  @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .fill.you{background:linear-gradient(90deg,var(--p1c,#6db6ff),var(--p1c2,#bfe0ff));box-shadow:0 0 14px var(--p1g,var(--accent-glow))}
+  .fill.foe{background:linear-gradient(90deg,#2a6f97,#67b0d6);box-shadow:0 0 14px var(--shadow-glow)}
+  .fill.p2{background:linear-gradient(90deg,var(--p2c,#e7c873),var(--p2c2,#fff0c4));box-shadow:0 0 14px var(--p2g,rgba(231,200,115,.5))}
+  .vs{align-self:center;font-family:'Marcellus',serif;color:var(--gold);opacity:.7;font-size:.8rem;letter-spacing:.1em;padding:0 2px}
+  .barbox.active{animation:activeglow 1.8s ease-in-out infinite}
+  @keyframes activeglow{0%,100%{filter:none}50%{filter:drop-shadow(0 0 6px var(--gold-bright))}}
+  .barbox.active .name::before{content:"▸ ";color:var(--gold-bright)}
+
+  .turnbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 12px}
+  .turn-tag{font-family:'Marcellus',serif;letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;color:var(--gold-bright)}
+  .progress{font-size:.78rem;color:var(--ink-faint);letter-spacing:.06em}
+
+  .qcard{position:relative}
+  .qmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .tier{display:flex;gap:5px;align-items:center}
+  .tier .pip{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .tier .pip.on{background:var(--gold-bright);box-shadow:0 0 8px var(--gold)}
+  .tier .tl{font-size:.72rem;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;font-family:'Marcellus',serif;margin-left:6px}
+  .srctag{font-size:.74rem;color:var(--ink-faint);font-style:italic}
+  .qtype{font-family:'Marcellus',serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8}
+  .question{font-size:1.28rem;line-height:1.4;color:var(--ink);margin:6px 0 18px}
+
+  .opts{display:grid;gap:10px}
+  .opt{
+    text-align:left;border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+    background:rgba(255,255,255,.02);font-size:1.04rem;color:var(--ink);transition:all .14s ease;
+    display:flex;gap:11px;align-items:flex-start;
+  }
+  .opt .mark{font-family:'Marcellus',serif;color:var(--gold);font-size:.9rem;min-width:1.1em}
+  .opt:hover:not([disabled]){border-color:var(--gold);background:rgba(201,164,76,.09);transform:translateX(3px)}
+  .opt.correct{border-color:var(--good);background:rgba(116,198,157,.16);color:#dffbec}
+  .opt.wrong{border-color:var(--bad);background:rgba(224,122,106,.14);color:#ffe4dd}
+  .opt.faded{opacity:.32;text-decoration:line-through}
+  .opt[disabled]{cursor:default}
+
+  .writein{display:flex;gap:10px;flex-wrap:wrap}
+  .writein input{
+    flex:1;min-width:200px;font-family:inherit;font-size:1.1rem;color:var(--ink);
+    background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+  }
+  .writein input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,164,76,.14)}
+  .hintline{font-size:.92rem;color:var(--accent);margin-top:10px;letter-spacing:.18em;font-family:'Marcellus',serif}
+
+  .perkbar{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .perk-btn{
+    font-family:'Marcellus',serif;letter-spacing:.06em;font-size:.76rem;text-transform:uppercase;
+    padding:10px 14px;border-radius:10px;border:1px dashed var(--cc,var(--gold));
+    background:rgba(255,255,255,.03);color:var(--cc,var(--gold-bright));transition:all .15s ease;
+  }
+  .perk-btn:hover:not([disabled]){background:rgba(201,164,76,.12)}
+  .perk-btn[disabled]{opacity:.35;cursor:default;border-style:solid}
+  .perk-desc{font-size:.84rem;color:var(--ink-faint);flex:1;min-width:160px}
+
+  .feedback{margin-top:18px;border-top:1px solid var(--line);padding-top:16px;animation:fade .4s ease both}
+  .verdict{font-family:'Marcellus',serif;font-size:1.1rem;letter-spacing:.04em;margin-bottom:4px}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict.neutral{color:var(--gold-bright)}
+  .ans{color:var(--ink);font-size:1.02rem}
+  .ans b{color:var(--gold-bright)}
+  .explain{color:var(--ink-dim);font-size:.96rem;margin-top:7px;font-style:italic}
+  .next-row{display:flex;justify-content:flex-end;margin-top:16px}
+
+  /* damage fx */
+  .shake{animation:shake .5s ease}
+  @keyframes shake{0%,100%{transform:none}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-5px,1px)}60%{transform:translate(4px,-1px)}75%{transform:translate(-2px,1px)}}
+  .hitflash{position:fixed;inset:0;background:radial-gradient(circle,transparent 40%,rgba(190,40,40,.35));z-index:50;pointer-events:none;opacity:0}
+  .hitflash.go{animation:flash .5s ease}
+  @keyframes flash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+  .float{position:fixed;font-family:'Marcellus',serif;font-weight:700;z-index:60;pointer-events:none;font-size:1.4rem;animation:floatup 1.05s ease-out forwards;text-shadow:0 1px 8px #000}
+  @keyframes floatup{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.1)}}
+
+  /* end screen */
+  #end .endcard{text-align:center}
+  .endtitle{font-family:'Marcellus',serif;font-weight:700;font-size:clamp(1.8rem,6vw,2.6rem);letter-spacing:.03em;margin:6px 0}
+  .win .endtitle{background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lose .endtitle{color:var(--shadow-red);text-shadow:0 0 24px var(--shadow-glow)}
+  .endquote{color:var(--ink-dim);font-style:italic;max-width:40ch;margin:10px auto 0;font-size:1.05rem}
+  .stats{display:flex;gap:18px;justify-content:center;margin:22px 0 6px;flex-wrap:wrap}
+  .stat{min-width:90px}
+  .stat .v{font-family:'Marcellus',serif;font-size:1.7rem;color:var(--gold-bright)}
+  .stat .l{font-size:.74rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .brand{font-family:'Marcellus',serif;letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--gold);opacity:.8}
+  .sound{font-size:1.1rem;opacity:.7;padding:6px 8px;border-radius:8px}
+  .sound:hover{opacity:1;background:rgba(255,255,255,.05)}
+
+  @media(max-width:480px){
+    .modes{grid-template-columns:1fr}
+    .question{font-size:1.14rem}
+    .char-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+    .bars{gap:8px}
+    .vs{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="hitflash" id="hitflash"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand">The Iron Throne</span>
+    <button class="sound" id="soundBtn" title="Toggle sound">🔊</button>
+  </div>
+
+  <!-- ================= START ================= -->
+  <section id="start" class="fade">
+    <div class="hero">
+      <svg class="serpent" viewBox="0 0 200 120" fill="none" stroke="url(#g)" stroke-width="2.4">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#9c6a1e"/>
+        </linearGradient>
+        <linearGradient id="fl" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#e0894e"/><stop offset="1" stop-color="#ffd27a"/>
+        </linearGradient></defs>
+        <!-- blade -->
+        <path d="M100 8 L106 64 L100 74 L94 64 Z" fill="url(#g)" stroke="none" opacity="0.9"/>
+        <!-- crossguard + hilt -->
+        <path d="M78 74 H122" stroke-linecap="round" stroke-width="3"/>
+        <path d="M100 74 V104" stroke-linecap="round" stroke-width="3"/>
+        <circle cx="100" cy="108" r="4" fill="url(#g)" stroke="none"/>
+        <!-- flames licking the blade -->
+        <path d="M94 60 C86 50 90 40 96 30 C92 44 100 48 100 58" stroke="url(#fl)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M106 60 C114 48 110 38 104 28 C108 44 100 48 100 58" stroke="url(#fl)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="kicker">A Song of Ice and Fire — Trivia Duel</div>
+      <h1>The Iron Throne</h1>
+      <p class="lead">Take your place in the great game. Answer true, and your rival’s strength bleeds away; falter, and your own blood spills. When you play the game of thrones, you win or you die.</p>
+    </div>
+
+    <div class="panel">
+      <div class="stage-title">I. Choose Your Trial</div>
+      <div class="modes">
+        <button class="mode" data-mode="1p">
+          <div class="mt">Against the Great Other</div>
+          <div class="md">One player. Stand against the Long Night. Right answers drive back the dark; wrong ones let the cold claim you.</div>
+        </button>
+        <button class="mode" data-mode="2p">
+          <div class="mt">Claimant vs. Claimant</div>
+          <div class="md">Two players, turn by turn. A right answer wounds your rival; a wrong one wounds yourself. You win or you die.</div>
+        </button>
+      </div>
+
+      <div id="pickArea" class="hide">
+        <div class="pick-head"><h2 id="pickTitle">Choose Your Champion</h2></div>
+        <p class="pick-sub" id="pickSub">Your choice grants a house’s strength — and one stratagem, used but once.</p>
+        <div class="char-grid" id="charGrid"></div>
+        <div class="perk-line" id="perkLine"></div>
+        <div class="start-actions" id="startActions"></div>
+      </div>
+    </div>
+    <p class="footer-note">Drawn from the five novels of <i>A Song of Ice and Fire</i> — book canon only, no show. The questions are hard by design, and grow harder fast. Write-in answers forgive rough spelling — Valyrian names are cruel.</p>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="game" class="hide">
+    <div class="bars">
+      <div class="barbox" id="box1">
+        <div class="who"><span class="name" id="n1">You</span><span class="hpnum"><span id="hp1">100</span></span></div>
+        <div class="track"><div class="fill you" id="f1" style="width:100%"></div></div>
+        <div class="pwr" id="pw1">Honor</div>
+      </div>
+      <div class="vs">✶</div>
+      <div class="barbox" id="box2">
+        <div class="who"><span class="name" id="n2">The Great Other</span><span class="hpnum"><span id="hp2">100</span></span></div>
+        <div class="track"><div class="fill foe" id="f2" style="width:100%"></div></div>
+        <div class="pwr" id="pw2">The Long Night</div>
+      </div>
+    </div>
+
+    <div class="turnbar">
+      <span class="turn-tag" id="turnTag">Your turn</span>
+      <span class="progress" id="prog">Question 1</span>
+    </div>
+
+    <div class="panel qcard">
+      <div class="qmeta">
+        <div class="tier">
+          <span class="pip" id="pip1"></span><span class="pip" id="pip2"></span><span class="pip" id="pip3"></span>
+          <span class="tl" id="tierLabel">Sworn Sword</span>
+        </div>
+        <span class="srctag" id="srcTag"></span>
+      </div>
+      <div class="qtype" id="qType">Multiple Choice</div>
+      <div class="question" id="qText">…</div>
+
+      <div class="opts" id="opts"></div>
+      <div class="writein hide" id="writeWrap">
+        <input id="writeInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+        <button class="btn" id="submitWrite">Answer</button>
+      </div>
+      <div class="hintline hide" id="hintLine"></div>
+
+      <div class="perkbar" id="perkBar">
+        <button class="perk-btn" id="perkBtn">Ability</button>
+        <span class="perk-desc" id="perkDesc"></span>
+      </div>
+
+      <div class="feedback hide" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div class="ans" id="ansLine"></div>
+        <div class="explain" id="explain"></div>
+        <div class="next-row"><button class="btn" id="nextBtn">Continue</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= END ================= -->
+  <section id="end" class="hide">
+    <div class="panel endcard">
+      <div class="kicker" id="endKicker">The Pattern is Woven</div>
+      <div class="endtitle" id="endTitle">Victory</div>
+      <p class="endquote" id="endQuote"></p>
+      <div class="stats">
+        <div class="stat"><div class="v" id="stCorrect">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="v" id="stTotal">0</div><div class="l">Questions</div></div>
+        <div class="stat"><div class="v" id="stAcc">0%</div><div class="l">Accuracy</div></div>
+      </div>
+      <div class="start-actions">
+        <button class="btn" id="againBtn">Play Again</button>
+        <button class="btn btn-ghost" id="homeBtn">New Claimants</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   THE IRON THRONE — A Song of Ice and Fire trivia duel
+   (book canon only — the five published novels)
+   ============================================================ */
+
+/* ---------- decorative stars + wheel spokes ---------- */
+(function(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const d=document.createElement('span');
+    d.style.left=Math.random()*100+'%';
+    d.style.top=Math.random()*100+'%';
+    d.style.animationDelay=(Math.random()*4)+'s';
+    if(Math.random()>.7){d.style.width=d.style.height='3px';}
+    s.appendChild(d);
+  }
+  // build a seven-pointed star (the Faith of the Seven) for the watermark
+  let pts=[];
+  for(let i=0;i<7;i++){
+    const a=(i/7)*Math.PI*2 - Math.PI/2;
+    pts.push((300+Math.cos(a)*250).toFixed(1)+','+(300+Math.sin(a)*250).toFixed(1));
+  }
+  // connect every third point to trace a star
+  let order='';
+  let idx=0;
+  for(let i=0;i<=7;i++){ order+=(i?' ':'')+pts[idx]; idx=(idx+3)%7; }
+  const style=document.createElement('style');
+  style.textContent=`body::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.1'><circle cx='300' cy='300' r='250'/><polyline points='${order}'/></g></svg>");}`;
+  document.head.appendChild(style);
+})();
+
+/* ---------- sound ---------- */
+const Sound=(function(){
+  let on=true, ctx=null;
+  function ac(){ if(!ctx){ try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return ctx; }
+  function tone(freq,dur,type,vol){
+    if(!on)return; const c=ac(); if(!c)return;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.value=0.0001; o.connect(g); g.connect(c.destination);
+    const t=c.currentTime;
+    g.gain.exponentialRampToValueAtTime(vol||0.06,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  return {
+    correct(){ tone(523.25,.12,'triangle',.05); setTimeout(()=>tone(783.99,.18,'triangle',.05),90); },
+    wrong(){ tone(196,.22,'sawtooth',.05); setTimeout(()=>tone(146.83,.28,'sawtooth',.045),110); },
+    hit(){ tone(110,.3,'sawtooth',.07); },
+    click(){ tone(440,.05,'sine',.03); },
+    perk(){ tone(659.25,.1,'sine',.05); setTimeout(()=>tone(987.77,.2,'sine',.05),80); },
+    win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.3,'triangle',.06),i*150)); },
+    lose(){ [330,277,220,165].forEach((f,i)=>setTimeout(()=>tone(f,.4,'sawtooth',.06),i*180)); },
+    toggle(){ on=!on; return on; },
+    get on(){ return on; }
+  };
+})();
+document.getElementById('soundBtn').onclick=function(){
+  const on=Sound.toggle(); this.textContent=on?'🔊':'🔇';
+};
+
+/* ---------- characters ---------- */
+const PERKS={
+  shield:{label:'Raise a guard — ward off the next hit you would take.'},
+  power: {label:'Your next correct answer strikes for double.'},
+  heal:  {label:'Rally — restore 22 strength.'},
+  insight:{label:'Cut two wrong answers — or unveil letters on a write-in.'},
+  luck:  {label:'Discard this question and draw another. No harm, either way.'}
+};
+const CHARS=[
+  {id:'ned', name:"Eddard Stark", title:"Warden of the North", power:"Honor", c:"#cdd6e0",c2:"#eef2f6",g:"rgba(205,214,224,.5)", in:"N", perk:"shield", perkName:"Warden's Guard"},
+  {id:'jon', name:"Jon Snow", title:"Bastard of Winterfell", power:"Longclaw", c:"#9fb3c8",c2:"#dde6ef",g:"rgba(159,179,200,.5)", in:"J", perk:"power", perkName:"Longclaw"},
+  {id:'dany', name:"Daenerys Targaryen", title:"Mother of Dragons", power:"Dragonfire", c:"#e0533f",c2:"#ffb38a",g:"rgba(224,83,63,.55)", in:"D", perk:"power", perkName:"Fire and Blood"},
+  {id:'tyrion', name:"Tyrion Lannister", title:"The Imp", power:"Cunning", c:"#d4af4f",c2:"#f3e0a0",g:"rgba(212,175,79,.5)", in:"T", perk:"insight", perkName:"A Mind for Riddles"},
+  {id:'jaime', name:"Jaime Lannister", title:"The Kingslayer", power:"Swordhand", c:"#e6c96a",c2:"#fff0bf",g:"rgba(230,201,106,.5)", in:"J", perk:"shield", perkName:"Lion's Guard"},
+  {id:'arya', name:"Arya Stark", title:"No One", power:"The Many-Faced God", c:"#8aa0b4",c2:"#cfdae6",g:"rgba(138,160,180,.5)", in:"A", perk:"luck", perkName:"Valar Morghulis"},
+  {id:'brienne', name:"Brienne of Tarth", title:"The Maid of Tarth", power:"Duty", c:"#5fa8d3",c2:"#bfe3f5",g:"rgba(95,168,211,.5)", in:"B", perk:"shield", perkName:"Oathkeeper"},
+  {id:'stannis', name:"Stannis Baratheon", title:"Lord of Dragonstone", power:"Iron Will", c:"#e08a4a",c2:"#ffd2a0",g:"rgba(224,138,74,.5)", in:"S", perk:"power", perkName:"King's Justice"},
+  {id:'mel', name:"Melisandre", title:"The Red Priestess", power:"R'hllor's Fire", c:"#d33f3f",c2:"#ff9a8a",g:"rgba(211,63,63,.55)", in:"M", perk:"insight", perkName:"Visions in the Flames"},
+  {id:'bran', name:"Brandon Stark", title:"The Broken", power:"Greensight", c:"#7fb069",c2:"#cfe8b8",g:"rgba(127,176,105,.5)", in:"B", perk:"insight", perkName:"The Three-Eyed Crow"},
+  {id:'cat', name:"Catelyn Stark", title:"Lady of Winterfell", power:"A Mother's Heart", c:"#6aa0a8",c2:"#c2e6ea",g:"rgba(106,160,168,.5)", in:"C", perk:"heal", perkName:"Tully Devotion"},
+  {id:'lf', name:"Petyr Baelish", title:"Littlefinger", power:"Chaos", c:"#9a8cba",c2:"#d8cfee",g:"rgba(154,140,186,.5)", in:"P", perk:"luck", perkName:"A Gambler's Gambit"}
+];
+
+/* ============================================================
+   QUESTION BANK
+   tier: 1 easy · 2 intermediate · 3 hard
+   type: 'mc' (options + answer) or 'write' (accept array + answer label)
+   ============================================================ */
+const BANK=[
+/* ================= TIER 1 — Sworn Sword (hard for show-watchers, fair for readers) ================= */
+{t:1,type:'write',src:"A Game of Thrones",q:"Name Tyrion Lannister's first wife, the crofter's daughter he secretly wed as a boy \u2014 the marriage Tywin had violently undone.",accept:["tysha"],answer:"Tysha",explain:"Tywin had the marriage annulled and convinced Tyrion she was a paid whore, a lie that festers for decades."},
+{t:1,type:'write',src:"A Game of Thrones",q:"Which sellsword champions Tyrion in his trial by combat at the Eyrie, winning his freedom?",accept:["bronn","ser bronn"],answer:"Bronn",explain:"Bronn fights Ser Vardis Egen, using the Eyrie's high balconies and Moon Door against the heavier knight."},
+{t:1,type:'mc',src:"A Storm of Swords",q:"After Ice, the Stark greatsword, is melted down, into which two Valyrian steel blades is it reforged?",options:["Widow's Wail and Oathkeeper","Oathkeeper and Lady Forlorn","Widow's Wail and Heartsbane","Lamentation and Oathkeeper"],answer:"Widow's Wail and Oathkeeper",explain:"Tywin reforges Ice into Widow's Wail (to Joffrey) and Oathkeeper (Jaime gives it to Brienne). Lady Forlorn is House Corbray's; Heartsbane is Tarly's; Lamentation was House Royce's."},
+{t:1,type:'write',src:"A Game of Thrones",q:"Which Pentoshi magister shelters Viserys and Daenerys, brokers Dany's marriage to Drogo, and gives the three dragon eggs as a wedding gift?",accept:["illyrio","illyrio mopatis","magister illyrio"],answer:"Illyrio Mopatis",explain:"The cheese-monger magister's schemes reach much further than the Targaryen children ever guess."},
+{t:1,type:'write',src:"A Clash of Kings",q:"What is the name of Sandor Clegane's destrier, a black courser no one else can handle?",accept:["stranger"],answer:"Stranger",explain:"The Hound names his ill-tempered warhorse for the seventh face of the Seven \u2014 the god of death."},
+{t:1,type:'mc',src:"A Game of Thrones",q:"Arya is given an iron coin and the words 'valar morghulis' by a Lorathi prisoner she frees at Harrenhal. Who is he?",options:["Jaqen H'ghar","Syrio Forel","the Kindly Man","Pate"],answer:"Jaqen H'ghar",explain:"Syrio is her Braavosi water-dancing teacher; the Kindly Man serves the House of Black and White; Pate is the Citadel boy whose face Jaqen later wears."},
+{t:1,type:'write',src:"Lore",q:"What are the words of House Tully of Riverrun, Catelyn's birth house?",accept:["family duty honor","family duty and honor"],answer:"Family, Duty, Honor",explain:"The order matters: family first. Contrast it with Stark's plain warning, 'Winter is Coming.'"},
+{t:1,type:'write',src:"A Game of Thrones",q:"What is the name of Rickon Stark's black direwolf?",accept:["shaggydog","shaggy dog"],answer:"Shaggydog",explain:"The wildest of the six direwolf pups, matching its young, half-feral master."},
+{t:1,type:'write',src:"A Game of Thrones",q:"Whom did Jaime Lannister slay in the throne room to earn the name 'Kingslayer'?",accept:["aerys","aerys ii","aerys targaryen","mad king","king aerys","the mad king"],answer:"Aerys II Targaryen (the Mad King)",explain:"Jaime cut down the king he was sworn to protect to stop the wildfire plot to burn King's Landing."},
+{t:1,type:'mc',src:"A Storm of Swords",q:"What poison kills Joffrey at his own wedding feast?",options:["the Strangler","the Tears of Lys","sweetsleep","manticore venom"],answer:"the Strangler",explain:"The Tears of Lys killed Jon Arryn; sweetsleep is a sedative deadly in dose; manticore venom is Oberyn's weapon. The Strangler seizes the throat shut."},
+{t:1,type:'write',src:"Lore",q:"What are the words of House Baratheon?",accept:["ours is the fury"],answer:"Ours is the Fury",explain:"A storm-lord's boast, fitting Robert's hammer and Stannis's grinding wrath alike."},
+{t:1,type:'write',src:"A Game of Thrones",q:"Who serves as Master of Whisperers on the small council, the eunuch known as 'the Spider'?",accept:["varys","lord varys","the spider"],answer:"Varys",explain:"His little birds carry whispers from every corner of the realm \u2014 and his true loyalties remain hidden."},
+{t:1,type:'write',src:"A Game of Thrones",q:"In the depths of the Red Keep lie the lightless dungeons where Ned Stark is held. What are they called?",accept:["black cells","the black cells"],answer:"The black cells",explain:"Few who enter the black cells beneath the Red Keep ever see daylight again."},
+{t:1,type:'write',src:"A Feast for Crows",q:"What is Horn Hill the seat of \u2014 i.e., which house calls it home? (Samwell's family)",accept:["tarly","house tarly"],answer:"House Tarly",explain:"Lord Randyll Tarly, the finest soldier in the Reach, shamed and disowned his bookish son Samwell."},
+{t:1,type:'write',src:"A Game of Thrones",q:"Name the maester of Winterfell who raises the Stark children and counsels Robb and Bran.",accept:["luwin","maester luwin"],answer:"Maester Luwin",explain:"Loyal to the last, Luwin dies in the godswood after the sack of Winterfell, urging the boys to flee to the Wall."},
+{t:1,type:'write',src:"A Game of Thrones",q:"What is the name of Daenerys's unborn son, hailed by the Dothraki as 'the stallion who mounts the world,' lost to a maegi's blood magic?",accept:["rhaego"],answer:"Rhaego",explain:"Mirri Maz Duur's price for 'saving' Drogo was the life within Dany \u2014 a child described as scaled and long dead."},
+{t:1,type:'mc',src:"A Game of Thrones",q:"Who unhorses Ser Gregor Clegane at the Hand's tourney, using a mare in heat against his stallion?",options:["Ser Loras Tyrell","Ser Jaime Lannister","Ser Barristan Selmy","Ser Sandor Clegane"],answer:"Ser Loras Tyrell",explain:"Enraged, Gregor beheads his own horse and attacks Loras \u2014 and it is the Hound who steps in to save him."},
+{t:1,type:'write',src:"A Game of Thrones",q:"Name the inn where Catelyn has Tyrion seized, accusing him of sending the catspaw to kill Bran.",accept:["inn at the crossroads","crossroads inn","the crossroads inn","inn at crossroads"],answer:"The inn at the crossroads",explain:"Her impulsive arrest lights the fuse on open war between Stark and Lannister."},
+{t:1,type:'write',src:"A Game of Thrones",q:"What animal mortally wounds King Robert Baratheon during a hunt?",accept:["boar","a boar","wild boar","the boar"],answer:"A boar",explain:"Lancel Lannister's strongwine ensured Robert was too drunk to dodge the tusks \u2014 a quiet murder dressed as accident."},
+{t:1,type:'write',src:"A Storm of Swords",q:"What woman of the Westerlands does Robb Stark marry, breaking his oath to wed a daughter of Walder Frey?",accept:["jeyne westerling","jeyne","westerling"],answer:"Jeyne Westerling",explain:"In the novels it is Jeyne Westerling, not the show's Talisa, whose honor-bound bedding costs Robb the Freys."},
+
+/* ================= TIER 2 — Anointed Knight (deep reader) ================= */
+{t:2,type:'write',src:"A Storm of Swords",q:"Three Kingsguard held the tower of joy against Ned Stark and his companions. Name the Sword of the Morning among them.",accept:["arthur dayne","ser arthur dayne","dayne"],answer:"Ser Arthur Dayne",explain:"With Ser Oswell Whent and the Lord Commander Ser Gerold Hightower, Dayne died guarding Lyanna's tower."},
+{t:2,type:'write',src:"A Game of Thrones",q:"Only two men walked away from the fight at the tower of joy. Ned was one. Who was the other \u2014 the crannogman lord, father of Jojen and Meera?",accept:["howland reed","howland","reed"],answer:"Howland Reed",explain:"Ned's silent companion has never told what truly happened in that tower in the Red Mountains of Dorne."},
+{t:2,type:'write',src:"Lore",q:"What is the name of the greatsword forged from the heart of a fallen star, wielded only by the Sword of the Morning of House Dayne?",accept:["dawn"],answer:"Dawn",explain:"Pale as milkglass and alive with light, Dawn is not Valyrian steel \u2014 it is older and stranger."},
+{t:2,type:'mc',src:"A Storm of Swords",q:"Which Lannister-allied mercenary captain leads the Brave Companions and orders Jaime's sword hand struck off?",options:["Vargo Hoat","Amory Lorch","Rorge","Urswyck"],answer:"Vargo Hoat",explain:"The lisping Qohorik 'Lord of Harrenhal' takes Jaime's hand. Amory Lorch, Rorge, and Urswyck are all his fellow Harrenhal monsters."},
+{t:2,type:'write',src:"A Clash of Kings",q:"During the Sack of King's Landing, the Mountain killed Aegon and raped and murdered Elia. But who killed her little daughter, Rhaenys?",accept:["amory lorch","amory","ser amory lorch","lorch"],answer:"Ser Amory Lorch",explain:"A frequently-mixed-up detail: Gregor Clegane took Aegon and Elia; Amory Lorch dragged Rhaenys from under a bed and stabbed her half a hundred times."},
+{t:2,type:'write',src:"A Clash of Kings",q:"As punishment for smuggling, Stannis cut the last joint from four fingers of Davos Seaworth. Which hand?",accept:["left","left hand","his left hand","the left hand"],answer:"His left hand",explain:"Davos keeps the finger bones in a pouch at his neck for luck, and counts Stannis just for knighting him the same day."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Daario Naharis is a captain of which sellsword company before he murders his fellow captains and brings their heads to Daenerys?",accept:["stormcrows","the stormcrows","storm crows"],answer:"The Stormcrows",explain:"He slays Prendahl na Ghezn and Sallor the Bald to win Dany's favor \u2014 and her bed."},
+{t:2,type:'write',src:"A Clash of Kings",q:"Name the warlocks' palace in Qarth where Daenerys walks among the Undying and sees prophetic visions.",accept:["house of the undying","the house of the undying","palace of dust"],answer:"The House of the Undying",explain:"'The Palace of Dust' she enters at Pyat Pree's urging \u2014 and burns behind her with Drogon's fire."},
+{t:2,type:'write',src:"A Feast for Crows",q:"Who is the captain of Prince Doran Martell's guard, a Norvoshi who wields a great longaxe and never leaves his prince's side?",accept:["areo hotah","areo","hotah"],answer:"Areo Hotah",explain:"Sworn to serve, obey, and protect, the bearded axeman opens and closes the Dornish chapters of the saga."},
+{t:2,type:'write',src:"A Storm of Swords",q:"With what venom does Oberyn Martell coat his spear for his duel against Ser Gregor Clegane?",accept:["manticore venom","manticore","manticore poison"],answer:"Manticore venom",explain:"The Red Viper wanted Gregor to die slowly and to confess \u2014 so he chose a poison that kills by inches."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Oberyn fights Gregor as Tyrion's champion chiefly to avenge whom \u2014 his murdered sister?",accept:["elia","elia martell","princess elia"],answer:"Elia Martell",explain:"Elia, Rhaegar's wife, and her children were butchered in the Sack; vengeance for her has shaped Dornish policy for sixteen years."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Under what assumed name does Ser Barristan Selmy serve Daenerys, posing as the squire of Strong Belwas?",accept:["arstan whitebeard","arstan","whitebeard"],answer:"Arstan Whitebeard",explain:"The exiled Lord Commander of the Kingsguard hides in plain sight until he reveals himself and kneels."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Name the King-Beyond-the-Wall, a former man of the Night's Watch, whose host Jon Snow infiltrates.",accept:["mance rayder","mance"],answer:"Mance Rayder",explain:"A deserter and a singer, Mance united dozens of warring wildling peoples under one banner against the coming cold."},
+{t:2,type:'mc',src:"Lore",q:"Which Valyrian steel sword is the ancestral blade of House Tarly?",options:["Heartsbane","Nightfall","Red Rain","Lady Forlorn"],answer:"Heartsbane",explain:"Nightfall belongs to House Harlaw, Red Rain to House Drumm (reaved from the Reynes), and Lady Forlorn to House Corbray."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Which red priest of R'hllor repeatedly brings Lord Beric Dondarrion back from death with the last kiss?",accept:["thoros","thoros of myr"],answer:"Thoros of Myr",explain:"Each resurrection costs Beric a piece of himself \u2014 until he gives his fire to a drowned, throat-cut Catelyn Stark."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Resurrected by Beric's final gift, Catelyn Stark rises as what vengeful, voiceless figure leading the brotherhood?",accept:["lady stoneheart","stoneheart"],answer:"Lady Stoneheart",explain:"Days dead and risen, she hangs Freys and Lannister men wherever the brotherhood finds them."},
+{t:2,type:'write',src:"A Storm of Swords",q:"What song do Walder Frey's musicians strike up to signal the slaughter to begin at the Red Wedding?",accept:["rains of castamere","the rains of castamere","castamere"],answer:"The Rains of Castamere",explain:"Tywin's grim anthem about the destruction of House Reyne becomes the death-knell of the King in the North."},
+{t:2,type:'write',src:"A Storm of Swords",q:"As he drives a dagger into Robb's heart at the Red Wedding, Roose Bolton murmurs what message?",accept:["jaime lannister sends his regards","jaime sends his regards","the lannisters send their regards"],answer:"\u201cJaime Lannister sends his regards.\u201d",explain:"The betrayal is sealed with a courtesy, the cruelest mockery of knightly form."},
+{t:2,type:'mc',src:"A Storm of Swords",q:"Joffrey's poisoning was a joint plot. The venom came from amethysts in a hairnet. Which two chiefly conspired?",options:["Olenna Tyrell and Petyr Baelish","Cersei and Tyrion","Sansa and Ser Dontos","Margaery and Loras"],answer:"Olenna Tyrell and Petyr Baelish",explain:"Ser Dontos was only the patsy who slipped Sansa the hairnet and spirited her away; the Queen of Thorns plucked the stone."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Name the bear-like, scar-covered eunuch pit fighter who guards Daenerys and adores liver and onions.",accept:["strong belwas","belwas"],answer:"Strong Belwas",explain:"A former fighting slave of Meereen, he insists on being cut and proudly shows the wounds afterward."},
+{t:2,type:'write',src:"A Feast for Crows",q:"Maester Aemon of the Night's Watch was born a Targaryen prince. Whose son was he?",accept:["maekar","maekar i","maekar targaryen","king maekar"],answer:"King Maekar I",explain:"Aemon set aside his place in the succession for a maester's chain, and watched three kings rise and fall from the Wall."},
+{t:2,type:'write',src:"A Storm of Swords",q:"Who is the 'three-eyed crow' that haunts Bran's dreams \u2014 a thousand-year-old greenseer and former Lord Commander, born Brynden Rivers?",accept:["bloodraven","brynden rivers","brynden","lord bloodraven"],answer:"Bloodraven",explain:"The albino Great Bastard of Aegon IV \u2014 'a thousand eyes, and one' \u2014 now sits rooted in a weirwood throne beyond the Wall."},
+{t:2,type:'mc',src:"A Storm of Swords",q:"Mance Rayder hunts for a horn he claims is the Horn of Joramun, said to wake giants from the earth and bring down the Wall. By what name is it better known?",options:["the Horn of Winter","Dragonbinder","the Horn of the Hill","the Dragon's Roar"],answer:"the Horn of Winter",explain:"Dragonbinder is the hellhorn Euron flaunts at the kingsmoot \u2014 a deliberately tempting wrong answer."},
+{t:2,type:'write',src:"A Feast for Crows",q:"Euron Greyjoy wins the kingsmoot by sounding what black, banded, hell-forged horn?",accept:["dragonbinder","the dragon horn","dragon binder","hellhorn"],answer:"Dragonbinder",explain:"Banded in red gold and Valyrian steel and covered in glyphs, it is said to bind dragons to the blower's will \u2014 and to kill the one who sounds it."},
+{t:2,type:'write',src:"A Feast for Crows",q:"Name the disgraced former maester, stripped of his chain for forbidden experiments, who serves Cersei and reanimates Gregor Clegane.",accept:["qyburn","maester qyburn"],answer:"Qyburn",explain:"The Citadel cast him out for his work with living bodies; Cersei makes him her Hand's-in-all-but-name."},
+{t:2,type:'write',src:"A Storm of Swords",q:"At Littlefinger's urging, who poisoned Jon Arryn with the Tears of Lys and wrote the letter blaming the Lannisters?",accept:["lysa arryn","lysa","lysa tully"],answer:"Lysa Arryn",explain:"Her confession before the Moon Door unravels the lie that set Stark against Lannister in the first place."},
+{t:2,type:'write',src:"A Clash of Kings",q:"Which wildling spearwife protects Bran and Rickon and flees Winterfell with Rickon and Shaggydog after Theon's sack?",accept:["osha"],answer:"Osha",explain:"Captured north of the Wall, Osha takes the youngest Stark to safety while the Reeds guide Bran beyond the Wall."},
+{t:2,type:'write',src:"A Storm of Swords",q:"What name does Theon Greyjoy come to answer to after Ramsay's flaying and torture break him?",accept:["reek"],answer:"Reek",explain:"Ramsay strips away Theon's name along with his fingers, teeth, and self until only Reek remains."},
+{t:2,type:'write',src:"A Game of Thrones",q:"Name Daenerys's Lyseni handmaid, formerly a bedslave, who schools her in the arts of the bedchamber. (Irri and Jhiqui are the other two.)",accept:["doreah"],answer:"Doreah",explain:"Doreah's lessons help Dany turn her wedding night, and her marriage, to her own purposes."},
+{t:2,type:'write',src:"A Feast for Crows",q:"Brienne's father, Lord Selwyn of Tarth, bears what title as ruler of the Sapphire Isle?",accept:["evenstar","the evenstar"],answer:"The Evenstar",explain:"Tarth's sapphire is its blue waters, not gems \u2014 a fact that nearly costs Brienne and Jaime dearly with the Bloody Mummers."},
+
+/* ================= TIER 3 — Archmaester (obsessive book detail) ================= */
+{t:3,type:'write',src:"A Game of Thrones",q:"Name any one of Khal Drogo's three bloodriders.",accept:["qotho","haggo","cohollo"],answer:"Qotho, Haggo, or Cohollo",explain:"Bound to the khal in blood, they are meant to die with him \u2014 instead they scatter when Drogo falls to a festering wound."},
+{t:3,type:'write',src:"A Clash of Kings",q:"In the House of the Undying, Dany is told she will know three treasons: once for blood, once for gold, and once for what?",accept:["love","for love"],answer:"For love",explain:"One of many riddling prophecies \u2014 'three fires,' 'three mounts,' 'three treasons' \u2014 whose meanings she is still untangling."},
+{t:3,type:'write',src:"Lore",q:"What flaming sword is the legendary hero Azor Ahai \u2014 the prince that was promised \u2014 prophesied to draw again?",accept:["lightbringer"],answer:"Lightbringer",explain:"To temper it the first time, Azor Ahai is said to have driven the blade through the heart of his wife Nissa Nissa."},
+{t:3,type:'write',src:"Lore",q:"By what name do Melisandre and her faith know their god, the Lord of Light?",accept:["rhllor","r'hllor","the lord of light"],answer:"R'hllor",explain:"To his red priests, the war that matters is not for a throne but between R'hllor and the Great Other \u2014 light against the dark."},
+{t:3,type:'write',src:"A Clash of Kings",q:"Name the masked shadowbinder of Asshai who gives Daenerys cryptic counsel: 'To go north, you must journey south...'",accept:["quaithe"],answer:"Quaithe",explain:"Her riddles \u2014 the perfumed seneschal, the mummer's dragon, the dark flame \u2014 read like a map Dany cannot yet follow."},
+{t:3,type:'write',src:"A Feast for Crows",q:"In the AFFC prologue, a Citadel novice is poisoned by an alchemist who takes his face. Name the boy.",accept:["pate"],answer:"Pate",explain:"The 'alchemist' is Jaqen H'ghar, now wearing Pate's face and prowling the Citadel for a key \u2014 and a book."},
+{t:3,type:'write',src:"A Feast for Crows",q:"Which archmaester, called 'the Mage,' warns Sam that the Citadel works against magic, then sets sail for Meereen?",accept:["marwyn","marwyn the mage","archmaester marwyn"],answer:"Marwyn",explain:"Tattooed, blunt, and feared by his fellows, Marwyn means to reach Daenerys before the 'grey sheep' of the Conclave can."},
+{t:3,type:'write',src:"A Feast for Crows",q:"Oberyn's daughter Sarella Sand is believed to be studying at the Citadel disguised as a male novice. Under what name?",accept:["alleras","alleras the sphinx","the sphinx"],answer:"Alleras (the Sphinx)",explain:"The keen-eyed archer-novice 'Alleras' shoots, smiles, and asks careful questions that no true Oldtown boy would think to ask."},
+{t:3,type:'write',src:"A Feast for Crows",q:"How many bastard daughters \u2014 the Sand Snakes \u2014 did Oberyn Martell leave behind?",accept:["eight","8"],answer:"Eight",explain:"From the warrior Obara down to the toddler Loreza, all eight are fiercely Dornish and dangerous in their own ways."},
+{t:3,type:'write',src:"Lore",q:"Name House Lannister's lost ancestral Valyrian steel sword, carried into the ruins of Valyria by Tommen II and never seen again.",accept:["brightroar"],answer:"Brightroar",explain:"Its loss is why the rich Lannisters, who can buy nearly anything, cannot buy back their birthright blade."},
+{t:3,type:'write',src:"A Game of Thrones",q:"What is the name of Jon Snow's Valyrian steel longsword, gifted by Lord Commander Mormont with a new wolf's-head pommel?",accept:["longclaw"],answer:"Longclaw",explain:"The Old Bear gives it to Jon for saving his life from a wight; the bastard Mormont sword becomes a Snow's."},
+{t:3,type:'write',src:"A Storm of Swords",q:"In the novels, the icy humanoid foes the television show renames 'White Walkers' are properly called what?",accept:["others","the others"],answer:"The Others",explain:"Cold, gleaming, and alien, the Others of the books speak a cracking-ice tongue and shatter at the touch of dragonglass."},
+{t:3,type:'write',src:"A Game of Thrones",q:"The reanimated corpses raised to serve the Others \u2014 dead men with bright blue eyes \u2014 are called what?",accept:["wights","wight","the wights"],answer:"Wights",explain:"Fire kills them; a severed hand will still crawl. The Watch learns this the hard way at Castle Black."},
+{t:3,type:'write',src:"A Storm of Swords",q:"Who leads Bran's party beyond the Wall riding a great elk, his hands black, his face hidden, neither living nor wight?",accept:["coldhands","cold hands"],answer:"Coldhands",explain:"He cannot pass the Wall himself and will not give his name \u2014 only that the children of the forest sent him."},
+{t:3,type:'write',src:"A Clash of Kings",q:"Name Stannis Baratheon's half-mad fool, his face tattooed in checks, who survived a shipwreck and now sings eerie prophecy.",accept:["patchface","patches"],answer:"Patchface",explain:"'Under the sea...' he croons \u2014 his nonsense rhymes keep coming true in ways that unsettle even Melisandre."},
+{t:3,type:'mc',src:"A Clash of Kings",q:"Maester Cressen tries to poison Melisandre with a strangler-laced cup at Dragonstone. Who dies instead?",options:["Cressen himself","Selyse Baratheon","Davos Seaworth","no one"],answer:"Cressen himself",explain:"He drinks alongside her to be sure; her ruby glows, she is unharmed, and the old maester chokes and dies."},
+{t:3,type:'write',src:"A Dance with Dragons",q:"Name the colossal giant who follows Jon Snow south of the Wall and fights for the Watch at Castle Black.",accept:["wun wun","wun weg wun dar wun","wunwun"],answer:"Wun Wun",explain:"Wun Weg Wun Dar Wun, last of the free folk's giants to come over, tears men apart with his bare hands."},
+{t:3,type:'write',src:"A Dance with Dragons",q:"As Jon is stabbed by his own men crying 'For the Watch,' name any one of the brothers who turns on him.",accept:["bowen marsh","bowen","wick whittlestick","wick","othell yarwyck"],answer:"Bowen Marsh (or Wick Whittlestick)",explain:"The weeping Lord Steward Bowen Marsh leads the mutiny, sickened by Jon's pact with the wildlings."},
+{t:3,type:'write',src:"A Dance with Dragons",q:"Readers nickname the taunting letter Jon receives \u2014 supposedly from Ramsay, demanding his bride and threatening the Watch \u2014 the ____ Letter.",accept:["pink letter","the pink letter","bastard letter"],answer:"The Pink Letter",explain:"Sealed in pink wax, its true author and the fate of Stannis it claims remain fiercely debated."},
+{t:3,type:'write',src:"A Dance with Dragons",q:"Quentyn Martell travels in secret to Meereen to claim a dragon for Dorne. How does he die?",accept:["burned","burnt","burned to death","dragonfire","burned by dragons","burned alive"],answer:"Burned by the dragons",explain:"Reaching into the pit to tame Viserion and Rhaegal, the would-be dragonrider is roasted alive and lingers for days."},
+{t:3,type:'write',src:"A Feast for Crows",q:"Doran Martell reveals a long-secret marriage pact betrothing his daughter Arianne to which exiled Targaryen?",accept:["viserys","viserys targaryen","viserys iii"],answer:"Viserys Targaryen",explain:"Doran's patience is a long game of vengeance and crowns \u2014 'Fire and Blood,' he whispers, behind a mask of gout and weakness."},
+{t:3,type:'write',src:"A Dance with Dragons",q:"'Young Griff,' raised in exile by Jon Connington, claims to be which prince thought murdered as an infant in the Sack?",accept:["aegon","aegon targaryen","aegon vi","young griff"],answer:"Aegon Targaryen",explain:"Said to be Rhaegar and Elia's son, swapped for another babe before the Mountain came \u2014 a claim Dany's allies cannot all be telling true."},
+{t:3,type:'write',src:"A Dance with Dragons",q:"Jon Connington hides what slow, spreading disease \u2014 contracted from a stone man \u2014 as he marches the Golden Company into Westeros?",accept:["greyscale","grayscale"],answer:"Greyscale",explain:"The creeping grey death that turns flesh to stone; he conceals two blackened fingers inside a glove."},
+{t:3,type:'write',src:"A Feast for Crows",q:"Name Balon Greyjoy's youngest brother, the drowned priest called the Damphair.",accept:["aeron","aeron greyjoy","aeron damphair","damphair"],answer:"Aeron Greyjoy",explain:"'What is dead may never die.' Aeron's faith curdles to dread when he learns what his brother Euron truly is."},
+{t:3,type:'write',src:"A Feast for Crows",q:"Victarion Greyjoy commands what naval force for the Iron Islands?",accept:["iron fleet","the iron fleet"],answer:"The Iron Fleet",explain:"Its hundred longships are the Seastone Chair's real strength \u2014 and Euron sends Victarion sailing east to fetch a dragon queen."},
+{t:3,type:'write',src:"A Clash of Kings",q:"By smuggling onions and salt fish to its starving garrison, Davos earned his knighthood relieving which besieged castle?",accept:["storms end","storm's end"],answer:"Storm's End",explain:"Stannis never forgot the onions \u2014 nor the smuggling. He rewarded one and punished the other in the same stroke."},
+{t:3,type:'mc',src:"A Dance with Dragons",q:"The Golden Company was founded by which legendary exile, a Great Bastard of Aegon IV?",options:["Aegor 'Bittersteel' Rivers","Daemon Blackfyre","Brynden 'Bloodraven' Rivers","Maelys the Monstrous"],answer:"Aegor 'Bittersteel' Rivers",explain:"Bittersteel founded the company in exile to keep the Blackfyre cause alive. Daemon was the first pretender; Bloodraven their bitter foe; Maelys a much later GC commander."},
+{t:3,type:'write',src:"A Game of Thrones",q:"What is the material of the catspaw's dagger sent to murder Bran \u2014 the blade Littlefinger falsely claims he lost to Tyrion?",accept:["valyrian steel","valyrian"],answer:"Valyrian steel",explain:"A dragonbone hilt and a Valyrian steel blade \u2014 far too fine for a common cutthroat, which is the whole mystery."},
+{t:3,type:'write',src:"A Storm of Swords",q:"Whom does Tyrion strangle in his father's bed with a Lannister chain before killing Tywin with a crossbow?",accept:["shae"],answer:"Shae",explain:"Her betrayal at his trial, and her presence in Tywin's bed, break something in Tyrion that the crossbow only finishes."},
+{t:3,type:'write',src:"A Game of Thrones",q:"Viserys Targaryen dies in Vaes Dothrak by what means, his long-craved crown finally given?",accept:["molten gold","gold","crown of molten gold","poured gold","molten gold crown"],answer:"A crown of molten gold",explain:"'He was no dragon,' Dany realizes as Drogo pours the seething gold over his head. 'Fire cannot kill a dragon.'"},
+{t:3,type:'write',src:"A Storm of Swords",q:"What is the Braavosi farewell that answers 'valar morghulis' \u2014 'all men must die'?",accept:["valar dohaeris","valardohaeris"],answer:"Valar dohaeris",explain:"'All men must serve.' The words guard the doors of the House of Black and White, and open Arya's strange schooling."}
+];
+
+/* ============================================================
+   STATE + LOGIC
+   ============================================================ */
+const MAXHP=100, DMG=11;
+let state=null;
+
+const $=id=>document.getElementById(id);
+function show(sec){['start','game','end'].forEach(s=>$(s).classList.toggle('hide',s!==sec));}
+
+/* ---------- start screen flow ---------- */
+let chosenMode=null;
+let pickStage=0;   // for 2P: 0=p1 picking, 1=p2 picking
+let picks=[null,null];
+
+document.querySelectorAll('.mode').forEach(btn=>{
+  btn.onclick=()=>{
+    Sound.click();
+    chosenMode=btn.dataset.mode;
+    document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('sel',b===btn));
+    pickStage=0; picks=[null,null];
+    $('pickArea').classList.remove('hide');
+    renderPick();
+    $('pickArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+});
+
+function buildCharGrid(){
+  const grid=$('charGrid'); grid.innerHTML='';
+  CHARS.forEach(ch=>{
+    const el=document.createElement('button');
+    el.className='char';
+    el.style.setProperty('--cc',ch.c);
+    el.style.setProperty('--ccg',ch.g);
+    el.innerHTML=`<div class="ring" style="--cc:${ch.c};--ccg:${ch.g}">${ch.in}</div>
+      <div class="cn">${ch.name}</div>
+      <div class="ct">${ch.title}</div>
+      <div class="cp">${ch.power}</div>`;
+    el.onclick=()=>{
+      Sound.click();
+      picks[pickStage]=ch;
+      [...grid.children].forEach((c,i)=>c.classList.toggle('sel',CHARS[i].id===ch.id));
+      $('perkLine').innerHTML=`Ability — <b>${ch.perkName}</b>: ${PERKS[ch.perk].label}`;
+      renderStartActions();
+    };
+    grid.appendChild(el);
+  });
+}
+
+function renderPick(){
+  buildCharGrid();
+  $('perkLine').innerHTML='';
+  if(chosenMode==='1p'){
+    $('pickTitle').textContent='Choose Your Champion';
+    $('pickSub').textContent='You will stand against the Great Other and the Long Night. Choose well — the cold does not tire.';
+  } else {
+    $('pickTitle').textContent= pickStage===0 ? 'Player 1 — Choose Your Champion' : 'Player 2 — Choose Your Champion';
+    $('pickSub').textContent='Each claimant brings their own strength and one stratagem.';
+  }
+  renderStartActions();
+}
+
+function renderStartActions(){
+  const wrap=$('startActions'); wrap.innerHTML='';
+  const cur=picks[pickStage];
+  if(chosenMode==='1p'){
+    const b=document.createElement('button');
+    b.className='btn'; b.textContent='Begin the Duel';
+    b.disabled=!cur;
+    if(!cur)b.setAttribute('disabled','');
+    b.onclick=()=>{ if(cur) startGame('1p',[cur,null]); };
+    wrap.appendChild(b);
+  } else {
+    if(pickStage===0){
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Lock In — Player 2 Chooses';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[0]){ pickStage=1; renderPick(); window.scrollTo({top:0,behavior:'smooth'});} };
+      wrap.appendChild(b);
+    } else {
+      const back=document.createElement('button');
+      back.className='btn btn-ghost'; back.textContent='Back';
+      back.onclick=()=>{ pickStage=0; renderPick(); };
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Begin the Duel';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[1]) startGame('2p',[picks[0],picks[1]]); };
+      wrap.appendChild(back); wrap.appendChild(b);
+    }
+  }
+}
+
+/* ---------- game setup ---------- */
+function startGame(mode,chars){
+  Sound.click();
+  const shadow={name:"The Great Other", power:"The Long Night", c:"#67b0d6", isShadow:true};
+  state={
+    mode,
+    served:0,          // questions presented (drives difficulty ramp)
+    used:new Set(),
+    correct:0, total:0,
+    turn:0,            // index of active player
+    answered:false,
+    current:null,
+    insightUsed:false,
+    players:[
+      makePlayer(chars[0]),
+      mode==='1p' ? makeShadow(shadow) : makePlayer(chars[1])
+    ]
+  };
+  // theme bars
+  applyBarTheme();
+  show('game');
+  nextQuestion();
+}
+function makePlayer(ch){
+  return {char:ch, name:ch.name, power:ch.power, hp:MAXHP, isShadow:false,
+          perk:ch.perk, perkName:ch.perkName, perkUsed:false,
+          shield:false, doubleNext:false};
+}
+function makeShadow(s){
+  return {char:s, name:s.name, power:s.power, hp:MAXHP, isShadow:true,
+          perk:null, perkUsed:true, shield:false, doubleNext:false};
+}
+
+function applyBarTheme(){
+  const p1=state.players[0];
+  document.documentElement.style.setProperty('--p1c',p1.char.c);
+  document.documentElement.style.setProperty('--p1c2',p1.char.c2||'#fff');
+  document.documentElement.style.setProperty('--p1g',p1.char.g);
+  $('n1').textContent=p1.name; $('pw1').textContent=p1.power;
+  const p2=state.players[1];
+  const f2=$('f2');
+  if(state.mode==='1p'){
+    $('n2').textContent="The Great Other"; $('pw2').textContent="The Long Night";
+    f2.className='fill foe';
+  } else {
+    document.documentElement.style.setProperty('--p2c',p2.char.c);
+    document.documentElement.style.setProperty('--p2c2',p2.char.c2||'#fff');
+    document.documentElement.style.setProperty('--p2g',p2.char.g);
+    $('n2').textContent=p2.name; $('pw2').textContent=p2.power;
+    f2.className='fill p2';
+  }
+  updateBars(true);
+}
+
+function updateBars(instant){
+  const p1=state.players[0], p2=state.players[1];
+  $('f1').style.width=Math.max(0,p1.hp)+'%'; $('hp1').textContent=Math.max(0,p1.hp);
+  $('f2').style.width=Math.max(0,p2.hp)+'%'; $('hp2').textContent=Math.max(0,p2.hp);
+  if(state.mode==='2p'){
+    $('box1').classList.toggle('active',state.turn===0);
+    $('box2').classList.toggle('active',state.turn===1);
+  } else {
+    $('box1').classList.add('active'); $('box2').classList.remove('active');
+  }
+}
+
+/* ---------- difficulty ramp + draw ---------- */
+function allowedTiers(n){
+  if(n<1)  return [1];
+  if(n<3)  return [1,2];
+  if(n<5)  return [2];
+  if(n<7)  return [2,3];
+  return [3];
+}
+function drawQuestion(){
+  const tiers=allowedTiers(state.served);
+  let pool=BANK.filter((q,i)=>tiers.includes(q.t) && !state.used.has(i));
+  if(pool.length===0) pool=BANK.filter((q,i)=>!state.used.has(i));   // any unused
+  if(pool.length===0){ state.used.clear(); pool=BANK.slice(); }      // full reset (long games)
+  const idx=BANK.indexOf(pool[Math.floor(Math.random()*pool.length)]);
+  state.used.add(idx);
+  return {idx, q:BANK[idx]};
+}
+
+/* ---------- render a question ---------- */
+function nextQuestion(){
+  state.served++;
+  state.answered=false;
+  state.insightUsed=false;
+  const {q}=drawQuestion();
+  state.current=q;
+
+  // turn / progress text
+  const active=state.players[state.turn];
+  if(state.mode==='2p'){
+    $('turnTag').textContent=active.name+"'s turn";
+  } else {
+    $('turnTag').textContent="Your turn";
+  }
+  $('prog').textContent='Question '+state.served;
+
+  // tier pips + label
+  ['pip1','pip2','pip3'].forEach((p,i)=>$(p).classList.toggle('on', i<q.t));
+  $('tierLabel').textContent=['','Sworn Sword','Anointed Knight','Archmaester'][q.t];
+  $('srcTag').textContent=q.src?('— '+q.src):'';
+  $('qType').textContent= q.type==='mc' ? 'Multiple Choice' : 'Write-In';
+  $('qText').textContent=q.q;
+
+  // reset feedback
+  $('feedback').classList.add('hide');
+  $('hintLine').classList.add('hide'); $('hintLine').textContent='';
+
+  // perk button
+  setupPerk();
+
+  // answer area
+  const opts=$('opts'), ww=$('writeWrap');
+  opts.innerHTML='';
+  if(q.type==='mc'){
+    ww.classList.add('hide'); opts.classList.remove('hide');
+    const letters=['A','B','C','D','E','F'];
+    const shuffled=shuffle(q.options.slice());
+    shuffled.forEach((optText,i)=>{
+      const b=document.createElement('button');
+      b.className='opt'; b.dataset.val=optText;
+      b.innerHTML=`<span class="mark">${letters[i]}</span><span>${optText}</span>`;
+      b.onclick=()=>chooseMC(b,optText);
+      opts.appendChild(b);
+    });
+  } else {
+    opts.classList.add('hide'); ww.classList.remove('hide');
+    const inp=$('writeInput'); inp.value=''; inp.disabled=false;
+    $('submitWrite').disabled=false;
+    inp.focus();
+  }
+  updateBars();
+  $('qText').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- perks ---------- */
+function setupPerk(){
+  const active=state.players[state.turn];
+  const btn=$('perkBtn'), desc=$('perkDesc');
+  if(active.isShadow || !active.perk){
+    $('perkBar').classList.add('hide'); return;
+  }
+  $('perkBar').classList.remove('hide');
+  btn.style.setProperty('--cc',active.char.c);
+  btn.style.setProperty('--ccg',active.char.g);
+  btn.textContent=active.perkName;
+  desc.textContent=PERKS[active.perk].label;
+  btn.disabled=active.perkUsed;
+  if(active.perkUsed){btn.setAttribute('disabled','');desc.textContent='Already spent this duel.';}
+  btn.onclick=()=>usePerk(active);
+}
+function usePerk(p){
+  if(p.perkUsed||state.answered)return;
+  Sound.perk();
+  const q=state.current;
+  if(p.perk==='heal'){
+    p.perkUsed=true;
+    p.hp=Math.min(MAXHP,p.hp+22);
+    updateBars();
+    floatText('+22', '#74c69d', state.turn===0);
+    flashFeedbackNote(p.perkName+': power restored.');
+  } else if(p.perk==='shield'){
+    p.perkUsed=true; p.shield=true;
+    flashFeedbackNote(p.perkName+': the next blow will be turned aside.');
+  } else if(p.perk==='power'){
+    p.perkUsed=true; p.doubleNext=true;
+    flashFeedbackNote(p.perkName+': your next true answer strikes for double.');
+  } else if(p.perk==='luck'){
+    p.perkUsed=true;
+    flashFeedbackNote(p.perkName+': you cast this question aside.');
+    setTimeout(()=>{ state.served--; nextQuestion(); }, 650);
+  } else if(p.perk==='insight'){
+    p.perkUsed=true; state.insightUsed=true;
+    if(q.type==='mc'){
+      const btns=[...$('opts').children].filter(b=>!b.classList.contains('faded'));
+      const wrong=btns.filter(b=>b.dataset.val!==q.answer);
+      shuffle(wrong);
+      wrong.slice(0,2).forEach(b=>{b.classList.add('faded');b.disabled=true;});
+    } else {
+      const ans=q.answer.replace(/\(.*?\)/g,'').trim();
+      const first=ans[0];
+      const len=ans.replace(/[^A-Za-z']/g,'').length;
+      $('hintLine').textContent=`✦ Begins with “${first}” · about ${len} letters`;
+      $('hintLine').classList.remove('hide');
+      $('writeInput').focus();
+    }
+  }
+  setupPerk();
+}
+function flashFeedbackNote(msg){
+  const fb=$('feedback');
+  fb.classList.remove('hide');
+  $('verdict').className='verdict neutral';
+  $('verdict').textContent='✦ '+msg;
+  $('ansLine').textContent=''; $('explain').textContent='';
+  $('nextBtn').classList.add('hide');
+  // auto-hide the note region's next button; re-shown on real answer
+  setTimeout(()=>{ if(!state.answered){ fb.classList.add('hide'); $('nextBtn').classList.remove('hide'); } },1500);
+}
+
+/* ---------- answering ---------- */
+function chooseMC(btn,val){
+  if(state.answered)return;
+  const q=state.current;
+  const right = val===q.answer;
+  [...$('opts').children].forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.val===q.answer)b.classList.add('correct');
+    else if(b===btn && !right)b.classList.add('wrong');
+  });
+  resolve(right);
+}
+$('submitWrite').onclick=submitWrite;
+$('writeInput').addEventListener('keydown',e=>{ if(e.key==='Enter')submitWrite(); });
+function submitWrite(){
+  if(state.answered)return;
+  const q=state.current;
+  const val=$('writeInput').value;
+  if(!val.trim())return;
+  const right=matchWrite(val,q.accept);
+  $('writeInput').disabled=true; $('submitWrite').disabled=true;
+  resolve(right);
+}
+
+/* lenient matching */
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/['’`._,]/g,'').replace(/[-]/g,' ')
+    .replace(/^the\s+/,'').replace(/\s+/g,' ').trim();
+}
+function lev(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n; if(!n)return m;
+  const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+  }
+  return d[m][n];
+}
+function matchWrite(input,accepted){
+  const ni=norm(input); if(!ni)return false;
+  for(const a of accepted){
+    const na=norm(a); if(!na)continue;
+    if(ni===na)return true;
+    if(na.length>=4 && ni.length>=4 && (ni.includes(na)||na.includes(ni)))return true;
+    const thr= na.length<=4?1 : na.length<=8?2 : 3;
+    if(lev(ni,na)<=thr)return true;
+    // token-level: any word in input matches a key word closely
+    const iw=ni.split(' '), aw=na.split(' ');
+    for(const w of aw){ if(w.length>=4){ for(const v of iw){ if(v.length>=4 && lev(v,w)<= (w.length<=6?1:2))return true; } } }
+  }
+  return false;
+}
+
+/* ---------- resolution + damage ---------- */
+function resolve(right){
+  state.answered=true;
+  state.total++;
+  const active=state.players[state.turn];
+  const oppIndex= state.mode==='1p' ? 1 : (state.turn===0?1:0);
+  const opp=state.players[oppIndex];
+
+  let verdictTxt, verdictCls;
+  if(right){
+    state.correct++;
+    let dmg=DMG;
+    if(active.doubleNext){ dmg*=2; active.doubleNext=false; }
+    if(opp.shield){ opp.shield=false; dmg=0; }
+    applyDamage(oppIndex,dmg);
+    Sound.correct();
+    if(dmg>DMG) verdictTxt='Fortune favors you — a doubled blow!';
+    else if(dmg===0) verdictTxt='Correct — but your foe warded the blow.';
+    else verdictTxt= state.mode==='1p' ? 'Correct — the dark recoils.' : 'Correct — your rival staggers.';
+    verdictCls='good';
+  } else {
+    let dmg=DMG;
+    if(active.shield){ active.shield=false; dmg=0; }
+    applyDamage(state.turn,dmg);
+    Sound.wrong();
+    verdictTxt= dmg===0 ? 'Wrong — but your ward held.' : 'Wrong — the Power drains from you.';
+    verdictCls='bad';
+  }
+
+  const q=state.current;
+  const fb=$('feedback'); fb.classList.remove('hide');
+  $('verdict').className='verdict '+verdictCls;
+  $('verdict').textContent=(right?'✓ ':'✕ ')+verdictTxt;
+  $('ansLine').innerHTML = right ? '' : 'The answer: <b>'+q.answer+'</b>';
+  $('explain').textContent=q.explain||'';
+  $('nextBtn').classList.remove('hide');
+
+  updateBars();
+
+  // win check
+  setTimeout(()=>{
+    if(state.players[0].hp<=0 || state.players[1].hp<=0){
+      $('nextBtn').textContent='See the Pattern';
+      $('nextBtn').onclick=endGame;
+    } else {
+      $('nextBtn').textContent='Continue';
+      $('nextBtn').onclick=advance;
+    }
+  },50);
+}
+
+function applyDamage(idx,dmg){
+  if(dmg<=0){ floatText('warded','#9fb3c8'); return; }
+  state.players[idx].hp=Math.max(0,state.players[idx].hp-dmg);
+  // fx
+  document.querySelector('.wrap').classList.add('shake');
+  const hf=$('hitflash'); hf.classList.remove('go'); void hf.offsetWidth; hf.classList.add('go');
+  setTimeout(()=>document.querySelector('.wrap').classList.remove('shake'),500);
+  Sound.hit();
+  floatText('-'+dmg, idx===0?'#e07a6a':'#e7c873', idx===0);
+}
+
+function floatText(txt,color,leftSide){
+  const box = leftSide ? $('box1') : $('box2');
+  const r=box.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='float'; el.textContent=txt; el.style.color=color;
+  el.style.left=(r.left+r.width/2-12)+'px';
+  el.style.top=(r.top+8)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
+
+function advance(){
+  if(state.mode==='2p') state.turn=state.turn===0?1:0;
+  nextQuestion();
+}
+
+/* ---------- end ---------- */
+function endGame(){
+  const p1=state.players[0], p2=state.players[1];
+  let win; // human is player 0; they win if they still have power
+  win = p1.hp>0;
+  let winnerName;
+  if(state.mode==='2p'){
+    winnerName = p1.hp>0 ? p1.name : p2.name;
+  }
+
+  const end=$('end');
+  end.classList.remove('win','lose');
+
+  if(state.mode==='1p'){
+    end.classList.add(win?'win':'lose');
+    $('endKicker').textContent= win ? 'The Dawn Breaks' : 'The Long Night Falls';
+    $('endTitle').textContent = win ? 'Victory' : 'Defeat';
+    $('endQuote').textContent = win
+      ? 'The Long Night recedes and the realm endures. The old tales will remember your name.'
+      : 'Your strength is spent and the cold closes in. Yet the seasons turn \u2014 winter ends, and another spring will come.';
+  } else {
+    end.classList.add('win');
+    $('endKicker').textContent='A Victor Claims the Throne';
+    $('endTitle').textContent=winnerName+' Prevails';
+    $('endQuote').textContent= (p1.hp>0?p1.name:p2.name)+' stands while the other\u2019s claim runs cold. When you play the game of thrones, you win or you die.';
+  }
+
+  const acc = state.total? Math.round(100*state.correct/state.total):0;
+  $('stCorrect').textContent=state.correct;
+  $('stTotal').textContent=state.total;
+  $('stAcc').textContent=acc+'%';
+
+  (state.mode==='1p' && !win) ? Sound.lose() : Sound.win();
+  show('end');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$('againBtn').onclick=()=>{
+  // replay with same champions + mode
+  const chars=[state.players[0].char, state.mode==='2p'?state.players[1].char:null];
+  startGame(state.mode,chars);
+};
+$('homeBtn').onclick=()=>{
+  chosenMode=null; pickStage=0; picks=[null,null];
+  document.querySelectorAll('.mode').forEach(b=>b.classList.remove('sel'));
+  $('pickArea').classList.add('hide');
+  show('start'); window.scrollTo({top:0,behavior:'smooth'});
+};
+$('nextBtn').onclick=advance;
+</script>
+</body>
+</html>
