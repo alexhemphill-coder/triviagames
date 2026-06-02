@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Tale of the Three Brothers — A Harry Potter Trivia Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#080810; --bg1:#0d0c1a; --bg2:#171528;
+    --ink:#e9e2d0; --ink-dim:#b3aa92; --ink-faint:#7a7358;
+    --gold:#c8a24a; --gold-bright:#e8cf86; --gold-deep:#876a26;
+    --accent:#b58cf0; --accent-glow:rgba(181,140,240,.5);
+    --shadow-red:#2ec16a; --shadow-glow:rgba(46,193,106,.5);
+    --good:#74c69d; --bad:#e07a6a;
+    --line:rgba(201,164,76,.28);
+    --card:rgba(20,16,40,.72);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    color:var(--ink);
+    background:var(--bg0);
+    min-height:100vh;
+    line-height:1.5;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* atmosphere */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-3;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #241a40 0%, transparent 55%),
+      radial-gradient(900px 700px at 85% 110%, #1a1330 0%, transparent 60%),
+      linear-gradient(160deg,var(--bg1),var(--bg0) 70%);
+  }
+  /* faint seven-pointed star watermark */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.1' opacity='0.5'><circle cx='300' cy='300' r='250'/><circle cx='300' cy='300' r='180'/><circle cx='300' cy='300' r='70'/>%SPOKES%</g></svg>");
+    background-repeat:no-repeat;background-position:center 22%;
+    background-size:min(86vw,720px);
+    opacity:.05;
+  }
+  .stars{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5}
+  .stars span{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.4;animation:tw 4s infinite ease-in-out}
+  @keyframes tw{0%,100%{opacity:.12}50%{opacity:.7}}
+
+  .wrap{max-width:760px;margin:0 auto;padding:26px 18px 60px;position:relative}
+
+  /* ---------- shared bits ---------- */
+  .kicker{font-family:'Cinzel',serif;letter-spacing:.32em;text-transform:uppercase;font-size:.66rem;color:var(--gold);opacity:.85}
+  h1{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.04em;line-height:1.05;margin:.25em 0 .15em;
+     font-size:clamp(2rem,7vw,3.1rem);
+     background:linear-gradient(180deg,var(--gold-bright),var(--gold) 55%,var(--gold-deep));
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 2px 30px rgba(201,164,76,.18)}
+  .serpent{display:block;width:min(58vw,180px);margin:6px auto 2px}
+  .lead{color:var(--ink-dim);font-size:1.08rem;max-width:46ch;margin:0 auto}
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px 20px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .center{text-align:center}
+
+  button{font-family:inherit;cursor:pointer;color:inherit;border:none;background:none}
+  .btn{
+    font-family:'Cinzel',serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    font-size:.82rem;
+    padding:14px 22px;border-radius:11px;
+    border:1px solid var(--gold-deep);
+    background:linear-gradient(180deg,rgba(201,164,76,.22),rgba(201,164,76,.06));
+    color:var(--gold-bright);
+    transition:transform .12s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(201,164,76,.22);background:linear-gradient(180deg,rgba(201,164,76,.34),rgba(201,164,76,.1))}
+  .btn:active{transform:translateY(0)}
+  .btn[disabled]{opacity:.4;cursor:default;transform:none;box-shadow:none}
+  .btn-ghost{border-color:var(--line);background:rgba(255,255,255,.03);color:var(--ink-dim)}
+  .btn-ghost:hover{box-shadow:none;color:var(--ink)}
+
+  .fade{animation:fade .55s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .hide{display:none !important}
+
+  /* ---------- start screen ---------- */
+  #start .hero{text-align:center;margin-bottom:26px}
+  .stage-title{font-family:'Cinzel',serif;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:.82rem;text-align:center;margin:30px 0 14px}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mode{
+    text-align:left;border:1px solid var(--line);border-radius:14px;padding:18px 16px;
+    background:rgba(255,255,255,.025);transition:all .18s ease;position:relative;overflow:hidden;
+  }
+  .mode .mt{font-family:'Cinzel',serif;letter-spacing:.08em;color:var(--gold-bright);font-size:1.02rem}
+  .mode .md{color:var(--ink-faint);font-size:.92rem;margin-top:4px}
+  .mode:hover,.mode.sel{border-color:var(--gold);background:rgba(201,164,76,.1);transform:translateY(-2px)}
+  .mode.sel::after{content:"✦";position:absolute;top:10px;right:12px;color:var(--gold-bright)}
+
+  .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+  .char{
+    border:1px solid var(--line);border-radius:13px;padding:14px 12px 13px;text-align:center;
+    background:rgba(255,255,255,.02);transition:all .16s ease;position:relative;overflow:hidden;
+  }
+  .char .ring{width:46px;height:46px;margin:0 auto 8px;border-radius:50%;
+    display:grid;place-items:center;font-family:'Cinzel',serif;font-weight:700;font-size:1.2rem;
+    color:#0b0813;background:radial-gradient(circle at 35% 30%, #fff7, transparent 60%), var(--cc,#888);
+    box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 0 18px 2px var(--ccg,transparent);
+  }
+  .char .cn{font-family:'Cinzel',serif;font-size:.86rem;letter-spacing:.04em;color:var(--ink)}
+  .char .ct{font-size:.78rem;color:var(--ink-faint);margin-top:2px;min-height:2.1em}
+  .char .cp{font-size:.72rem;color:var(--cc,var(--gold));margin-top:6px;letter-spacing:.06em;text-transform:uppercase;font-family:'Cinzel',serif}
+  .char:hover,.char.sel{transform:translateY(-3px);border-color:var(--cc,var(--gold))}
+  .char.sel{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px var(--cc), 0 10px 30px -8px var(--ccg)}
+
+  .pick-head{display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap;margin:24px 0 6px}
+  .pick-head h2{font-family:'Cinzel',serif;font-weight:600;font-size:1.18rem;margin:0;color:var(--ink)}
+  .pick-sub{color:var(--ink-faint);font-size:.95rem;text-align:center;margin:0 0 16px}
+
+  .perk-line{font-size:.92rem;color:var(--ink-dim);margin-top:14px;min-height:1.4em;text-align:center}
+  .perk-line b{color:var(--gold-bright);font-family:'Cinzel',serif;font-weight:600;letter-spacing:.04em}
+
+  .footer-note{margin-top:20px;color:var(--ink-faint);font-size:.84rem;text-align:center}
+  .start-actions{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+
+  /* ---------- game screen ---------- */
+  .bars{display:flex;gap:14px;align-items:stretch;margin-bottom:6px}
+  .barbox{flex:1;min-width:0}
+  .barbox .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+  .barbox .name{font-family:'Cinzel',serif;font-size:.86rem;letter-spacing:.03em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barbox .pwr{font-size:.72rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;font-family:'Cinzel',serif}
+  .barbox .hpnum{font-variant-numeric:tabular-nums;color:var(--ink-dim);font-size:.84rem}
+  .track{height:16px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);overflow:hidden;position:relative}
+  .fill{height:100%;border-radius:9px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
+  .fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35));mix-blend-mode:overlay;animation:shine 2.6s linear infinite}
+  @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .fill.you{background:linear-gradient(90deg,var(--p1c,#6db6ff),var(--p1c2,#bfe0ff));box-shadow:0 0 14px var(--p1g,var(--accent-glow))}
+  .fill.foe{background:linear-gradient(90deg,#176b38,#2ec16a);box-shadow:0 0 14px var(--shadow-glow)}
+  .fill.p2{background:linear-gradient(90deg,var(--p2c,#e7c873),var(--p2c2,#fff0c4));box-shadow:0 0 14px var(--p2g,rgba(231,200,115,.5))}
+  .vs{align-self:center;font-family:'Cinzel',serif;color:var(--gold);opacity:.7;font-size:.8rem;letter-spacing:.1em;padding:0 2px}
+  .barbox.active{animation:activeglow 1.8s ease-in-out infinite}
+  @keyframes activeglow{0%,100%{filter:none}50%{filter:drop-shadow(0 0 6px var(--gold-bright))}}
+  .barbox.active .name::before{content:"▸ ";color:var(--gold-bright)}
+
+  .turnbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 12px}
+  .turn-tag{font-family:'Cinzel',serif;letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;color:var(--gold-bright)}
+  .progress{font-size:.78rem;color:var(--ink-faint);letter-spacing:.06em}
+
+  .qcard{position:relative}
+  .qmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .tier{display:flex;gap:5px;align-items:center}
+  .tier .pip{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .tier .pip.on{background:var(--gold-bright);box-shadow:0 0 8px var(--gold)}
+  .tier .tl{font-size:.72rem;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;font-family:'Cinzel',serif;margin-left:6px}
+  .srctag{font-size:.74rem;color:var(--ink-faint);font-style:italic}
+  .qtype{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8}
+  .question{font-size:1.28rem;line-height:1.4;color:var(--ink);margin:6px 0 18px}
+
+  .opts{display:grid;gap:10px}
+  .opt{
+    text-align:left;border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+    background:rgba(255,255,255,.02);font-size:1.04rem;color:var(--ink);transition:all .14s ease;
+    display:flex;gap:11px;align-items:flex-start;
+  }
+  .opt .mark{font-family:'Cinzel',serif;color:var(--gold);font-size:.9rem;min-width:1.1em}
+  .opt:hover:not([disabled]){border-color:var(--gold);background:rgba(201,164,76,.09);transform:translateX(3px)}
+  .opt.correct{border-color:var(--good);background:rgba(116,198,157,.16);color:#dffbec}
+  .opt.wrong{border-color:var(--bad);background:rgba(224,122,106,.14);color:#ffe4dd}
+  .opt.faded{opacity:.32;text-decoration:line-through}
+  .opt[disabled]{cursor:default}
+
+  .writein{display:flex;gap:10px;flex-wrap:wrap}
+  .writein input{
+    flex:1;min-width:200px;font-family:inherit;font-size:1.1rem;color:var(--ink);
+    background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+  }
+  .writein input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,164,76,.14)}
+  .hintline{font-size:.92rem;color:var(--accent);margin-top:10px;letter-spacing:.18em;font-family:'Cinzel',serif}
+
+  .perkbar{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .perk-btn{
+    font-family:'Cinzel',serif;letter-spacing:.06em;font-size:.76rem;text-transform:uppercase;
+    padding:10px 14px;border-radius:10px;border:1px dashed var(--cc,var(--gold));
+    background:rgba(255,255,255,.03);color:var(--cc,var(--gold-bright));transition:all .15s ease;
+  }
+  .perk-btn:hover:not([disabled]){background:rgba(201,164,76,.12)}
+  .perk-btn[disabled]{opacity:.35;cursor:default;border-style:solid}
+  .perk-desc{font-size:.84rem;color:var(--ink-faint);flex:1;min-width:160px}
+
+  .feedback{margin-top:18px;border-top:1px solid var(--line);padding-top:16px;animation:fade .4s ease both}
+  .verdict{font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:.04em;margin-bottom:4px}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict.neutral{color:var(--gold-bright)}
+  .ans{color:var(--ink);font-size:1.02rem}
+  .ans b{color:var(--gold-bright)}
+  .explain{color:var(--ink-dim);font-size:.96rem;margin-top:7px;font-style:italic}
+  .next-row{display:flex;justify-content:flex-end;margin-top:16px}
+
+  /* damage fx */
+  .shake{animation:shake .5s ease}
+  @keyframes shake{0%,100%{transform:none}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-5px,1px)}60%{transform:translate(4px,-1px)}75%{transform:translate(-2px,1px)}}
+  .hitflash{position:fixed;inset:0;background:radial-gradient(circle,transparent 40%,rgba(190,40,40,.35));z-index:50;pointer-events:none;opacity:0}
+  .hitflash.go{animation:flash .5s ease}
+  @keyframes flash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+  .float{position:fixed;font-family:'Cinzel',serif;font-weight:700;z-index:60;pointer-events:none;font-size:1.4rem;animation:floatup 1.05s ease-out forwards;text-shadow:0 1px 8px #000}
+  @keyframes floatup{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.1)}}
+
+  /* end screen */
+  #end .endcard{text-align:center}
+  .endtitle{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(1.8rem,6vw,2.6rem);letter-spacing:.03em;margin:6px 0}
+  .win .endtitle{background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lose .endtitle{color:var(--shadow-red);text-shadow:0 0 24px var(--shadow-glow)}
+  .endquote{color:var(--ink-dim);font-style:italic;max-width:40ch;margin:10px auto 0;font-size:1.05rem}
+  .stats{display:flex;gap:18px;justify-content:center;margin:22px 0 6px;flex-wrap:wrap}
+  .stat{min-width:90px}
+  .stat .v{font-family:'Cinzel',serif;font-size:1.7rem;color:var(--gold-bright)}
+  .stat .l{font-size:.74rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .brand{font-family:'Cinzel',serif;letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--gold);opacity:.8}
+  .sound{font-size:1.1rem;opacity:.7;padding:6px 8px;border-radius:8px}
+  .sound:hover{opacity:1;background:rgba(255,255,255,.05)}
+
+  @media(max-width:480px){
+    .modes{grid-template-columns:1fr}
+    .question{font-size:1.14rem}
+    .char-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+    .bars{gap:8px}
+    .vs{display:none}
+  }
+
+  /* ---- order + multi question types ---- */
+  .order-pool{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .orderchip{position:relative;display:inline-flex;align-items:center;gap:8px;
+    font-family:'EB Garamond',serif;font-size:1rem;color:var(--ink);
+    background:var(--card);border:1px solid var(--line);border-radius:11px;
+    padding:11px 15px;cursor:pointer;transition:all .15s ease}
+  .orderchip:hover:not(.picked){background:rgba(201,164,76,.1);border-color:var(--gold-deep)}
+  .orderchip.picked{border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow);opacity:.9;cursor:default}
+  .orderchip .seq{display:none;min-width:22px;height:22px;line-height:22px;text-align:center;
+    border-radius:50%;background:var(--accent);color:#0a0a14;font-family:'Cinzel',serif;font-size:.8rem;font-weight:700}
+  .orderchip.picked .seq{display:inline-block}
+  .orderchip.correct{border-color:var(--good);box-shadow:0 0 12px rgba(116,198,157,.4)}
+  .orderchip.wrong{border-color:var(--bad);box-shadow:0 0 12px rgba(224,122,106,.4)}
+  .order-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .order-actions .btn{flex:0 0 auto}
+  .opt.sel{border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow);background:rgba(181,140,240,.1)}
+  .opt.sel .mark{background:var(--accent);color:#0a0a14}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="hitflash" id="hitflash"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand">The Three Brothers</span>
+    <button class="sound" id="soundBtn" title="Toggle sound">🔊</button>
+  </div>
+
+  <!-- ================= START ================= -->
+  <section id="start" class="fade">
+    <div class="hero">
+      <svg class="serpent" viewBox="0 0 200 130" fill="none" stroke="url(#g)" stroke-width="2.4">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#9c6a1e"/>
+        </linearGradient></defs>
+        <!-- the Cloak: triangle -->
+        <path d="M100 14 L160 112 L40 112 Z" stroke-linejoin="round"/>
+        <!-- the Stone: circle -->
+        <circle cx="100" cy="78" r="30"/>
+        <!-- the Elder Wand: vertical line -->
+        <path d="M100 14 V112" stroke-linecap="round"/>
+      </svg>
+      <div class="kicker">A Harry Potter — Trivia Duel</div>
+      <h1>The Tale of the<br>Three Brothers</h1>
+      <p class="lead">Step into the duel. Cast true, and your opponent’s strength fails; falter, and the curse rebounds on you. It does not do to dwell on dreams and forget to live — but a wizard ought to know their lore.</p>
+    </div>
+
+    <div class="panel">
+      <div class="stage-title">I. Choose Your Trial</div>
+      <div class="modes">
+        <button class="mode" data-mode="1p">
+          <div class="mt">Duel the Dark Lord</div>
+          <div class="md">One player. Stand against Lord Voldemort himself. Right answers strike him; wrong ones let the curse find you.</div>
+        </button>
+        <button class="mode" data-mode="2p">
+          <div class="mt">Wizard vs. Wizard</div>
+          <div class="md">Two players, turn by turn. A right answer strikes your rival; a wrong one rebounds on you. Wands at the ready.</div>
+        </button>
+      </div>
+
+      <div id="pickArea" class="hide">
+        <div class="pick-head"><h2 id="pickTitle">Choose Your Wizard</h2></div>
+        <p class="pick-sub" id="pickSub">Your choice sets your strength — and one signature spell, cast but once.</p>
+        <div class="char-grid" id="charGrid"></div>
+        <div class="perk-line" id="perkLine"></div>
+        <div class="start-actions" id="startActions"></div>
+      </div>
+    </div>
+    <p class="footer-note">Drawn from all seven <i>Harry Potter</i> novels — book canon only, never the films. The questions are hard by design and climb fast, mixing write-in, put-in-order, and choose-all-that-apply. Spelling is forgiven — wizarding names are tricky.</p>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="game" class="hide">
+    <div class="bars">
+      <div class="barbox" id="box1">
+        <div class="who"><span class="name" id="n1">You</span><span class="hpnum"><span id="hp1">100</span></span></div>
+        <div class="track"><div class="fill you" id="f1" style="width:100%"></div></div>
+        <div class="pwr" id="pw1">Honor</div>
+      </div>
+      <div class="vs">✶</div>
+      <div class="barbox" id="box2">
+        <div class="who"><span class="name" id="n2">Lord Voldemort</span><span class="hpnum"><span id="hp2">100</span></span></div>
+        <div class="track"><div class="fill foe" id="f2" style="width:100%"></div></div>
+        <div class="pwr" id="pw2">Dark Magic</div>
+      </div>
+    </div>
+
+    <div class="turnbar">
+      <span class="turn-tag" id="turnTag">Your turn</span>
+      <span class="progress" id="prog">Question 1</span>
+    </div>
+
+    <div class="panel qcard">
+      <div class="qmeta">
+        <div class="tier">
+          <span class="pip" id="pip1"></span><span class="pip" id="pip2"></span><span class="pip" id="pip3"></span>
+          <span class="tl" id="tierLabel">First Year</span>
+        </div>
+        <span class="srctag" id="srcTag"></span>
+      </div>
+      <div class="qtype" id="qType">Multiple Choice</div>
+      <div class="question" id="qText">…</div>
+
+      <div class="opts" id="opts"></div>
+      <div class="writein hide" id="writeWrap">
+        <input id="writeInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+        <button class="btn" id="submitWrite">Answer</button>
+      </div>
+      <div class="orderwrap hide" id="orderWrap">
+        <div class="order-pool" id="orderPool"></div>
+        <div class="order-actions">
+          <button class="btn btn-ghost" id="orderClear">Clear</button>
+          <button class="btn" id="orderSubmit" disabled>Submit Order</button>
+        </div>
+      </div>
+      <div class="multiwrap hide" id="multiWrap">
+        <div class="opts" id="multiOpts"></div>
+        <div class="order-actions">
+          <button class="btn" id="multiSubmit" disabled>Submit Choices</button>
+        </div>
+      </div>
+      <div class="hintline hide" id="hintLine"></div>
+
+      <div class="perkbar" id="perkBar">
+        <button class="perk-btn" id="perkBtn">Ability</button>
+        <span class="perk-desc" id="perkDesc"></span>
+      </div>
+
+      <div class="feedback hide" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div class="ans" id="ansLine"></div>
+        <div class="explain" id="explain"></div>
+        <div class="next-row"><button class="btn" id="nextBtn">Continue</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= END ================= -->
+  <section id="end" class="hide">
+    <div class="panel endcard">
+      <div class="kicker" id="endKicker">The Tale is Told</div>
+      <div class="endtitle" id="endTitle">Victory</div>
+      <p class="endquote" id="endQuote"></p>
+      <div class="stats">
+        <div class="stat"><div class="v" id="stCorrect">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="v" id="stTotal">0</div><div class="l">Questions</div></div>
+        <div class="stat"><div class="v" id="stAcc">0%</div><div class="l">Accuracy</div></div>
+      </div>
+      <div class="start-actions">
+        <button class="btn" id="againBtn">Duel Again</button>
+        <button class="btn btn-ghost" id="homeBtn">New Wizards</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   THE TALE OF THE THREE BROTHERS — Harry Potter trivia duel
+   (book canon only — the seven novels)
+   ============================================================ */
+
+/* ---------- decorative stars + wheel spokes ---------- */
+(function(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const d=document.createElement('span');
+    d.style.left=Math.random()*100+'%';
+    d.style.top=Math.random()*100+'%';
+    d.style.animationDelay=(Math.random()*4)+'s';
+    if(Math.random()>.7){d.style.width=d.style.height='3px';}
+    s.appendChild(d);
+  }
+  // faint Deathly Hallows mark for the watermark
+  const style=document.createElement('style');
+  style.textContent=`body::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.4'><path d='M300 90 L470 470 L130 470 Z'/><circle cx='300' cy='320' r='95'/><path d='M300 90 V470'/></g></svg>");}`;
+  document.head.appendChild(style);
+})();
+
+/* ---------- sound ---------- */
+const Sound=(function(){
+  let on=true, ctx=null;
+  function ac(){ if(!ctx){ try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return ctx; }
+  function tone(freq,dur,type,vol){
+    if(!on)return; const c=ac(); if(!c)return;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.value=0.0001; o.connect(g); g.connect(c.destination);
+    const t=c.currentTime;
+    g.gain.exponentialRampToValueAtTime(vol||0.06,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  return {
+    correct(){ tone(523.25,.12,'triangle',.05); setTimeout(()=>tone(783.99,.18,'triangle',.05),90); },
+    wrong(){ tone(196,.22,'sawtooth',.05); setTimeout(()=>tone(146.83,.28,'sawtooth',.045),110); },
+    hit(){ tone(110,.3,'sawtooth',.07); },
+    click(){ tone(440,.05,'sine',.03); },
+    perk(){ tone(659.25,.1,'sine',.05); setTimeout(()=>tone(987.77,.2,'sine',.05),80); },
+    win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.3,'triangle',.06),i*150)); },
+    lose(){ [330,277,220,165].forEach((f,i)=>setTimeout(()=>tone(f,.4,'sawtooth',.06),i*180)); },
+    toggle(){ on=!on; return on; },
+    get on(){ return on; }
+  };
+})();
+document.getElementById('soundBtn').onclick=function(){
+  const on=Sound.toggle(); this.textContent=on?'🔊':'🔇';
+};
+
+/* ---------- characters ---------- */
+const PERKS={
+  shield:{label:'Cast Protego — ward off the next hit you would take.'},
+  power: {label:'Your next correct answer strikes for double.'},
+  heal:  {label:'Episkey — restore 22 strength.'},
+  insight:{label:'Cut wrong answers — or reveal a clue on a write-in/order.'},
+  luck:  {label:'A swig of Felix Felicis — skip this question, no harm done.'}
+};
+const CHARS=[
+  {id:'harry', name:"Harry Potter", title:"The Boy Who Lived", power:"Expelliarmus", c:"#b23b3b",c2:"#f0a35a",g:"rgba(178,59,59,.5)", in:"H", perk:"power", perkName:"Expelliarmus"},
+  {id:'hermione', name:"Hermione Granger", title:"Brightest of Her Age", power:"Knowledge", c:"#c9a44c",c2:"#f3e0a0",g:"rgba(201,164,76,.5)", in:"H", perk:"insight", perkName:"Bookish Brilliance"},
+  {id:'ron', name:"Ron Weasley", title:"Keeper and Friend", power:"Loyalty", c:"#e07a3a",c2:"#ffc27a",g:"rgba(224,122,58,.5)", in:"R", perk:"luck", perkName:"Wizard's Luck"},
+  {id:'dumbledore', name:"Albus Dumbledore", title:"Headmaster", power:"The Elder Wand", c:"#8fb0c8",c2:"#dbe9f3",g:"rgba(143,176,200,.5)", in:"A", perk:"power", perkName:"The Elder Wand"},
+  {id:'snape', name:"Severus Snape", title:"The Half-Blood Prince", power:"Occlumency", c:"#5a6b7a",c2:"#aebfcc",g:"rgba(90,107,122,.5)", in:"S", perk:"insight", perkName:"Legilimens"},
+  {id:'mcgonagall', name:"Minerva McGonagall", title:"Head of Gryffindor", power:"Transfiguration", c:"#3f7a4e",c2:"#9fd3ab",g:"rgba(63,122,78,.5)", in:"M", perk:"shield", perkName:"Stand Your Ground"},
+  {id:'neville', name:"Neville Longbottom", title:"Slayer of Nagini", power:"Courage", c:"#7a9c3f",c2:"#cfe39a",g:"rgba(122,156,63,.5)", in:"N", perk:"power", perkName:"Gryffindor's Sword"},
+  {id:'luna', name:"Luna Lovegood", title:"Seer of Thestrals", power:"Open Mind", c:"#6fa8c0",c2:"#c2e6f0",g:"rgba(111,168,192,.5)", in:"L", perk:"insight", perkName:"Sees What Others Miss"},
+  {id:'ginny', name:"Ginny Weasley", title:"The Bat-Bogey Hexer", power:"Defiance", c:"#d4632f",c2:"#ffb07a",g:"rgba(212,99,47,.5)", in:"G", perk:"power", perkName:"Reducto"},
+  {id:'sirius', name:"Sirius Black", title:"Padfoot", power:"Defiant Heart", c:"#7c7f87",c2:"#c4c7cf",g:"rgba(124,127,135,.5)", in:"S", perk:"shield", perkName:"The Dog's Loyalty"},
+  {id:'moody', name:"Alastor Moody", title:"Mad-Eye", power:"Constant Vigilance", c:"#9a7b3a",c2:"#dcc187",g:"rgba(154,123,58,.5)", in:"M", perk:"shield", perkName:"Constant Vigilance"},
+  {id:'bellatrix', name:"Bellatrix Lestrange", title:"The Dark Lord's Most Loyal", power:"Cruciatus", c:"#6a3d6e",c2:"#c39ac8",g:"rgba(106,61,110,.5)", in:"B", perk:"power", perkName:"Unforgivable"}
+];
+
+/* ============================================================
+   QUESTION BANK
+   tier: 1 easy · 2 intermediate · 3 hard
+   type: 'mc' (options + answer) or 'write' (accept array + answer label)
+   ============================================================ */
+const BANK=[
+/* ================= TIER 1 — First Year (hard for casual, fair for readers) ================= */
+{t:1,type:'write',src:"Philosopher's Stone",q:"What is the name of the three-headed dog guarding the trapdoor to the Stone?",accept:["fluffy"],answer:"Fluffy",explain:"Hagrid bought him from 'a Greek chappie' and tames him with music \u2014 a fact that proves fatal to secrecy."},
+{t:1,type:'write',src:"Chamber of Secrets",q:"What is the name of Tom Riddle's diary's true nature \u2014 the dark object that preserves a piece of his soul?",accept:["horcrux","a horcrux"],answer:"A Horcrux",explain:"Though the word isn't used until book 6, the diary is retroactively the first Horcrux Harry destroys \u2014 with a basilisk fang."},
+{t:1,type:'multi',src:"Lore",q:"Which of these are among the four founders of Hogwarts? (Choose all that apply.)",options:["Rowena Ravenclaw","Helga Hufflepuff","Salazar Slytherin","Cliodna","Bridget Wenlock"],correct:["Rowena Ravenclaw","Helga Hufflepuff","Salazar Slytherin"],answer:"Ravenclaw, Hufflepuff, Slytherin (and Gryffindor)",explain:"Cliodna and Bridget Wenlock are famous witches on Chocolate Frog cards \u2014 not founders."},
+{t:1,type:'write',src:"Prisoner of Azkaban",q:"What form does Harry's corporeal Patronus take?",accept:["stag","a stag","prongs"],answer:"A stag (Prongs)",explain:"It matches his father James's Animagus form \u2014 'Prongs' rides again, as Dumbledore observes."},
+{t:1,type:'order',src:"Goblet of Fire",q:"Put the three Triwizard Tournament tasks in the order Harry faced them.",seq:["Retrieve the golden egg from the dragon","Rescue a hostage from the Black Lake","Navigate the hedge maze to the cup"],answer:"Dragon → Lake → Maze",explain:"Dragons, then the merpeople's lake, then the maze that becomes a portkey to the graveyard."},
+{t:1,type:'write',src:"Lore",q:"What is the incantation of the Killing Curse?",accept:["avada kedavra"],answer:"Avada Kedavra",explain:"One of the three Unforgivable Curses; it produces a flash of green light and, the books note, no countercurse."},
+{t:1,type:'write',src:"Order of the Phoenix",q:"What is the name of the secret defence group Harry teaches, abbreviated D.A.?",accept:["dumbledores army","dumbledore's army","the da","da"],answer:"Dumbledore's Army",explain:"Hermione's idea; the name is a cheeky jab at Fudge's paranoia that Dumbledore is raising a private force."},
+{t:1,type:'write',src:"Half-Blood Prince",q:"What kind of magical creature is Kreacher?",accept:["house elf","house-elf","houseelf","elf"],answer:"A house-elf",explain:"Bound to the House of Black, his torment by Sirius and rescue of Regulus's secret prove pivotal."},
+{t:1,type:'multi',src:"Lore",q:"Which of these are the three Unforgivable Curses? (Choose all that apply.)",options:["Imperius","Cruciatus","Killing Curse","Sectumsempra","Confundus"],correct:["Imperius","Cruciatus","Killing Curse"],answer:"Imperius, Cruciatus, Killing Curse",explain:"Sectumsempra is Snape's own invention; the Confundus Charm merely confuses. The three Unforgivables carry a life sentence in Azkaban."},
+{t:1,type:'write',src:"Philosopher's Stone",q:"Which shop, located in Diagon Alley, is where Harry buys his wand?",accept:["ollivanders","ollivander's","ollivanders wand shop"],answer:"Ollivanders",explain:"'Makers of Fine Wands since 382 B.C.' \u2014 where Harry learns his wand shares a phoenix-feather core with Voldemort's."},
+{t:1,type:'order',src:"Lore",q:"Put these magical school years in chronological order as Harry experiences them.",seq:["The Philosopher's Stone is destroyed","The Chamber of Secrets is opened","Sirius Black escapes Azkaban","Voldemort returns at the graveyard"],answer:"Stone → Chamber → Sirius → Graveyard",explain:"Years one through four, in order."},
+{t:1,type:'write',src:"Goblet of Fire",q:"Who is revealed at the end of book 4 to have been impersonating Mad-Eye Moody all year using Polyjuice Potion?",accept:["barty crouch jr","barty crouch junior","bartemius crouch jr","crouch jr","barty crouch"],answer:"Barty Crouch Jr.",explain:"He needed Mad-Eye's hair hourly from a hostage in a magical trunk \u2014 and his flask was always at his lips."},
+{t:1,type:'write',src:"Lore",q:"What is the name of Hagrid's giant half-brother?",accept:["grawp","grawpy"],answer:"Grawp",explain:"Hagrid hides him in the Forbidden Forest and tries, with limited success, to teach him manners and English."},
+{t:1,type:'multi',src:"Order of the Phoenix",q:"Which of these characters die over the course of the series? (Choose all that apply.)",options:["Sirius Black","Dobby","Cho Chang","Fred Weasley","Dudley Dursley"],correct:["Sirius Black","Dobby","Fred Weasley"],answer:"Sirius, Dobby, Fred",explain:"Cho and Dudley both survive the series. Sirius falls through the veil, Dobby takes Bellatrix's knife, Fred dies in the final battle."},
+{t:1,type:'write',src:"Chamber of Secrets",q:"What creature petrifies students throughout Chamber of Secrets, killing only if looked at directly?",accept:["basilisk","the basilisk"],answer:"The basilisk",explain:"Its victims survive only because each sees its lethal stare indirectly \u2014 through a camera, a mirror, water, or a ghost."},
+{t:1,type:'write',src:"Lore",q:"What position does Harry play on the Gryffindor Quidditch team?",accept:["seeker"],answer:"Seeker",explain:"The youngest house player in a century, he catches the Snitch in his very first match \u2014 nearly swallowing it."},
+
+/* ================= TIER 2 — N.E.W.T. Level (deep reader) ================= */
+{t:2,type:'order',src:"Half-Blood Prince",q:"Put these Horcruxes in the order they are destroyed across the series.",seq:["Tom Riddle's diary","Marvolo Gaunt's ring","Slytherin's locket","Helga Hufflepuff's cup","Rowena Ravenclaw's diadem","Nagini"],answer:"Diary → Ring → Locket → Cup → Diadem → Nagini",explain:"Diary (Harry, basilisk fang), ring (Dumbledore), locket (Ron), cup (Hermione), diadem (Crabbe's Fiendfyre), Nagini (Neville). Harry's own fragment is destroyed by Voldemort in between."},
+{t:2,type:'write',src:"Deathly Hallows",q:"Who destroys Helga Hufflepuff's cup, and with what?",accept:["hermione","hermione granger"],answer:"Hermione (with a basilisk fang)",explain:"Ron retrieves the fangs from the Chamber and Hermione strikes; their first kiss follows moments later."},
+{t:2,type:'write',src:"Half-Blood Prince",q:"What is the name of Tom Riddle's mother?",accept:["merope","merope gaunt","merope riddle"],answer:"Merope Gaunt",explain:"She ensnared the Muggle Tom Riddle Sr. with a love potion, then died giving birth, leaving her son to an orphanage."},
+{t:2,type:'write',src:"Lore",q:"Give the name of Voldemort's father, the Muggle who abandoned Merope.",accept:["tom riddle","tom riddle sr","tom riddle senior","tom marvolo riddle"],answer:"Tom Riddle Sr.",explain:"Voldemort murdered him and both grandparents at the Riddle House \u2014 using that death to forge the ring Horcrux."},
+{t:2,type:'multi',src:"Order of the Phoenix",q:"Which of these are members of the original Order of the Phoenix shown in Moody's old photograph? (Choose all that apply.)",options:["Marlene McKinnon","Benjy Fenwick","Gilderoy Lockhart","Dorcas Meadowes","Cornelius Fudge"],correct:["Marlene McKinnon","Benjy Fenwick","Dorcas Meadowes"],answer:"McKinnon, Fenwick, Meadowes",explain:"Moody narrates their grim fates from the photo. Lockhart and Fudge were never in the Order."},
+{t:2,type:'write',src:"Prisoner of Azkaban",q:"What are the four Marauders' nicknames? Give the one belonging to Peter Pettigrew.",accept:["wormtail"],answer:"Wormtail",explain:"Moony (Lupin), Wormtail (Pettigrew), Padfoot (Sirius), Prongs (James) \u2014 named for their Animagus forms, save the werewolf."},
+{t:2,type:'write',src:"Deathly Hallows",q:"What is the core shared by Harry's and Voldemort's wands \u2014 and the bird it came from, owned by Dumbledore?",accept:["fawkes","phoenix fawkes","fawkes the phoenix"],answer:"Fawkes (a phoenix feather)",explain:"Fawkes gave only two feathers; the 'brother wands' refuse to fight each other, causing Priori Incantatem."},
+{t:2,type:'order',src:"Deathly Hallows",q:"Put these events of the Battle of Hogwarts in order.",seq:["Harry learns he is a Horcrux from Snape's memories","Harry walks into the forest to die","Neville slays Nagini with Gryffindor's sword","Voldemort's curse rebounds and kills him"],answer:"Snape's memories → the forest → Nagini → rebound",explain:"Harry must 'die' first to destroy the soul-fragment, then return; Nagini's death leaves Voldemort mortal at last."},
+{t:2,type:'write',src:"Order of the Phoenix",q:"What is the full text-name of the prophecy's department \u2014 the Ministry level where Sirius dies?",accept:["department of mysteries","mysteries"],answer:"The Department of Mysteries",explain:"Its Unspeakables study love, time, death, and thought; Sirius falls through the veiled archway in the Death Chamber."},
+{t:2,type:'write',src:"Half-Blood Prince",q:"Who is the Half-Blood Prince?",accept:["snape","severus snape","severus"],answer:"Severus Snape",explain:"'Prince' was his mother Eileen's maiden name; the annotated potions book is his teenage masterwork of hexes and shortcuts."},
+{t:2,type:'multi',src:"Lore",q:"Which of these shapes do the named characters' Patronuses take? Choose the ones that are doe-shaped. (Choose all that apply.)",options:["Severus Snape","Lily Potter","Dolores Umbridge","Ginny Weasley"],correct:["Severus Snape","Lily Potter"],answer:"Snape and Lily (both a doe)",explain:"Snape's doe matches Lily's \u2014 'Always.' Umbridge's is a cat; Ginny's is a horse."},
+{t:2,type:'write',src:"Goblet of Fire",q:"Name the spell, marked by a skull with a serpent tongue, that Death Eaters cast into the sky.",accept:["dark mark","the dark mark","morsmordre"],answer:"The Dark Mark (Morsmordre)",explain:"Both the sky-sign and the brand on Death Eaters' forearms; it burns black when Voldemort summons them."},
+{t:2,type:'write',src:"Deathly Hallows",q:"Which goblin betrays the trio at Gringotts after agreeing to help them break into the Lestrange vault?",accept:["griphook"],answer:"Griphook",explain:"His price was the sword of Gryffindor; he double-crosses them the instant his hand closes on the hilt."},
+{t:2,type:'write',src:"Prisoner of Azkaban",q:"What is the password-revealing object the Marauders created \u2014 a parchment showing everyone's location in Hogwarts?",accept:["marauders map","the marauder's map","marauder's map","maraudersmap"],answer:"The Marauder's Map",explain:"'I solemnly swear that I am up to no good' opens it; 'Mischief managed' wipes it blank."},
+{t:2,type:'write',src:"Order of the Phoenix",q:"Who murders Sirius Black?",accept:["bellatrix","bellatrix lestrange"],answer:"Bellatrix Lestrange",explain:"Her curse sends him backward through the veil; Harry's grief drives him to attempt his first Cruciatus on her."},
+{t:2,type:'write',src:"Chamber of Secrets",q:"What is the name of Tom Riddle's full birth name, which he anagrams into 'I am Lord Voldemort'?",accept:["tom marvolo riddle","tom marvolo","marvolo"],answer:"Tom Marvolo Riddle",explain:"He rearranges the letters with the diary's enchanted flair to dramatize his rebirth as Voldemort."},
+{t:2,type:'multi',src:"Half-Blood Prince",q:"Which subjects are required to become an Auror, per McGonagall's careers advice to Harry? Pick those she names as needed at N.E.W.T. (Choose all that apply.)",options:["Defence Against the Dark Arts","Potions","Transfiguration","Divination","Charms"],correct:["Defence Against the Dark Arts","Potions","Transfiguration","Charms"],answer:"DADA, Potions, Transfiguration, Charms",explain:"Auror training demands top marks in those (plus more); Divination is famously the 'woolliest' subject and not required."},
+{t:2,type:'write',src:"Deathly Hallows",q:"What three objects make up the Deathly Hallows? Name the one that is a stone.",accept:["resurrection stone","the resurrection stone"],answer:"The Resurrection Stone",explain:"With the Elder Wand and the Cloak of Invisibility, it makes the bearer 'Master of Death' \u2014 set in the Gaunt ring."},
+{t:2,type:'write',src:"Goblet of Fire",q:"Whose murder, ordered by Voldemort and performed by Wormtail at the start of book 4, opens the novel?",accept:["frank bryce","frank","bryce"],answer:"Frank Bryce",explain:"The old Muggle gardener of the Riddle House overhears the plot and is killed where he stands."},
+{t:2,type:'write',src:"Lore",q:"What potion grants the drinker another person's appearance for an hour?",accept:["polyjuice","polyjuice potion"],answer:"Polyjuice Potion",explain:"A month to brew, vile to drink, and disastrous if you use animal hair \u2014 as Hermione's cat-faced mishap shows."},
+
+/* ================= TIER 3 — Order of Merlin (obsessive book detail) ================= */
+{t:3,type:'write',src:"Order of the Phoenix",q:"Recite the key line of the prophecy's opening: 'The one with the power to vanquish the Dark Lord approaches, born to those who have ___ him three times.' Fill the blank.",accept:["thrice defied","defied"],answer:"thrice defied",explain:"'...born as the seventh month dies.' It could have meant Neville; Voldemort's choice to mark Harry made it so."},
+{t:3,type:'write',src:"Half-Blood Prince",q:"Name the village where Tom Riddle's Muggle father lived and where the Gaunt hovel stood.",accept:["little hangleton","hangleton"],answer:"Little Hangleton",explain:"The Riddle House on the hill and the Gaunt shack in the valley sit in the same valley \u2014 class divide made literal."},
+{t:3,type:'write',src:"Deathly Hallows",q:"What are Dumbledore's first words inscribed on the Golden Snitch he leaves Harry?",accept:["i open at the close","open at the close"],answer:"\u201cI open at the close.\u201d",explain:"The Snitch opens only when Harry, walking to his death, presses it to his lips \u2014 releasing the Resurrection Stone."},
+{t:3,type:'write',src:"Chamber of Secrets",q:"What is the name of Tom Riddle's mother's father \u2014 the last surviving male Gaunt, descended from Slytherin?",accept:["marvolo gaunt","marvolo"],answer:"Marvolo Gaunt",explain:"He wore Slytherin's ring and kept the locket; his bigotry and the family's inbred decay are laid bare in Dumbledore's memories."},
+{t:3,type:'order',src:"Deathly Hallows",q:"Put these owners of the Elder Wand in order of possession leading up to Harry.",seq:["Gellert Grindelwald","Albus Dumbledore","Draco Malfoy","Harry Potter"],answer:"Grindelwald → Dumbledore → Draco → Harry",explain:"Draco disarmed Dumbledore (becoming master without holding it); Harry overpowered Draco at Malfoy Manor \u2014 so the wand never truly served Voldemort."},
+{t:3,type:'write',src:"Deathly Hallows",q:"Whose disarming of Dumbledore makes him \u2014 not Snape \u2014 the Elder Wand's true master?",accept:["draco","draco malfoy","malfoy"],answer:"Draco Malfoy",explain:"On the Astronomy Tower Draco disarmed Dumbledore moments before Snape's killing curse \u2014 the loophole that dooms Voldemort."},
+{t:3,type:'write',src:"Prisoner of Azkaban",q:"What is the name of the Whomping Willow's secret destination \u2014 the building where Lupin transformed as a boy?",accept:["shrieking shack","the shrieking shack"],answer:"The Shrieking Shack",explain:"Hogsmeade believed it the most haunted dwelling in Britain; the 'ghosts' were only a lonely werewolf's howls."},
+{t:3,type:'multi',src:"Lore",q:"Which of these are genuine spells found in the books (as opposed to invented)? (Choose all that apply.)",options:["Aguamenti","Anapneo","Langlock","Liberacorpus","Avifors"],correct:["Aguamenti","Anapneo","Langlock","Liberacorpus"],answer:"Aguamenti, Anapneo, Langlock, Liberacorpus",explain:"Aguamenti (water), Anapneo (clears the airway), Langlock (glues the tongue), Liberacorpus (releases Levicorpus) are all canon. Avifors is from the video games, not the novels."},
+{t:3,type:'write',src:"Deathly Hallows",q:"What does Snape's doe Patronus lead Harry to in the Forest of Dean?",accept:["sword of gryffindor","gryffindor's sword","the sword","sword","godric gryffindor's sword"],answer:"The Sword of Gryffindor",explain:"Snape, still protecting Lily's son, hid it beneath a frozen pool \u2014 only a true Gryffindor in need could draw it."},
+{t:3,type:'write',src:"Goblet of Fire",q:"Name the three ingredients of the ritual that restores Voldemort's body in the graveyard. Give the one taken from Harry.",accept:["blood","blood of the enemy","harrys blood","blood of the enemy forcibly taken"],answer:"Blood of the enemy (Harry's)",explain:"'Bone of the father, unknowingly given; flesh of the servant, willingly given; blood of the enemy, forcibly taken.' Taking Lily's protection into himself is the flaw that later saves Harry."},
+{t:3,type:'write',src:"Order of the Phoenix",q:"What is the name of Mrs. Weasley's boggart-induced fear that she battles at Grimmauld Place \u2014 the form the boggart takes?",accept:["her dead family","dead children","her dead children","her family dead","dead family members"],answer:"Her family lying dead",explain:"The boggart cycles through each Weasley and Harry as corpses \u2014 a raw glimpse of what the war threatens to cost her."},
+{t:3,type:'write',src:"Deathly Hallows",q:"Who kills Dobby?",accept:["bellatrix","bellatrix lestrange"],answer:"Bellatrix Lestrange",explain:"She hurls her silver knife as the elf Disapparates from Malfoy Manor; Dobby dies free, in Harry's arms, on a beach."},
+{t:3,type:'write',src:"Half-Blood Prince",q:"What is the name of the cave's protective measure that forces Dumbledore to drink the potion guarding the locket?",accept:["the potion","emerald potion","drink of despair","green potion"],answer:"The 'Drink of Despair'",explain:"The emerald potion induces unbearable thirst and terror; it leaves Dumbledore so weakened that he must beg Harry to keep forcing it on him."},
+{t:3,type:'write',src:"Chamber of Secrets",q:"Which Weasley child took Tom Riddle's diary and was possessed by it, opening the Chamber?",accept:["ginny","ginny weasley","ginevra","ginevra weasley"],answer:"Ginny Weasley",explain:"Lucius Malfoy slipped it into her cauldron in Flourish and Blotts; she nearly dies pouring her soul into Riddle."},
+{t:3,type:'order',src:"Lore",q:"Order these Defence Against the Dark Arts teachers by the year Harry has them (years 1\u20135).",seq:["Quirinus Quirrell","Gilderoy Lockhart","Remus Lupin","Bartemius Crouch Jr. (as Moody)","Dolores Umbridge"],answer:"Quirrell → Lockhart → Lupin → 'Moody' → Umbridge",explain:"The cursed post never keeps a teacher more than a year \u2014 a jinx Dumbledore attributes to Voldemort's old grudge."},
+{t:3,type:'write',src:"Deathly Hallows",q:"Name the wandmaker whom Voldemort tortures and imprisons seeking the secret of the brother wands.",accept:["ollivander","mr ollivander","garrick ollivander"],answer:"Ollivander",explain:"His knowledge of wandlore sends Voldemort hunting for first the Elder Wand and the loophole that thwarts him."},
+{t:3,type:'write',src:"Half-Blood Prince",q:"What is the name of Voldemort's snake, his final Horcrux, into which a soul-fragment was placed after Frank Bryce's murder?",accept:["nagini"],answer:"Nagini",explain:"A Maledictus in later-revealed backstory; in the seven novels she is the serpent Neville beheads with Gryffindor's sword."},
+{t:3,type:'write',src:"Goblet of Fire",q:"What is the name of the third Triwizard champion besides Harry, Cedric, and Viktor Krum \u2014 the Beauxbatons champion?",accept:["fleur","fleur delacour","delacour"],answer:"Fleur Delacour",explain:"Part-Veela, she later weds Bill Weasley; her little sister Gabrielle is her hostage in the lake."},
+{t:3,type:'write',src:"Deathly Hallows",q:"In 'The Tale of the Three Brothers,' which brother asked for the Cloak and greeted Death 'as an old friend' when his time came?",accept:["third","the third","third brother","ignotus","ignotus peverell"],answer:"The third (Ignotus Peverell)",explain:"The humblest brother; the Cloak passed down his line to the Potters, which is why Death never found him early."},
+{t:3,type:'write',src:"Order of the Phoenix",q:"What is the name of Harry's part-Thestral-drawn means of transport \u2014 actually, name the creatures only those who have seen death can see, that pull the school carriages.",accept:["thestrals","thestral"],answer:"Thestrals",explain:"Harry can suddenly see them in book 5 after witnessing Cedric's death; Luna, who saw her mother die, has always seen them."},
+{t:3,type:'write',src:"Half-Blood Prince",q:"What rare magical substance does Slughorn collect from the dying Aragog, prompting him to bond with Harry?",accept:["venom","acromantula venom","aragogs venom","unicorn"],answer:"Acromantula venom",explain:"Worth a fortune by the pint; Harry (luck-potioned) lets the sentimental Slughorn harvest it and loosen his tongue about Horcruxes."},
+{t:3,type:'write',src:"Deathly Hallows",q:"What three words does Harry use to make the Elder Wand repair his own broken wand before he returns it to Dumbledore's tomb?",accept:["reparo","just reparo"],answer:"Reparo",explain:"True master of the unbeaten wand at last, he uses its power for one humble fix \u2014 then gives it up by choice."},
+{t:3,type:'write',src:"Chamber of Secrets",q:"What does 'Mudblood' mean, and what is the polite term it insults? Give the polite term.",accept:["muggle born","muggle-born","muggleborn"],answer:"Muggle-born",explain:"A witch or wizard born to non-magic parents; Draco's slur at Hermione is the first time the ugly word appears."},
+{t:3,type:'multi',src:"Lore",q:"Which of these characters are half-bloods (one magical line, one not)? (Choose all that apply.)",options:["Tom Riddle","Severus Snape","Harry Potter","Draco Malfoy","Seamus Finnigan"],correct:["Tom Riddle","Severus Snape","Harry Potter","Seamus Finnigan"],answer:"Riddle, Snape, Harry, Seamus",explain:"Voldemort, Snape, and Harry all have one Muggle/Muggle-born parent; Seamus's father is a Muggle. Draco is a pure-blood \u2014 the irony of his prejudice against the very status his enemies share."},
+{t:3,type:'write',src:"Goblet of Fire",q:"What is the name of the Quidditch World Cup-winning move Krum performs, catching the Snitch though Bulgaria still loses?",accept:["wronski feint","the wronski feint","wronski"],answer:"The Wronski Feint",explain:"A Seeker's dive-and-pull-up that fools the opposing Seeker into crashing \u2014 Krum executes it to perfection against Lynch."},
+{t:3,type:'write',src:"Half-Blood Prince",q:"What is the name of Aragog, the giant spider's, home region of the Forbidden Forest's colony \u2014 i.e., what kind of creature is Aragog?",accept:["acromantula","an acromantula"],answer:"An Acromantula",explain:"Hagrid raised him from an egg; the colony nearly devours Harry and Ron in book 2, sparing them only out of respect for Hagrid."},
+{t:3,type:'write',src:"Deathly Hallows",q:"At King's Cross in Harry's near-death vision, what pitiful flayed creature lies beneath a bench \u2014 the maimed remnant of Voldemort's soul?",accept:["the flayed child","flayed child","baby","the baby","voldemort's soul","soul fragment"],answer:"The flayed, child-like creature",explain:"Harry is forbidden from helping it; it is all that remains of Riddle's mutilated soul, beyond any magic to heal."}
+];
+
+/* ============================================================
+   STATE + LOGIC
+   ============================================================ */
+const MAXHP=100, DMG=11;
+let state=null;
+
+const $=id=>document.getElementById(id);
+function show(sec){['start','game','end'].forEach(s=>$(s).classList.toggle('hide',s!==sec));}
+
+/* ---------- start screen flow ---------- */
+let chosenMode=null;
+let pickStage=0;   // for 2P: 0=p1 picking, 1=p2 picking
+let picks=[null,null];
+
+document.querySelectorAll('.mode').forEach(btn=>{
+  btn.onclick=()=>{
+    Sound.click();
+    chosenMode=btn.dataset.mode;
+    document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('sel',b===btn));
+    pickStage=0; picks=[null,null];
+    $('pickArea').classList.remove('hide');
+    renderPick();
+    $('pickArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+});
+
+function buildCharGrid(){
+  const grid=$('charGrid'); grid.innerHTML='';
+  CHARS.forEach(ch=>{
+    const el=document.createElement('button');
+    el.className='char';
+    el.style.setProperty('--cc',ch.c);
+    el.style.setProperty('--ccg',ch.g);
+    el.innerHTML=`<div class="ring" style="--cc:${ch.c};--ccg:${ch.g}">${ch.in}</div>
+      <div class="cn">${ch.name}</div>
+      <div class="ct">${ch.title}</div>
+      <div class="cp">${ch.power}</div>`;
+    el.onclick=()=>{
+      Sound.click();
+      picks[pickStage]=ch;
+      [...grid.children].forEach((c,i)=>c.classList.toggle('sel',CHARS[i].id===ch.id));
+      $('perkLine').innerHTML=`Ability — <b>${ch.perkName}</b>: ${PERKS[ch.perk].label}`;
+      renderStartActions();
+    };
+    grid.appendChild(el);
+  });
+}
+
+function renderPick(){
+  buildCharGrid();
+  $('perkLine').innerHTML='';
+  if(chosenMode==='1p'){
+    $('pickTitle').textContent='Choose Your Wizard';
+    $('pickSub').textContent='You will duel Lord Voldemort. Choose well — he does not tire, and he does not forgive.';
+  } else {
+    $('pickTitle').textContent= pickStage===0 ? 'Player 1 — Choose Your Wizard' : 'Player 2 — Choose Your Wizard';
+    $('pickSub').textContent='Each wizard brings their own strength and one signature spell.';
+  }
+  renderStartActions();
+}
+
+function renderStartActions(){
+  const wrap=$('startActions'); wrap.innerHTML='';
+  const cur=picks[pickStage];
+  if(chosenMode==='1p'){
+    const b=document.createElement('button');
+    b.className='btn'; b.textContent='Begin the Duel';
+    b.disabled=!cur;
+    if(!cur)b.setAttribute('disabled','');
+    b.onclick=()=>{ if(cur) startGame('1p',[cur,null]); };
+    wrap.appendChild(b);
+  } else {
+    if(pickStage===0){
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Lock In — Player 2 Chooses';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[0]){ pickStage=1; renderPick(); window.scrollTo({top:0,behavior:'smooth'});} };
+      wrap.appendChild(b);
+    } else {
+      const back=document.createElement('button');
+      back.className='btn btn-ghost'; back.textContent='Back';
+      back.onclick=()=>{ pickStage=0; renderPick(); };
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Begin the Duel';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[1]) startGame('2p',[picks[0],picks[1]]); };
+      wrap.appendChild(back); wrap.appendChild(b);
+    }
+  }
+}
+
+/* ---------- game setup ---------- */
+function startGame(mode,chars){
+  Sound.click();
+  const shadow={name:"Lord Voldemort", power:"Dark Magic", c:"#2ec16a", isShadow:true};
+  state={
+    mode,
+    served:0,          // questions presented (drives difficulty ramp)
+    used:new Set(),
+    correct:0, total:0,
+    turn:0,            // index of active player
+    answered:false,
+    current:null,
+    insightUsed:false,
+    players:[
+      makePlayer(chars[0]),
+      mode==='1p' ? makeShadow(shadow) : makePlayer(chars[1])
+    ]
+  };
+  // theme bars
+  applyBarTheme();
+  show('game');
+  nextQuestion();
+}
+function makePlayer(ch){
+  return {char:ch, name:ch.name, power:ch.power, hp:MAXHP, isShadow:false,
+          perk:ch.perk, perkName:ch.perkName, perkUsed:false,
+          shield:false, doubleNext:false};
+}
+function makeShadow(s){
+  return {char:s, name:s.name, power:s.power, hp:MAXHP, isShadow:true,
+          perk:null, perkUsed:true, shield:false, doubleNext:false};
+}
+
+function applyBarTheme(){
+  const p1=state.players[0];
+  document.documentElement.style.setProperty('--p1c',p1.char.c);
+  document.documentElement.style.setProperty('--p1c2',p1.char.c2||'#fff');
+  document.documentElement.style.setProperty('--p1g',p1.char.g);
+  $('n1').textContent=p1.name; $('pw1').textContent=p1.power;
+  const p2=state.players[1];
+  const f2=$('f2');
+  if(state.mode==='1p'){
+    $('n2').textContent="Lord Voldemort"; $('pw2').textContent="Dark Magic";
+    f2.className='fill foe';
+  } else {
+    document.documentElement.style.setProperty('--p2c',p2.char.c);
+    document.documentElement.style.setProperty('--p2c2',p2.char.c2||'#fff');
+    document.documentElement.style.setProperty('--p2g',p2.char.g);
+    $('n2').textContent=p2.name; $('pw2').textContent=p2.power;
+    f2.className='fill p2';
+  }
+  updateBars(true);
+}
+
+function updateBars(instant){
+  const p1=state.players[0], p2=state.players[1];
+  $('f1').style.width=Math.max(0,p1.hp)+'%'; $('hp1').textContent=Math.max(0,p1.hp);
+  $('f2').style.width=Math.max(0,p2.hp)+'%'; $('hp2').textContent=Math.max(0,p2.hp);
+  if(state.mode==='2p'){
+    $('box1').classList.toggle('active',state.turn===0);
+    $('box2').classList.toggle('active',state.turn===1);
+  } else {
+    $('box1').classList.add('active'); $('box2').classList.remove('active');
+  }
+}
+
+/* ---------- difficulty ramp + draw ---------- */
+function allowedTiers(n){
+  if(n<1)  return [1];
+  if(n<3)  return [1,2];
+  if(n<5)  return [2];
+  if(n<7)  return [2,3];
+  return [3];
+}
+function drawQuestion(){
+  const tiers=allowedTiers(state.served);
+  let pool=BANK.filter((q,i)=>tiers.includes(q.t) && !state.used.has(i));
+  if(pool.length===0) pool=BANK.filter((q,i)=>!state.used.has(i));   // any unused
+  if(pool.length===0){ state.used.clear(); pool=BANK.slice(); }      // full reset (long games)
+  const idx=BANK.indexOf(pool[Math.floor(Math.random()*pool.length)]);
+  state.used.add(idx);
+  return {idx, q:BANK[idx]};
+}
+
+/* ---------- render a question ---------- */
+function nextQuestion(){
+  state.served++;
+  state.answered=false;
+  state.insightUsed=false;
+  const {q}=drawQuestion();
+  state.current=q;
+
+  // turn / progress text
+  const active=state.players[state.turn];
+  if(state.mode==='2p'){
+    $('turnTag').textContent=active.name+"'s turn";
+  } else {
+    $('turnTag').textContent="Your turn";
+  }
+  $('prog').textContent='Question '+state.served;
+
+  // tier pips + label
+  ['pip1','pip2','pip3'].forEach((p,i)=>$(p).classList.toggle('on', i<q.t));
+  $('tierLabel').textContent=['','First Year','N.E.W.T. Level','Order of Merlin'][q.t];
+  $('srcTag').textContent=q.src?('— '+q.src):'';
+  $('qType').textContent= {mc:'Multiple Choice', write:'Write-In', order:'Put in Order', multi:'Choose All That Apply'}[q.type] || 'Question';
+  $('qText').textContent=q.q;
+
+  // reset feedback
+  $('feedback').classList.add('hide');
+  $('hintLine').classList.add('hide'); $('hintLine').textContent='';
+
+  // perk button
+  setupPerk();
+
+  // answer area — hide all, then render by type
+  const opts=$('opts'), ww=$('writeWrap'), ow=$('orderWrap'), mw=$('multiWrap');
+  opts.innerHTML=''; $('orderPool').innerHTML=''; $('multiOpts').innerHTML='';
+  [opts,ww,ow,mw].forEach(el=>el.classList.add('hide'));
+  state.orderPick=[]; state.multiPick=[];
+  const letters=['A','B','C','D','E','F','G','H'];
+  if(q.type==='mc'){
+    opts.classList.remove('hide');
+    shuffle(q.options.slice()).forEach((optText,i)=>{
+      const b=document.createElement('button');
+      b.className='opt'; b.dataset.val=optText;
+      b.innerHTML=`<span class="mark">${letters[i]}</span><span>${optText}</span>`;
+      b.onclick=()=>chooseMC(b,optText);
+      opts.appendChild(b);
+    });
+  } else if(q.type==='order'){
+    ow.classList.remove('hide');
+    $('orderSubmit').disabled=true; $('orderClear').disabled=false;
+    shuffle(q.seq.slice()).forEach(item=>{
+      const b=document.createElement('button');
+      b.className='orderchip'; b.dataset.item=item;
+      b.innerHTML=`<span class="seq"></span><span>${item}</span>`;
+      b.onclick=()=>pickOrder(b,item);
+      $('orderPool').appendChild(b);
+    });
+  } else if(q.type==='multi'){
+    mw.classList.remove('hide');
+    $('multiSubmit').disabled=true;
+    shuffle(q.options.slice()).forEach((optText,i)=>{
+      const b=document.createElement('button');
+      b.className='opt'; b.dataset.val=optText;
+      b.innerHTML=`<span class="mark">${letters[i]}</span><span>${optText}</span>`;
+      b.onclick=()=>toggleMulti(b,optText);
+      $('multiOpts').appendChild(b);
+    });
+  } else {
+    ww.classList.remove('hide');
+    const inp=$('writeInput'); inp.value=''; inp.disabled=false;
+    $('submitWrite').disabled=false;
+    inp.focus();
+  }
+  updateBars();
+  $('qText').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- perks ---------- */
+function setupPerk(){
+  const active=state.players[state.turn];
+  const btn=$('perkBtn'), desc=$('perkDesc');
+  if(active.isShadow || !active.perk){
+    $('perkBar').classList.add('hide'); return;
+  }
+  $('perkBar').classList.remove('hide');
+  btn.style.setProperty('--cc',active.char.c);
+  btn.style.setProperty('--ccg',active.char.g);
+  btn.textContent=active.perkName;
+  desc.textContent=PERKS[active.perk].label;
+  btn.disabled=active.perkUsed;
+  if(active.perkUsed){btn.setAttribute('disabled','');desc.textContent='Already spent this duel.';}
+  btn.onclick=()=>usePerk(active);
+}
+function usePerk(p){
+  if(p.perkUsed||state.answered)return;
+  Sound.perk();
+  const q=state.current;
+  if(p.perk==='heal'){
+    p.perkUsed=true;
+    p.hp=Math.min(MAXHP,p.hp+22);
+    updateBars();
+    floatText('+22', '#74c69d', state.turn===0);
+    flashFeedbackNote(p.perkName+': power restored.');
+  } else if(p.perk==='shield'){
+    p.perkUsed=true; p.shield=true;
+    flashFeedbackNote(p.perkName+': the next blow will be turned aside.');
+  } else if(p.perk==='power'){
+    p.perkUsed=true; p.doubleNext=true;
+    flashFeedbackNote(p.perkName+': your next true answer strikes for double.');
+  } else if(p.perk==='luck'){
+    p.perkUsed=true;
+    flashFeedbackNote(p.perkName+': you cast this question aside.');
+    setTimeout(()=>{ state.served--; nextQuestion(); }, 650);
+  } else if(p.perk==='insight'){
+    p.perkUsed=true; state.insightUsed=true;
+    if(q.type==='mc'){
+      const btns=[...$('opts').children].filter(b=>!b.classList.contains('faded'));
+      const wrong=btns.filter(b=>b.dataset.val!==q.answer);
+      shuffle(wrong);
+      wrong.slice(0,2).forEach(b=>{b.classList.add('faded');b.disabled=true;});
+    } else if(q.type==='order'){
+      $('hintLine').textContent=`✦ First in the sequence: “${q.seq[0]}”`;
+      $('hintLine').classList.remove('hide');
+    } else if(q.type==='multi'){
+      const wrongBtns=[...$('multiOpts').children].filter(b=>!q.correct.includes(b.dataset.val)&&!b.classList.contains('faded'));
+      shuffle(wrongBtns);
+      if(wrongBtns[0]){wrongBtns[0].classList.add('faded');wrongBtns[0].disabled=true;}
+      $('hintLine').textContent=`✦ ${q.correct.length} of these are correct`;
+      $('hintLine').classList.remove('hide');
+    } else {
+      const ans=q.answer.replace(/\(.*?\)/g,'').trim();
+      const first=ans[0];
+      const len=ans.replace(/[^A-Za-z']/g,'').length;
+      $('hintLine').textContent=`✦ Begins with “${first}” · about ${len} letters`;
+      $('hintLine').classList.remove('hide');
+      $('writeInput').focus();
+    }
+  }
+  setupPerk();
+}
+function flashFeedbackNote(msg){
+  const fb=$('feedback');
+  fb.classList.remove('hide');
+  $('verdict').className='verdict neutral';
+  $('verdict').textContent='✦ '+msg;
+  $('ansLine').textContent=''; $('explain').textContent='';
+  $('nextBtn').classList.add('hide');
+  // auto-hide the note region's next button; re-shown on real answer
+  setTimeout(()=>{ if(!state.answered){ fb.classList.add('hide'); $('nextBtn').classList.remove('hide'); } },1500);
+}
+
+/* ---------- answering ---------- */
+function chooseMC(btn,val){
+  if(state.answered)return;
+  const q=state.current;
+  const right = val===q.answer;
+  [...$('opts').children].forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.val===q.answer)b.classList.add('correct');
+    else if(b===btn && !right)b.classList.add('wrong');
+  });
+  resolve(right);
+}
+$('submitWrite').onclick=submitWrite;
+$('writeInput').addEventListener('keydown',e=>{ if(e.key==='Enter')submitWrite(); });
+function submitWrite(){
+  if(state.answered)return;
+  const q=state.current;
+  const val=$('writeInput').value;
+  if(!val.trim())return;
+  const right=matchWrite(val,q.accept);
+  $('writeInput').disabled=true; $('submitWrite').disabled=true;
+  resolve(right);
+}
+
+/* ---------- order question ---------- */
+function pickOrder(btn,item){
+  if(state.answered||btn.classList.contains('picked'))return;
+  state.orderPick.push(item);
+  btn.classList.add('picked');
+  btn.querySelector('.seq').textContent=state.orderPick.length;
+  Sound.click();
+  $('orderSubmit').disabled = state.orderPick.length!==state.current.seq.length;
+}
+$('orderClear').onclick=()=>{
+  if(state.answered)return;
+  state.orderPick=[];
+  [...$('orderPool').children].forEach(b=>{b.classList.remove('picked');b.querySelector('.seq').textContent='';});
+  $('orderSubmit').disabled=true;
+};
+$('orderSubmit').onclick=()=>{
+  if(state.answered)return;
+  const q=state.current;
+  const right = state.orderPick.length===q.seq.length && state.orderPick.every((v,i)=>v===q.seq[i]);
+  [...$('orderPool').children].forEach(b=>{
+    b.disabled=true;
+    const correctPos=q.seq.indexOf(b.dataset.item);
+    const gotPos=state.orderPick.indexOf(b.dataset.item);
+    b.classList.add(correctPos===gotPos?'correct':'wrong');
+  });
+  $('orderSubmit').disabled=true; $('orderClear').disabled=true;
+  resolve(right);
+};
+
+/* ---------- multi (choose all that apply) ---------- */
+function toggleMulti(btn,val){
+  if(state.answered)return;
+  const i=state.multiPick.indexOf(val);
+  if(i>=0){ state.multiPick.splice(i,1); btn.classList.remove('sel'); }
+  else { state.multiPick.push(val); btn.classList.add('sel'); }
+  Sound.click();
+  $('multiSubmit').disabled = state.multiPick.length===0;
+}
+$('multiSubmit').onclick=()=>{
+  if(state.answered)return;
+  const q=state.current;
+  const corr=q.correct.slice().sort(), got=state.multiPick.slice().sort();
+  const right = corr.length===got.length && corr.every((v,i)=>v===got[i]);
+  [...$('multiOpts').children].forEach(b=>{
+    b.disabled=true;
+    const inCorrect=q.correct.includes(b.dataset.val);
+    const chosen=state.multiPick.includes(b.dataset.val);
+    if(inCorrect)b.classList.add('correct'); else if(chosen)b.classList.add('wrong');
+  });
+  $('multiSubmit').disabled=true;
+  resolve(right);
+};
+
+/* lenient matching */
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/['’`._,]/g,'').replace(/[-]/g,' ')
+    .replace(/^the\s+/,'').replace(/\s+/g,' ').trim();
+}
+function lev(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n; if(!n)return m;
+  const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+  }
+  return d[m][n];
+}
+function matchWrite(input,accepted){
+  const ni=norm(input); if(!ni)return false;
+  for(const a of accepted){
+    const na=norm(a); if(!na)continue;
+    if(ni===na)return true;
+    if(na.length>=4 && ni.length>=4 && (ni.includes(na)||na.includes(ni)))return true;
+    const thr= na.length<=4?1 : na.length<=8?2 : 3;
+    if(lev(ni,na)<=thr)return true;
+    // token-level: any word in input matches a key word closely
+    const iw=ni.split(' '), aw=na.split(' ');
+    for(const w of aw){ if(w.length>=4){ for(const v of iw){ if(v.length>=4 && lev(v,w)<= (w.length<=6?1:2))return true; } } }
+  }
+  return false;
+}
+
+/* ---------- resolution + damage ---------- */
+function resolve(right){
+  state.answered=true;
+  state.total++;
+  const active=state.players[state.turn];
+  const oppIndex= state.mode==='1p' ? 1 : (state.turn===0?1:0);
+  const opp=state.players[oppIndex];
+
+  let verdictTxt, verdictCls;
+  if(right){
+    state.correct++;
+    let dmg=DMG;
+    if(active.doubleNext){ dmg*=2; active.doubleNext=false; }
+    if(opp.shield){ opp.shield=false; dmg=0; }
+    applyDamage(oppIndex,dmg);
+    Sound.correct();
+    if(dmg>DMG) verdictTxt='A powerful casting — double the force!';
+    else if(dmg===0) verdictTxt='Correct — but your foe warded the blow.';
+    else verdictTxt= state.mode==='1p' ? 'Correct — the Dark Lord recoils.' : 'Correct — your rival staggers.';
+    verdictCls='good';
+  } else {
+    let dmg=DMG;
+    if(active.shield){ active.shield=false; dmg=0; }
+    applyDamage(state.turn,dmg);
+    Sound.wrong();
+    verdictTxt= dmg===0 ? 'Wrong — but your shield held.' : 'Wrong — the curse rebounds on you.';
+    verdictCls='bad';
+  }
+
+  const q=state.current;
+  const fb=$('feedback'); fb.classList.remove('hide');
+  $('verdict').className='verdict '+verdictCls;
+  $('verdict').textContent=(right?'✓ ':'✕ ')+verdictTxt;
+  let ansHtml='';
+  if(!right){
+    if(q.type==='order') ansHtml='Correct order: <b>'+q.seq.join(' → ')+'</b>';
+    else if(q.type==='multi') ansHtml='Correct: <b>'+q.correct.join(', ')+'</b>';
+    else ansHtml='The answer: <b>'+q.answer+'</b>';
+  }
+  $('ansLine').innerHTML = ansHtml;
+  $('explain').textContent=q.explain||'';
+  $('nextBtn').classList.remove('hide');
+
+  updateBars();
+
+  // win check
+  setTimeout(()=>{
+    if(state.players[0].hp<=0 || state.players[1].hp<=0){
+      $('nextBtn').textContent='The Tale is Told';
+      $('nextBtn').onclick=endGame;
+    } else {
+      $('nextBtn').textContent='Continue';
+      $('nextBtn').onclick=advance;
+    }
+  },50);
+}
+
+function applyDamage(idx,dmg){
+  if(dmg<=0){ floatText('shielded','#b58cf0'); return; }
+  state.players[idx].hp=Math.max(0,state.players[idx].hp-dmg);
+  // fx
+  document.querySelector('.wrap').classList.add('shake');
+  const hf=$('hitflash'); hf.classList.remove('go'); void hf.offsetWidth; hf.classList.add('go');
+  setTimeout(()=>document.querySelector('.wrap').classList.remove('shake'),500);
+  Sound.hit();
+  floatText('-'+dmg, idx===0?'#e07a6a':'#e7c873', idx===0);
+}
+
+function floatText(txt,color,leftSide){
+  const box = leftSide ? $('box1') : $('box2');
+  const r=box.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='float'; el.textContent=txt; el.style.color=color;
+  el.style.left=(r.left+r.width/2-12)+'px';
+  el.style.top=(r.top+8)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
+
+function advance(){
+  if(state.mode==='2p') state.turn=state.turn===0?1:0;
+  nextQuestion();
+}
+
+/* ---------- end ---------- */
+function endGame(){
+  const p1=state.players[0], p2=state.players[1];
+  let win; // human is player 0; they win if they still have power
+  win = p1.hp>0;
+  let winnerName;
+  if(state.mode==='2p'){
+    winnerName = p1.hp>0 ? p1.name : p2.name;
+  }
+
+  const end=$('end');
+  end.classList.remove('win','lose');
+
+  if(state.mode==='1p'){
+    end.classList.add(win?'win':'lose');
+    $('endKicker').textContent= win ? 'All Was Well' : 'The Dark Lord Triumphs';
+    $('endTitle').textContent = win ? 'Victory' : 'Defeat';
+    $('endQuote').textContent = win
+      ? 'The curse rebounds, the Dark Lord falls, and the scar has not pained you for years. All is well.'
+      : 'Your wand arm fails and the green light rises. But help is always given at Hogwarts to those who ask for it \u2014 cast again.';
+  } else {
+    end.classList.add('win');
+    $('endKicker').textContent='The Duel is Won';
+    $('endTitle').textContent=winnerName+' Prevails';
+    $('endQuote').textContent= (p1.hp>0?p1.name:p2.name)+' stands with wand raised while the other\u2019s spell sputters out. A duel worthy of the old tales.';
+  }
+
+  const acc = state.total? Math.round(100*state.correct/state.total):0;
+  $('stCorrect').textContent=state.correct;
+  $('stTotal').textContent=state.total;
+  $('stAcc').textContent=acc+'%';
+
+  (state.mode==='1p' && !win) ? Sound.lose() : Sound.win();
+  show('end');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$('againBtn').onclick=()=>{
+  // replay with same champions + mode
+  const chars=[state.players[0].char, state.mode==='2p'?state.players[1].char:null];
+  startGame(state.mode,chars);
+};
+$('homeBtn').onclick=()=>{
+  chosenMode=null; pickStage=0; picks=[null,null];
+  document.querySelectorAll('.mode').forEach(b=>b.classList.remove('sel'));
+  $('pickArea').classList.add('hide');
+  show('start'); window.scrollTo({top:0,behavior:'smooth'});
+};
+$('nextBtn').onclick=advance;
+</script>
+</body>
+</html>
