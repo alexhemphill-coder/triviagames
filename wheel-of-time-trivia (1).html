@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Wheel Weaves — A Wheel of Time Trivia Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#080611; --bg1:#0d0a1d; --bg2:#15112b;
+    --ink:#ece6d6; --ink-dim:#b7ad95; --ink-faint:#7d7560;
+    --gold:#c9a44c; --gold-bright:#e7c873; --gold-deep:#8a6d2a;
+    --accent:#6db6ff; --accent-glow:rgba(109,182,255,.55);
+    --shadow-red:#9c2b2b; --shadow-glow:rgba(190,40,40,.5);
+    --good:#74c69d; --bad:#e07a6a;
+    --line:rgba(201,164,76,.28);
+    --card:rgba(20,16,40,.72);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    color:var(--ink);
+    background:var(--bg0);
+    min-height:100vh;
+    line-height:1.5;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* atmosphere */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-3;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #221a44 0%, transparent 55%),
+      radial-gradient(900px 700px at 85% 110%, #1a1330 0%, transparent 60%),
+      linear-gradient(160deg,var(--bg1),var(--bg0) 70%);
+  }
+  /* faint Wheel watermark */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.1' opacity='0.5'><circle cx='300' cy='300' r='250'/><circle cx='300' cy='300' r='180'/><circle cx='300' cy='300' r='70'/>%SPOKES%</g></svg>");
+    background-repeat:no-repeat;background-position:center 22%;
+    background-size:min(86vw,720px);
+    opacity:.05;
+  }
+  .stars{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5}
+  .stars span{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.4;animation:tw 4s infinite ease-in-out}
+  @keyframes tw{0%,100%{opacity:.12}50%{opacity:.7}}
+
+  .wrap{max-width:760px;margin:0 auto;padding:26px 18px 60px;position:relative}
+
+  /* ---------- shared bits ---------- */
+  .kicker{font-family:'Cinzel',serif;letter-spacing:.32em;text-transform:uppercase;font-size:.66rem;color:var(--gold);opacity:.85}
+  h1{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.04em;line-height:1.05;margin:.25em 0 .15em;
+     font-size:clamp(2rem,7vw,3.1rem);
+     background:linear-gradient(180deg,var(--gold-bright),var(--gold) 55%,var(--gold-deep));
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 2px 30px rgba(201,164,76,.18)}
+  .serpent{display:block;width:min(58vw,180px);margin:6px auto 2px}
+  .lead{color:var(--ink-dim);font-size:1.08rem;max-width:46ch;margin:0 auto}
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px 20px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .center{text-align:center}
+
+  button{font-family:inherit;cursor:pointer;color:inherit;border:none;background:none}
+  .btn{
+    font-family:'Cinzel',serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    font-size:.82rem;
+    padding:14px 22px;border-radius:11px;
+    border:1px solid var(--gold-deep);
+    background:linear-gradient(180deg,rgba(201,164,76,.22),rgba(201,164,76,.06));
+    color:var(--gold-bright);
+    transition:transform .12s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(201,164,76,.22);background:linear-gradient(180deg,rgba(201,164,76,.34),rgba(201,164,76,.1))}
+  .btn:active{transform:translateY(0)}
+  .btn[disabled]{opacity:.4;cursor:default;transform:none;box-shadow:none}
+  .btn-ghost{border-color:var(--line);background:rgba(255,255,255,.03);color:var(--ink-dim)}
+  .btn-ghost:hover{box-shadow:none;color:var(--ink)}
+
+  .fade{animation:fade .55s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .hide{display:none !important}
+
+  /* ---------- start screen ---------- */
+  #start .hero{text-align:center;margin-bottom:26px}
+  .stage-title{font-family:'Cinzel',serif;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:.82rem;text-align:center;margin:30px 0 14px}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mode{
+    text-align:left;border:1px solid var(--line);border-radius:14px;padding:18px 16px;
+    background:rgba(255,255,255,.025);transition:all .18s ease;position:relative;overflow:hidden;
+  }
+  .mode .mt{font-family:'Cinzel',serif;letter-spacing:.08em;color:var(--gold-bright);font-size:1.02rem}
+  .mode .md{color:var(--ink-faint);font-size:.92rem;margin-top:4px}
+  .mode:hover,.mode.sel{border-color:var(--gold);background:rgba(201,164,76,.1);transform:translateY(-2px)}
+  .mode.sel::after{content:"✦";position:absolute;top:10px;right:12px;color:var(--gold-bright)}
+
+  .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+  .char{
+    border:1px solid var(--line);border-radius:13px;padding:14px 12px 13px;text-align:center;
+    background:rgba(255,255,255,.02);transition:all .16s ease;position:relative;overflow:hidden;
+  }
+  .char .ring{width:46px;height:46px;margin:0 auto 8px;border-radius:50%;
+    display:grid;place-items:center;font-family:'Cinzel',serif;font-weight:700;font-size:1.2rem;
+    color:#0b0813;background:radial-gradient(circle at 35% 30%, #fff7, transparent 60%), var(--cc,#888);
+    box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 0 18px 2px var(--ccg,transparent);
+  }
+  .char .cn{font-family:'Cinzel',serif;font-size:.86rem;letter-spacing:.04em;color:var(--ink)}
+  .char .ct{font-size:.78rem;color:var(--ink-faint);margin-top:2px;min-height:2.1em}
+  .char .cp{font-size:.72rem;color:var(--cc,var(--gold));margin-top:6px;letter-spacing:.06em;text-transform:uppercase;font-family:'Cinzel',serif}
+  .char:hover,.char.sel{transform:translateY(-3px);border-color:var(--cc,var(--gold))}
+  .char.sel{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px var(--cc), 0 10px 30px -8px var(--ccg)}
+
+  .pick-head{display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap;margin:24px 0 6px}
+  .pick-head h2{font-family:'Cinzel',serif;font-weight:600;font-size:1.18rem;margin:0;color:var(--ink)}
+  .pick-sub{color:var(--ink-faint);font-size:.95rem;text-align:center;margin:0 0 16px}
+
+  .perk-line{font-size:.92rem;color:var(--ink-dim);margin-top:14px;min-height:1.4em;text-align:center}
+  .perk-line b{color:var(--gold-bright);font-family:'Cinzel',serif;font-weight:600;letter-spacing:.04em}
+
+  .footer-note{margin-top:20px;color:var(--ink-faint);font-size:.84rem;text-align:center}
+  .start-actions{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+
+  /* ---------- game screen ---------- */
+  .bars{display:flex;gap:14px;align-items:stretch;margin-bottom:6px}
+  .barbox{flex:1;min-width:0}
+  .barbox .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+  .barbox .name{font-family:'Cinzel',serif;font-size:.86rem;letter-spacing:.03em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barbox .pwr{font-size:.72rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;font-family:'Cinzel',serif}
+  .barbox .hpnum{font-variant-numeric:tabular-nums;color:var(--ink-dim);font-size:.84rem}
+  .track{height:16px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);overflow:hidden;position:relative}
+  .fill{height:100%;border-radius:9px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
+  .fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35));mix-blend-mode:overlay;animation:shine 2.6s linear infinite}
+  @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .fill.you{background:linear-gradient(90deg,var(--p1c,#6db6ff),var(--p1c2,#bfe0ff));box-shadow:0 0 14px var(--p1g,var(--accent-glow))}
+  .fill.foe{background:linear-gradient(90deg,#7a1f1f,#c0392b);box-shadow:0 0 14px var(--shadow-glow)}
+  .fill.p2{background:linear-gradient(90deg,var(--p2c,#e7c873),var(--p2c2,#fff0c4));box-shadow:0 0 14px var(--p2g,rgba(231,200,115,.5))}
+  .vs{align-self:center;font-family:'Cinzel',serif;color:var(--gold);opacity:.7;font-size:.8rem;letter-spacing:.1em;padding:0 2px}
+  .barbox.active{animation:activeglow 1.8s ease-in-out infinite}
+  @keyframes activeglow{0%,100%{filter:none}50%{filter:drop-shadow(0 0 6px var(--gold-bright))}}
+  .barbox.active .name::before{content:"▸ ";color:var(--gold-bright)}
+
+  .turnbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 12px}
+  .turn-tag{font-family:'Cinzel',serif;letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;color:var(--gold-bright)}
+  .progress{font-size:.78rem;color:var(--ink-faint);letter-spacing:.06em}
+
+  .qcard{position:relative}
+  .qmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .tier{display:flex;gap:5px;align-items:center}
+  .tier .pip{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .tier .pip.on{background:var(--gold-bright);box-shadow:0 0 8px var(--gold)}
+  .tier .tl{font-size:.72rem;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;font-family:'Cinzel',serif;margin-left:6px}
+  .srctag{font-size:.74rem;color:var(--ink-faint);font-style:italic}
+  .qtype{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8}
+  .question{font-size:1.28rem;line-height:1.4;color:var(--ink);margin:6px 0 18px}
+
+  .opts{display:grid;gap:10px}
+  .opt{
+    text-align:left;border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+    background:rgba(255,255,255,.02);font-size:1.04rem;color:var(--ink);transition:all .14s ease;
+    display:flex;gap:11px;align-items:flex-start;
+  }
+  .opt .mark{font-family:'Cinzel',serif;color:var(--gold);font-size:.9rem;min-width:1.1em}
+  .opt:hover:not([disabled]){border-color:var(--gold);background:rgba(201,164,76,.09);transform:translateX(3px)}
+  .opt.correct{border-color:var(--good);background:rgba(116,198,157,.16);color:#dffbec}
+  .opt.wrong{border-color:var(--bad);background:rgba(224,122,106,.14);color:#ffe4dd}
+  .opt.faded{opacity:.32;text-decoration:line-through}
+  .opt[disabled]{cursor:default}
+
+  .writein{display:flex;gap:10px;flex-wrap:wrap}
+  .writein input{
+    flex:1;min-width:200px;font-family:inherit;font-size:1.1rem;color:var(--ink);
+    background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+  }
+  .writein input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,164,76,.14)}
+  .hintline{font-size:.92rem;color:var(--accent);margin-top:10px;letter-spacing:.18em;font-family:'Cinzel',serif}
+
+  .perkbar{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .perk-btn{
+    font-family:'Cinzel',serif;letter-spacing:.06em;font-size:.76rem;text-transform:uppercase;
+    padding:10px 14px;border-radius:10px;border:1px dashed var(--cc,var(--gold));
+    background:rgba(255,255,255,.03);color:var(--cc,var(--gold-bright));transition:all .15s ease;
+  }
+  .perk-btn:hover:not([disabled]){background:rgba(201,164,76,.12)}
+  .perk-btn[disabled]{opacity:.35;cursor:default;border-style:solid}
+  .perk-desc{font-size:.84rem;color:var(--ink-faint);flex:1;min-width:160px}
+
+  .feedback{margin-top:18px;border-top:1px solid var(--line);padding-top:16px;animation:fade .4s ease both}
+  .verdict{font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:.04em;margin-bottom:4px}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict.neutral{color:var(--gold-bright)}
+  .ans{color:var(--ink);font-size:1.02rem}
+  .ans b{color:var(--gold-bright)}
+  .explain{color:var(--ink-dim);font-size:.96rem;margin-top:7px;font-style:italic}
+  .next-row{display:flex;justify-content:flex-end;margin-top:16px}
+
+  /* damage fx */
+  .shake{animation:shake .5s ease}
+  @keyframes shake{0%,100%{transform:none}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-5px,1px)}60%{transform:translate(4px,-1px)}75%{transform:translate(-2px,1px)}}
+  .hitflash{position:fixed;inset:0;background:radial-gradient(circle,transparent 40%,rgba(190,40,40,.35));z-index:50;pointer-events:none;opacity:0}
+  .hitflash.go{animation:flash .5s ease}
+  @keyframes flash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+  .float{position:fixed;font-family:'Cinzel',serif;font-weight:700;z-index:60;pointer-events:none;font-size:1.4rem;animation:floatup 1.05s ease-out forwards;text-shadow:0 1px 8px #000}
+  @keyframes floatup{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.1)}}
+
+  /* end screen */
+  #end .endcard{text-align:center}
+  .endtitle{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(1.8rem,6vw,2.6rem);letter-spacing:.03em;margin:6px 0}
+  .win .endtitle{background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lose .endtitle{color:var(--shadow-red);text-shadow:0 0 24px var(--shadow-glow)}
+  .endquote{color:var(--ink-dim);font-style:italic;max-width:40ch;margin:10px auto 0;font-size:1.05rem}
+  .stats{display:flex;gap:18px;justify-content:center;margin:22px 0 6px;flex-wrap:wrap}
+  .stat{min-width:90px}
+  .stat .v{font-family:'Cinzel',serif;font-size:1.7rem;color:var(--gold-bright)}
+  .stat .l{font-size:.74rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .brand{font-family:'Cinzel',serif;letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--gold);opacity:.8}
+  .sound{font-size:1.1rem;opacity:.7;padding:6px 8px;border-radius:8px}
+  .sound:hover{opacity:1;background:rgba(255,255,255,.05)}
+
+  @media(max-width:480px){
+    .modes{grid-template-columns:1fr}
+    .question{font-size:1.14rem}
+    .char-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+    .bars{gap:8px}
+    .vs{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="hitflash" id="hitflash"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand">The Wheel Weaves</span>
+    <button class="sound" id="soundBtn" title="Toggle sound">🔊</button>
+  </div>
+
+  <!-- ================= START ================= -->
+  <section id="start" class="fade">
+    <div class="hero">
+      <svg class="serpent" viewBox="0 0 200 120" fill="none" stroke="url(#g)" stroke-width="3">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#e7c873"/><stop offset="1" stop-color="#8a6d2a"/>
+        </linearGradient></defs>
+        <path d="M100 16c-40 0-72 18-72 44s32 44 72 44 72-18 72-44-26-40-58-43" stroke-linecap="round"/>
+        <path d="M158 56l8-9 9 8" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="160" cy="60" r="3.4" fill="#e7c873" stroke="none"/>
+      </svg>
+      <div class="kicker">A Wheel of Time Trivia Duel</div>
+      <h1>The Wheel Weaves</h1>
+      <p class="lead">Choose your champion. Answer true, and your foe's power bleeds away. Falter, and the One Power drains from you. There are no ends to the Wheel — but every duel has a victor.</p>
+    </div>
+
+    <div class="panel">
+      <div class="stage-title">I. Choose Your Trial</div>
+      <div class="modes">
+        <button class="mode" data-mode="1p">
+          <div class="mt">Against the Shadow</div>
+          <div class="md">One player. Duel the Dark One's champion. Right answers wound the Shadow; wrong ones wound you.</div>
+        </button>
+        <button class="mode" data-mode="2p">
+          <div class="mt">Champion vs. Champion</div>
+          <div class="md">Two players, turn by turn. A correct answer strikes your rival; a wrong one strikes yourself.</div>
+        </button>
+      </div>
+
+      <div id="pickArea" class="hide">
+        <div class="pick-head"><h2 id="pickTitle">Choose a Champion</h2></div>
+        <p class="pick-sub" id="pickSub">Your choice shapes your Power — and grants one ability, used but once.</p>
+        <div class="char-grid" id="charGrid"></div>
+        <div class="perk-line" id="perkLine"></div>
+        <div class="start-actions" id="startActions"></div>
+      </div>
+    </div>
+    <p class="footer-note">Spans all fourteen books and <i>New Spring</i> — book canon only, and hard by design. Difficulty climbs fast. Write-in answers forgive rough spelling — the Old Tongue is hard on us all.</p>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="game" class="hide">
+    <div class="bars">
+      <div class="barbox" id="box1">
+        <div class="who"><span class="name" id="n1">You</span><span class="hpnum"><span id="hp1">100</span></span></div>
+        <div class="track"><div class="fill you" id="f1" style="width:100%"></div></div>
+        <div class="pwr" id="pw1">Saidin</div>
+      </div>
+      <div class="vs">✶</div>
+      <div class="barbox" id="box2">
+        <div class="who"><span class="name" id="n2">The Shadow</span><span class="hpnum"><span id="hp2">100</span></span></div>
+        <div class="track"><div class="fill foe" id="f2" style="width:100%"></div></div>
+        <div class="pwr" id="pw2">Corruption</div>
+      </div>
+    </div>
+
+    <div class="turnbar">
+      <span class="turn-tag" id="turnTag">Your turn</span>
+      <span class="progress" id="prog">Question 1</span>
+    </div>
+
+    <div class="panel qcard">
+      <div class="qmeta">
+        <div class="tier">
+          <span class="pip" id="pip1"></span><span class="pip" id="pip2"></span><span class="pip" id="pip3"></span>
+          <span class="tl" id="tierLabel">Initiate</span>
+        </div>
+        <span class="srctag" id="srcTag"></span>
+      </div>
+      <div class="qtype" id="qType">Multiple Choice</div>
+      <div class="question" id="qText">…</div>
+
+      <div class="opts" id="opts"></div>
+      <div class="writein hide" id="writeWrap">
+        <input id="writeInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+        <button class="btn" id="submitWrite">Answer</button>
+      </div>
+      <div class="hintline hide" id="hintLine"></div>
+
+      <div class="perkbar" id="perkBar">
+        <button class="perk-btn" id="perkBtn">Ability</button>
+        <span class="perk-desc" id="perkDesc"></span>
+      </div>
+
+      <div class="feedback hide" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div class="ans" id="ansLine"></div>
+        <div class="explain" id="explain"></div>
+        <div class="next-row"><button class="btn" id="nextBtn">Continue</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= END ================= -->
+  <section id="end" class="hide">
+    <div class="panel endcard">
+      <div class="kicker" id="endKicker">The Pattern is Woven</div>
+      <div class="endtitle" id="endTitle">Victory</div>
+      <p class="endquote" id="endQuote"></p>
+      <div class="stats">
+        <div class="stat"><div class="v" id="stCorrect">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="v" id="stTotal">0</div><div class="l">Questions</div></div>
+        <div class="stat"><div class="v" id="stAcc">0%</div><div class="l">Accuracy</div></div>
+      </div>
+      <div class="start-actions">
+        <button class="btn" id="againBtn">Weave Again</button>
+        <button class="btn btn-ghost" id="homeBtn">New Champions</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   THE WHEEL WEAVES — Wheel of Time trivia duel
+   ============================================================ */
+
+/* ---------- decorative stars + wheel spokes ---------- */
+(function(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const d=document.createElement('span');
+    d.style.left=Math.random()*100+'%';
+    d.style.top=Math.random()*100+'%';
+    d.style.animationDelay=(Math.random()*4)+'s';
+    if(Math.random()>.7){d.style.width=d.style.height='3px';}
+    s.appendChild(d);
+  }
+  // build 7 spokes for the watermark
+  let spokes='';
+  for(let i=0;i<7;i++){
+    const a=(i/7)*Math.PI*2 - Math.PI/2;
+    const x=300+Math.cos(a)*250, y=300+Math.sin(a)*250;
+    spokes+=`<line x1='300' y1='300' x2='${x.toFixed(1)}' y2='${y.toFixed(1)}'/>`;
+  }
+  const css=getComputedStyle(document.body);
+  // inject via a style override (replace placeholder)
+  const style=document.createElement('style');
+  style.textContent=`body::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.1'><circle cx='300' cy='300' r='250'/><circle cx='300' cy='300' r='180'/><circle cx='300' cy='300' r='70'/>${spokes}</g></svg>");}`;
+  document.head.appendChild(style);
+})();
+
+/* ---------- sound ---------- */
+const Sound=(function(){
+  let on=true, ctx=null;
+  function ac(){ if(!ctx){ try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return ctx; }
+  function tone(freq,dur,type,vol){
+    if(!on)return; const c=ac(); if(!c)return;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.value=0.0001; o.connect(g); g.connect(c.destination);
+    const t=c.currentTime;
+    g.gain.exponentialRampToValueAtTime(vol||0.06,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  return {
+    correct(){ tone(523.25,.12,'triangle',.05); setTimeout(()=>tone(783.99,.18,'triangle',.05),90); },
+    wrong(){ tone(196,.22,'sawtooth',.05); setTimeout(()=>tone(146.83,.28,'sawtooth',.045),110); },
+    hit(){ tone(110,.3,'sawtooth',.07); },
+    click(){ tone(440,.05,'sine',.03); },
+    perk(){ tone(659.25,.1,'sine',.05); setTimeout(()=>tone(987.77,.2,'sine',.05),80); },
+    win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.3,'triangle',.06),i*150)); },
+    lose(){ [330,277,220,165].forEach((f,i)=>setTimeout(()=>tone(f,.4,'sawtooth',.06),i*180)); },
+    toggle(){ on=!on; return on; },
+    get on(){ return on; }
+  };
+})();
+document.getElementById('soundBtn').onclick=function(){
+  const on=Sound.toggle(); this.textContent=on?'🔊':'🔇';
+};
+
+/* ---------- characters ---------- */
+const PERKS={
+  shield:{label:'Ward off the next hit you would take.'},
+  power: {label:'Your next correct answer strikes for double.'},
+  heal:  {label:'Channel to restore 22 power.'},
+  insight:{label:'Cut two wrong answers — or unveil letters on a write-in.'},
+  luck:  {label:'Discard this question and draw another. No damage, either way.'}
+};
+const CHARS=[
+  {id:'rand', name:"Rand al'Thor", title:"The Dragon Reborn", power:"Saidin", c:"#6db6ff",c2:"#bfe0ff",g:"rgba(109,182,255,.55)", in:"R", perk:"shield", perkName:"Channel Saidin"},
+  {id:'egwene', name:"Egwene al'Vere", title:"The Amyrlin Seat", power:"Saidar", c:"#ffd97a",c2:"#fff3cf",g:"rgba(255,217,122,.5)", in:"E", perk:"insight", perkName:"Dreamwalk"},
+  {id:'mat', name:"Mat Cauthon", title:"Son of Battles", power:"Ta'veren Luck", c:"#7bd88f",c2:"#cdf3d6",g:"rgba(123,216,143,.5)", in:"M", perk:"luck", perkName:"The Dark One's Luck"},
+  {id:'perrin', name:"Perrin Aybara", title:"Young Bull", power:"Wolf Vigor", c:"#d99a4e",c2:"#f3d8a8",g:"rgba(217,154,78,.5)", in:"P", perk:"power", perkName:"Blacksmith's Hammer"},
+  {id:'nynaeve', name:"Nynaeve al'Meara", title:"Wisdom of the Two Rivers", power:"Saidar", c:"#4fd1a8",c2:"#c2f4e4",g:"rgba(79,209,168,.5)", in:"N", perk:"heal", perkName:"Nynaeve's Healing"},
+  {id:'moiraine', name:"Moiraine Damodred", title:"Aes Sedai of the Blue", power:"Saidar", c:"#7aa7ff",c2:"#cfe0ff",g:"rgba(122,167,255,.5)", in:"M", perk:"insight", perkName:"Aes Sedai Insight"},
+  {id:'lan', name:"al'Lan Mandragoran", title:"Lord of the Seven Towers", power:"Warder's Resolve", c:"#9fb3c8",c2:"#dde6ef",g:"rgba(159,179,200,.5)", in:"L", perk:"shield", perkName:"Warder's Guard"},
+  {id:'aviendha', name:"Aviendha", title:"Maiden of the Spear", power:"Saidar", c:"#e08a6a",c2:"#f6cdbb",g:"rgba(224,138,106,.5)", in:"A", perk:"power", perkName:"Spear of the Maidens"},
+  {id:'logain', name:"Logain Ablar", title:"Leader of the Asha'man", power:"Saidin", c:"#9a8cff",c2:"#d6cfff",g:"rgba(154,140,255,.5)", in:"L", perk:"power", perkName:"False Dragon's Might"},
+  {id:'min', name:"Min Farshaw", title:"The Viewer", power:"Viewings", c:"#cdd6e0",c2:"#eef2f6",g:"rgba(205,214,224,.45)", in:"M", perk:"insight", perkName:"A Viewing"},
+  {id:'elayne', name:"Elayne Trakand", title:"Daughter-Heir of Andor", power:"Saidar", c:"#f0b27a",c2:"#fbe0c4",g:"rgba(240,178,122,.5)", in:"E", perk:"insight", perkName:"Ter'angreal Lore"},
+  {id:'thom', name:"Thom Merrilin", title:"Court-Bard & Gleeman", power:"Gleeman's Wit", c:"#cd6f7a",c2:"#f2cdd2",g:"rgba(205,111,122,.5)", in:"T", perk:"insight", perkName:"Gleeman's Memory"}
+];
+
+/* ============================================================
+   QUESTION BANK
+   tier: 1 easy · 2 intermediate · 3 hard
+   type: 'mc' (options + answer) or 'write' (accept array + answer label)
+   ============================================================ */
+const BANK=[
+/* ================= TIER 1 — Initiate (hard for casual, fair for readers) ================= */
+{t:1,type:'write',src:"The Shadow Rising",q:"What Old Tongue title, meaning 'chief of chiefs,' do the Aiel give Rand?",accept:["caracarn","car'a'carn","car a carn"],answer:"Car'a'carn",explain:"'He Who Comes With the Dawn' unites the clans \u2014 and then shatters them with the truth of their pacifist past."},
+{t:1,type:'write',src:"Lore",q:"The Aiel call Lan 'Aan'allein.' What does the name mean?",accept:["one man","aanallein","aan'allein","the man who is an entire people"],answer:"\u201cOne Man\u201d (Aan'allein)",explain:"It honors a man who is the last of his people \u2014 Malkier drowned in the Blight, and Lan its uncrowned king."},
+{t:1,type:'write',src:"The Shadow Rising",q:"Name the black-hafted spear-and-sword polearm Mat receives from the Eelfinn, inscribed in the Old Tongue.",accept:["ashandarei","ashandari"],answer:"The ashandarei",explain:"'Thank you' and 'this is not a gift freely given' are carved along its haft \u2014 a weapon paid for in years of his life."},
+{t:1,type:'mc',src:"The Fires of Heaven",q:"Which captured Forsaken does Rand keep prisoner and force to teach him to wield saidin?",options:["Asmodean","Sammael","Ishamael","Demandred"],answer:"Asmodean",explain:"The renegade composer 'Jasin Natael' tutors Rand under guard \u2014 until a hidden hand silences him for good."},
+{t:1,type:'write',src:"The Eye of the World",q:"What is the name of the malevolent Black Wind that hunts travelers within the Ways?",accept:["machin shin"],answer:"Machin Shin",explain:"It feeds on the soul; only the Aiel battle-cry and a Waygate's threshold ever turn it aside."},
+{t:1,type:'write',src:"Lore",q:"The Children of the Light are far better known by which contemptuous nickname?",accept:["whitecloaks","white cloaks"],answer:"Whitecloaks",explain:"Pious zealots who name themselves the Light's only true servants \u2014 and brand wolfbrothers and channelers as Darkfriends."},
+{t:1,type:'mc',src:"Lore",q:"Which of these is NOT one of the Forsaken?",options:["Juilin","Sammael","Mesaana","Aginor"],answer:"Juilin",explain:"Juilin Sandar is a Tairen thief-catcher who travels with the heroes. The other three are among the Dark One's Chosen."},
+{t:1,type:'write',src:"Lore",q:"What is the Seanchan device \u2014 a collar and bracelet \u2014 used to leash and control a captive woman who can channel?",accept:["adam","a'dam","a dam"],answer:"An a'dam",explain:"The leashed woman is a damane; she who holds the bracelet, a sul'dam \u2014 and the cruelest secret is that sul'dam can learn to channel too."},
+{t:1,type:'mc',src:"The Great Hunt",q:"At Falme, Mat sounds which legendary artifact, calling the dead heroes of the Horn back to fight?",options:["the Horn of Valere","the Bowl of the Winds","Callandor","the Oath Rod"],answer:"the Horn of Valere",explain:"Once a man blows the Horn he is bound to it until death \u2014 a detail that matters enormously at the Last Battle."},
+{t:1,type:'write',src:"The Dragon Reborn",q:"Name the crystal sword sa'angreal Rand draws from the Heart of the Stone, fulfilling prophecy.",accept:["callandor"],answer:"Callandor",explain:"'The Sword That Is Not a Sword,' it has no safeguard against the taint and is perilous to wield without a circle."},
+{t:1,type:'write',src:"Lore",q:"What is the Aiel code of honor and obligation called?",accept:["jietoh","ji'e'toh","ji e toh"],answer:"Ji'e'toh",explain:"A web of honor (ji) and obligation (toh) so tangled that wetlanders rarely grasp why an Aiel will surrender to wash dishes."},
+{t:1,type:'write',src:"Lore",q:"Those taken captive by the Aiel, who then serve a year and a day in white touching no weapon, are called?",accept:["gaishain","gai'shain","gai shain"],answer:"Gai'shain",explain:"Even a king's daughter, taken in the dance of spears, must serve \u2014 it is ji'e'toh."},
+{t:1,type:'mc',src:"Lore",q:"Which Forsaken is known as 'the Spider'?",options:["Moghedien","Lanfear","Graendal","Mesaana"],answer:"Moghedien",explain:"A coward who strikes from hiding and rules Tel'aran'rhiod \u2014 until Nynaeve leashes her with an a'dam."},
+{t:1,type:'write',src:"The Dragon Reborn",q:"What is the World of Dreams, walked by Wise Ones and Forsaken alike, called in the Old Tongue?",accept:["telaranrhiod","tel'aran'rhiod","tel aran rhiod","world of dreams"],answer:"Tel'aran'rhiod",explain:"What happens to the flesh there can be real \u2014 those who die in the dream do not wake."},
+{t:1,type:'write',src:"The Gathering Storm",q:"On which mountain \u2014 his own birthplace \u2014 does Rand have his epiphany and choose not to break the world?",accept:["dragonmount"],answer:"Dragonmount",explain:"Standing on his own grave in a sense, he remembers love, laughs, and rediscovers why the Wheel grants second chances."},
+{t:1,type:'write',src:"The Dragon Reborn",q:"Name the wolf who guides Perrin through the wolf dream and dies battling Slayer.",accept:["hopper"],answer:"Hopper",explain:"'Leap,' he teaches \u2014 and in the end leaps one last time so that Young Bull might live."},
+{t:1,type:'write',src:"Lore",q:"The Maidens of the Spear are called what in the Old Tongue?",accept:["far dareis mai","fardareismai"],answer:"Far Dareis Mai",explain:"'Maidens of the Spear' carry Rand's secrets and his guilt; he refuses at first to let them die for him, which only insults them."},
+{t:1,type:'write',src:"Lore",q:"What name do the wolves use for Rand, who killed Trollocs at Emond's Field?",accept:["shadowkiller"],answer:"Shadowkiller",explain:"To the wolves, Perrin is Young Bull and Elyas is Long Tooth \u2014 but Rand is the one the Shadow fears."},
+
+/* ================= TIER 2 — Accepted (deep reader) ================= */
+{t:2,type:'write',src:"Towers of Midnight",q:"Which Forsaken ultimately killed Asmodean \u2014 the series' longest-running whodunit?",accept:["graendal","hessalam"],answer:"Graendal",explain:"Confirmed at last in a glossary: she balefired him in the corridors of Caemlyn to keep Rand's tame Forsaken from talking."},
+{t:2,type:'write',src:"Lore",q:"Ishamael is reborn into a new body under what name?",accept:["moridin"],answer:"Moridin",explain:"'Death' in the Old Tongue \u2014 Nae'blis now, his eyes and ears flecked black with the saa of the True Power."},
+{t:2,type:'write',src:"Lore",q:"What was Lanfear's birth name in the Age of Legends?",accept:["mierin","mierin eronaile","mierin eronail"],answer:"Mierin Eronaile",explain:"A jilted lover of Lews Therin whose ambition helped drill the Bore that loosed the Dark One on the world."},
+{t:2,type:'write',src:"Lore",q:"Lanfear returns in a new, smaller body under which name, meaning 'Last Chance'?",accept:["cyndane"],answer:"Cyndane",explain:"Diminished and mindtrapped, she is no longer the Daughter of the Night she was \u2014 and she resents it bitterly."},
+{t:2,type:'write',src:"Lore",q:"Slayer shares one body between Isam Mandragoran and which Andoran lord, brother to Tigraine?",accept:["luc","luc mantear","lord luc"],answer:"Luc (Mantear)",explain:"Lord Luc and Lan's lost cousin Isam, merged into one killer who slips between the waking world and the wolf dream."},
+{t:2,type:'write',src:"The Gathering Storm",q:"Verin reveals at her death that she secretly belonged to which Ajah, handing Egwene a book of its members.",accept:["black ajah","black","the black ajah"],answer:"The Black Ajah",explain:"Seventy years a spy within the Shadow, she chose the moment of her death to betray it utterly."},
+{t:2,type:'write',src:"The Gathering Storm",q:"To slip free of the Three Oaths long enough to confess everything, what does Verin do to herself?",accept:["poisons herself","poison","drinks poison","takes poison","poisoned herself"],answer:"She poisons herself",explain:"A slow poison bought her an hour of truth-telling, unbound at last from oaths the Black Ajah had forced on her."},
+{t:2,type:'write',src:"Winter's Heart",q:"Name the two colossal sa'angreal statues used to Cleanse saidin \u2014 one near Cairhien, one on Tremalking.",accept:["choedan kal","the choedan kal"],answer:"The Choedan Kal",explain:"So powerful they could unmake the world; their tiny access keys are the only safe way to wield them."},
+{t:2,type:'write',src:"Winter's Heart",q:"With which Aes Sedai does Rand link \u2014 she channeling the female Choedan Kal \u2014 to Cleanse the taint from saidin?",accept:["nynaeve","nynaeve almeara","nynaeve al meara","nynaeve al'meara"],answer:"Nynaeve al'Meara",explain:"They drew the taint through Shadar Logoth, setting two evils to devour each other \u2014 the men's madness ended that day."},
+{t:2,type:'write',src:"Lore",q:"Rand loses which hand over the course of his war?",accept:["left","left hand","his left hand"],answer:"His left hand",explain:"Marked in fulfillment of prophecy \u2014 'twice and twice shall he be marked' \u2014 and missing the hand long before Shayol Ghul."},
+{t:2,type:'write',src:"Towers of Midnight",q:"Mat surrenders what part of his body to the Eelfinn as the price of freeing Moiraine?",accept:["eye","an eye","his eye","left eye"],answer:"An eye",explain:"Half the light of the world, foretold long before \u2014 he leaves the Tower of Ghenjei one-eyed but victorious."},
+{t:2,type:'write',src:"The Fires of Heaven",q:"Grappling which Forsaken, Moiraine vanished through a doorframe ter'angreal at the Cairhien docks?",accept:["lanfear","mierin"],answer:"Lanfear",explain:"Jealous rage at seeing Rand with Aviendha made Lanfear lethal; Moiraine dragged her through the twisted doorway to 'die' with her."},
+{t:2,type:'write',src:"Towers of Midnight",q:"Name the iron tower, entered through the snake-and-fox doorway, where Mat, Thom, and Noal rescue Moiraine.",accept:["tower of ghenjei","ghenjei"],answer:"The Tower of Ghenjei",explain:"Home of the Aelfinn and Eelfinn; iron, fire, and music are the rules \u2014 and the way out is never the way you came."},
+{t:2,type:'write',src:"Towers of Midnight",q:"Noal Charin, who dies covering their escape, is secretly which legendary explorer and author thought long dead?",accept:["jain farstrider","jain","jain charin","farstrider"],answer:"Jain Farstrider",explain:"Broken and used by the Shadow, then freed, the old wanderer found one last heroic death among the foxes."},
+{t:2,type:'mc',src:"Lore",q:"Which two Forsaken died at the Eye of the World and were later reborn as Osan'gar and Aran'gar?",options:["Aginor and Balthamel","Aginor and Ishamael","Balthamel and Be'lal","Aginor and Sammael"],answer:"Aginor and Balthamel",explain:"The Dark One recycled their souls into new bodies \u2014 Aginor into a man, Balthamel into a woman."},
+{t:2,type:'write',src:"Lore",q:"Aran'gar \u2014 a male soul placed in a woman's body \u2014 hides beside Egwene easing her headaches under what name?",accept:["halima","halima saranov"],answer:"Halima Saranov",explain:"The 'masseuse' channels saidin in secret and quietly sabotages the rebel camp from within."},
+{t:2,type:'write',src:"The Fires of Heaven",q:"Which Forsaken held Caemlyn as 'Lord Gaebril,' binding Queen Morgase with Compulsion?",accept:["rahvin"],answer:"Rahvin",explain:"Rand's balefire ended him \u2014 and burned his recent killings out of the Pattern, restoring the friends he'd slain."},
+{t:2,type:'write',src:"The Fires of Heaven",q:"Rand's balefiring of Rahvin reverses the deaths of which companions slain at Caemlyn? Name one.",accept:["mat","matrim","mat cauthon","aviendha"],answer:"Mat Cauthon (and Aviendha)",explain:"Balefire unravels a thread backward through the Pattern \u2014 undoing deaths only minutes old, a terrifying power."},
+{t:2,type:'write',src:"The Dragon Reborn",q:"Which Forsaken did Moiraine destroy with balefire in the Heart of the Stone of Tear?",accept:["belal","be'lal","be lal"],answer:"Be'lal",explain:"'The Envious' had laid a trap to take Callandor; Moiraine sniped him before he ever saw her coming."},
+{t:2,type:'write',src:"Lord of Chaos",q:"What is the name of the malevolent mist of Shadar Logoth that devours Sammael as he flees Rand?",accept:["mashadar"],answer:"Mashadar",explain:"The hatred of a dead city, given form \u2014 it kills without favor, Forsaken and hero alike."},
+{t:2,type:'write',src:"Lore",q:"Mazrim Taim leads the Black Tower under what Old Tongue title, meaning 'leader'?",accept:["mhael","m'hael","m hael"],answer:"M'Hael",explain:"He turns Asha'man to the Shadow thirteen-by-thirteen, building a private army of Dreadlords under Rand's nose."},
+{t:2,type:'write',src:"Lord of Chaos",q:"Name the battle where the Asha'man rescue a kidnapped Rand and butcher the Tower Aes Sedai who held him.",accept:["dumais wells","dumai's wells","dumai wells"],answer:"Dumai's Wells",explain:"'Kneel, or you will be knelt' \u2014 the day the world learned what the Black Tower could do."},
+{t:2,type:'write',src:"Knife of Dreams",q:"Aludra the Illuminator gives Mat plans for which war-machines, which she calls 'dragons'?",accept:["cannons","cannon","dragons"],answer:"Cannons (\u201cdragons\u201d)",explain:"Her bellfounder's tubes and 'dragon's eggs' change warfare just in time for the Last Battle."},
+{t:2,type:'write',src:"Lore",q:"Mat's company, the Band of the Red Hand, bears what Old Tongue name from Manetheren legend?",accept:["shen an calhar","shenancalhar"],answer:"Shen an Calhar",explain:"Once a legendary host of a dead nation, reborn as a ragtag army that somehow keeps winning."},
+{t:2,type:'mc',src:"Lore",q:"Cadsuane Melaidhrin hides a set of protective ter'angreal disguised as what?",options:["hair ornaments","rings","a shawl","earrings"],answer:"hair ornaments",explain:"Her 'paralis-net' of weave-detecting and shielding ter'angreal has been passed among bold sisters for centuries."},
+{t:2,type:'write',src:"The Eye of the World",q:"Faile is the use-name of which Saldaean noblewoman, daughter of Lord Davram Bashere?",accept:["zarine","zarine bashere"],answer:"Zarine Bashere",explain:"A would-be Hunter of the Horn who lands a far stranger quarry: the stubborn heart of Perrin Aybara."},
+{t:2,type:'write',src:"Lore",q:"Perrin eventually has which fanatical 'Prophet of the Dragon' quietly killed?",accept:["masema","masema dagar"],answer:"Masema Dagar",explain:"His mobs burned the countryside in Rand's name; Perrin decided the Dragon's peace was better served by his death."},
+{t:2,type:'write',src:"Lore",q:"Galad and Rand are half-brothers, sharing which mother (later the Aiel Maiden Shaiel)?",accept:["tigraine","shaiel","tigraine mantear"],answer:"Tigraine (Shaiel)",explain:"Taringail Damodred fathered Galad on Tigraine and Elayne and Gawyn on Morgase \u2014 a tangle of three royal lines."},
+{t:2,type:'write',src:"A Memory of Light",q:"Gawyn dies attacking Demandred after donning three Seanchan assassin ter'angreal called what?",accept:["bloodknives","bloodknife","blood knives"],answer:"Bloodknives",explain:"They grant shadow and speed at the price of the wearer's life \u2014 and even three weren't enough against Demandred."},
+{t:2,type:'write',src:"Lore",q:"Stilled or gentled channelers were thought beyond help \u2014 until which woman discovered how to Heal them?",accept:["nynaeve","nynaeve almeara","nynaeve al'meara"],answer:"Nynaeve",explain:"She restores Logain, and partly Siuan and Leane, overturning one of the White Tower's oldest certainties."},
+
+/* ================= TIER 3 — Aes Sedai (obsessive book detail) ================= */
+{t:3,type:'write',src:"Lore",q:"What was Demandred's birth name in the Age of Legends?",accept:["barid bel medar","barid bel","barid"],answer:"Barid Bel Medar",explain:"A general second only to Lews Therin, gnawed by envy \u2014 he turned to the Shadow chasing the glory he felt was stolen."},
+{t:3,type:'write',src:"A Memory of Light",q:"For most of the series Demandred hid in which land east of the Waste, ruling as 'Bao the Wyld'?",accept:["shara"],answer:"Shara",explain:"The secretive land beyond the Aiel Waste, where he raised an army nobody in the west saw coming."},
+{t:3,type:'write',src:"A Memory of Light",q:"Which sword sa'angreal does Demandred wield at the Last Battle?",accept:["sakarnen"],answer:"Sakarnen",explain:"Half of a powerful sa'angreal pair, it let him challenge all comers \u2014 'Let the Dragon face me!'"},
+{t:3,type:'write',src:"A Memory of Light",q:"Who kills Demandred in single combat, accepting a mortal-seeming wound to land the blow?",accept:["lan","lan mandragoran","al'lan","aanallein"],answer:"Lan Mandragoran",explain:"Sheathing the Sword \u2014 the Malkieri king trades blood for the killing stroke, and somehow lives."},
+{t:3,type:'write',src:"Lore",q:"Asmodean's birth name \u2014 a celebrated composer of the Age of Legends?",accept:["joar addam nessosin","joar addam","nessosin","joar"],answer:"Joar Addam Nessosin",explain:"He sold the world for the promise of immortality to perfect his art \u2014 and ended as Rand's leashed music tutor."},
+{t:3,type:'write',src:"Lore",q:"Before turning to the Shadow, Semirhage was the Age of Legends' most gifted practitioner of what art?",accept:["healer","surgeon","restorer","a healer","healing"],answer:"Healing (a peerless Restorer)",explain:"The greatest Healer of her Age became its most exquisite torturer \u2014 a corruption all the more chilling for it."},
+{t:3,type:'write',src:"The Gathering Storm",q:"Mesaana hid for years inside the White Tower posing as a Brown sister named what?",accept:["danelle"],answer:"Danelle",explain:"A dreamy, overlooked Brown \u2014 the perfect mask for one of the Shadow's masters."},
+{t:3,type:'write',src:"The Gathering Storm",q:"In which realm does Egwene shatter Mesaana's mind in their final confrontation?",accept:["telaranrhiod","tel'aran'rhiod","tel aran rhiod","world of dreams"],answer:"Tel'aran'rhiod",explain:"Mastery of the dream is belief and will; Egwene simply believed harder, and Mesaana broke."},
+{t:3,type:'write',src:"Lore",q:"Moridin keeps Moghedien enslaved using what mind-binding device?",accept:["coursouvra","cour'souvra","cour souvra","mindtrap"],answer:"A cour'souvra (mindtrap)",explain:"Crush the little crystal and the captive's mind is destroyed \u2014 obedience guaranteed."},
+{t:3,type:'write',src:"The Great Hunt",q:"The Horn of Valere is inscribed with a line meaning what? (English or Old Tongue accepted.)",accept:["the grave is no bar to my call","grave is no bar to my call","tia mi aven moridin isainde vadin"],answer:"\u201cThe grave is no bar to my call\u201d",explain:"Tia mi aven Moridin isainde vadin \u2014 note the word 'Moridin' (the grave/death) hiding in plain sight."},
+{t:3,type:'write',src:"Lore",q:"Give Mat's signature Old Tongue phrase meaning 'It's time to toss the dice.'",accept:["dovie'andi se tovya sagain","dovieandi se tovya sagain","its time to toss the dice","time to toss the dice"],answer:"Dovie'andi se tovya sagain",explain:"Old battle-memories surface unbidden in Mat; the dice in his head go silent only when fate has been decided."},
+{t:3,type:'write',src:"Lore",q:"Birgitte Silverbow's eternal love, a fellow Hero of the Horn always reborn near her, is named?",accept:["gaidal cain","gaidal"],answer:"Gaidal Cain",explain:"Ugly as she is beautiful; torn out of the cycle by Moghedien, Birgitte now waits an Age out of step with him."},
+{t:3,type:'write',src:"Lore",q:"The Bore into the Dark One's prison was drilled by Mierin and which fellow researcher?",accept:["beidomon"],answer:"Beidomon",explain:"Seeking a new source of the Power usable by both sexes, the pair instead pierced the Creator's seal on Shai'tan."},
+{t:3,type:'write',src:"New Spring",q:"Who Foretold the Dragon's Rebirth (and earlier sent Tigraine fleeing), dying as she spoke the words?",accept:["gitara moroso","gitara"],answer:"Gitara Moroso",explain:"Her two great Foretellings set in motion both Rand's conception and the secret hunt for the newborn Dragon."},
+{t:3,type:'write',src:"New Spring",q:"In New Spring, which Amyrlin quietly dispatches trusted sisters to search for the infant Dragon?",accept:["tamra ospenya","tamra"],answer:"Tamra Ospenya",explain:"Her secret 'searchers' are hunted and murdered one by one by the Black Ajah \u2014 the Vileness."},
+{t:3,type:'write',src:"Lore",q:"Lan's drowned homeland, the Borderland kingdom devoured by the Blight, was called?",accept:["malkier"],answer:"Malkier",explain:"Betrayed from within; the infant Lan was carried to safety, his hands dipped in his parents' blood and sworn to the war."},
+{t:3,type:'write',src:"Lore",q:"Lan's ancestral title names how many towers of Malkier? (Lord of the ___ Towers.)",accept:["seven","7","seven towers"],answer:"Seven",explain:"'Lord of the Seven Towers, Lord of the Lakes, true blade of Malkier' \u2014 a kingdom that exists now only in him."},
+{t:3,type:'write',src:"Lore",q:"Name the towering, Power-draining super-Myrddraal that acts as the Dark One's hand among the Forsaken.",accept:["shaidar haran"],answer:"Shaidar Haran",explain:"Unnaturally large, it casts no aura and bends even the Chosen to its will \u2014 the Dark One's reach made flesh."},
+{t:3,type:'write',src:"Lore",q:"The valley beneath Shayol Ghul where Myrddraal blades are forged is called?",accept:["thakandar","thakan'dar","thakan dar"],answer:"Thakan'dar",explain:"Smiths quench Thakan'dar blades in the souls of the dying; a scratch from one kills unless swiftly Healed."},
+{t:3,type:'write',src:"Lore",q:"Cuendillar, the unbreakable stuff of the seals on the Dark One's prison, is also called what?",accept:["heartstone"],answer:"Heartstone",explain:"Any force used against it only makes it stronger \u2014 yet the ancient seals are crumbling all the same."},
+{t:3,type:'write',src:"Lore",q:"How many male channelers \u2014 the 'Hundred Companions' \u2014 joined Lews Therin to seal the Bore, tainting saidin?",accept:["hundred","one hundred","100"],answer:"One hundred",explain:"The Dark One's counterstroke fouled saidin in the same instant, dooming every man who would ever channel."},
+{t:3,type:'write',src:"Lore",q:"Give the full name of the high king 'Artur Hawkwing.'",accept:["artur paendrag tanreall","artur paendrag","paendrag tanreall"],answer:"Artur Paendrag Tanreall",explain:"He united the lands under one throne; his death shattered them into the War of the Hundred Years."},
+{t:3,type:'write',src:"Lore",q:"Hawkwing's poisonous councillor 'Jalwin Moerad' was secretly which Forsaken?",accept:["ishamael","elan morin tedronai","elan morin"],answer:"Ishamael",explain:"He turned the high king against the Aes Sedai, setting the siege of Tar Valon and salting the future for centuries."},
+{t:3,type:'write',src:"A Memory of Light",q:"Egwene dies wielding which sa'angreal to turn the Sharans' balefire into a sealing weave?",accept:["voras saangreal","vora's sa'angreal","voras sa'angreal","vora"],answer:"Vora's sa'angreal",explain:"A fluted white wand from the Tower's stores; with it she forges the counter to balefire \u2014 and is consumed making it."},
+{t:3,type:'write',src:"A Memory of Light",q:"Whom does Egwene slay just before her own death \u2014 the renegade leader of the Shadow's Asha'man?",accept:["taim","mazrim taim","mhael","m'hael"],answer:"Mazrim Taim (M'Hael)",explain:"She crystallizes him and his Sharan channelers, ending the man who twisted the Black Tower."},
+{t:3,type:'write',src:"A Memory of Light",q:"In whose body does Rand's soul end up after Shayol Ghul, letting him slip away unrecognized?",accept:["moridin","moridins","moridin's"],answer:"Moridin's",explain:"The body on the pyre wears Rand's face; the man who walks away lights his pipe with no weave at all."},
+{t:3,type:'write',src:"A Memory of Light",q:"It is not Mat but a young orphan boy of the Band who sounds the Horn of Valere at the Last Battle. Name him.",accept:["olver"],answer:"Olver",explain:"That it answers him at all is a quiet, staggering clue about a death Mat once suffered and was pulled back from."},
+{t:3,type:'write',src:"A Memory of Light",q:"Mat kills which long-running villain \u2014 now the creeping evil 'Shaisam' \u2014 with the Shadar Logoth dagger?",accept:["padan fain","fain","mordeth","shaisam"],answer:"Padan Fain",explain:"Mordeth, Ordeith, Shaisam \u2014 the peddler's cursed evolution ends on the same blade that first corrupted him."},
+{t:3,type:'write',src:"A Memory of Light",q:"The Dark One punishes a failed Graendal by making her hideous and renaming her what (meaning 'without forgiveness')?",accept:["hessalam"],answer:"Hessalam",explain:"Vanity was her whole power; stripping her beauty was the cruelest sentence Shai'tan could devise."},
+{t:3,type:'write',src:"A Memory of Light",q:"Upon becoming Empress, Tuon takes what regnal name?",accept:["fortuona","fortuona athaem devi paendrag"],answer:"Fortuona",explain:"Mat \u2014 now Knotai, Prince of the Ravens \u2014 finds himself wed to the most powerful woman on two continents."},
+{t:3,type:'mc',src:"The Eye of the World",q:"Who was the Green Man, last of the Nym, who died slaying Balthamel at the Eye of the World?",options:["Someshta","Jonai","Charn","Coumin"],answer:"Someshta",explain:"Jonai, Charn, and Coumin are Da'shain Aiel from Rand's visions in Rhuidean \u2014 distant ancestors, not the tree-man."},
+{t:3,type:'write',src:"Knife of Dreams",q:"Setalle Anan, an innkeeper who can still sense weaves, is secretly which burned-out former Aes Sedai?",accept:["martine janata","martine"],answer:"Martine Janata",explain:"Burned out by a ter'angreal accident, she built a quiet new life \u2014 and aches still for the Source she can feel but never touch."},
+{t:3,type:'write',src:"Lore",q:"The Sea Folk have their own name for the Dragon Reborn, whose coming they await. What is it?",accept:["coramoor","the coramoor"],answer:"The Coramoor",explain:"Atha'an Miere prophecy promises the Coramoor will serve them as they serve him \u2014 a bargain Rand never quite agreed to."}
+];
+
+/* ============================================================
+   STATE + LOGIC
+   ============================================================ */
+const MAXHP=100, DMG=11;
+let state=null;
+
+const $=id=>document.getElementById(id);
+function show(sec){['start','game','end'].forEach(s=>$(s).classList.toggle('hide',s!==sec));}
+
+/* ---------- start screen flow ---------- */
+let chosenMode=null;
+let pickStage=0;   // for 2P: 0=p1 picking, 1=p2 picking
+let picks=[null,null];
+
+document.querySelectorAll('.mode').forEach(btn=>{
+  btn.onclick=()=>{
+    Sound.click();
+    chosenMode=btn.dataset.mode;
+    document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('sel',b===btn));
+    pickStage=0; picks=[null,null];
+    $('pickArea').classList.remove('hide');
+    renderPick();
+    $('pickArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+});
+
+function buildCharGrid(){
+  const grid=$('charGrid'); grid.innerHTML='';
+  CHARS.forEach(ch=>{
+    const el=document.createElement('button');
+    el.className='char';
+    el.style.setProperty('--cc',ch.c);
+    el.style.setProperty('--ccg',ch.g);
+    el.innerHTML=`<div class="ring" style="--cc:${ch.c};--ccg:${ch.g}">${ch.in}</div>
+      <div class="cn">${ch.name}</div>
+      <div class="ct">${ch.title}</div>
+      <div class="cp">${ch.power}</div>`;
+    el.onclick=()=>{
+      Sound.click();
+      picks[pickStage]=ch;
+      [...grid.children].forEach((c,i)=>c.classList.toggle('sel',CHARS[i].id===ch.id));
+      $('perkLine').innerHTML=`Ability — <b>${ch.perkName}</b>: ${PERKS[ch.perk].label}`;
+      renderStartActions();
+    };
+    grid.appendChild(el);
+  });
+}
+
+function renderPick(){
+  buildCharGrid();
+  $('perkLine').innerHTML='';
+  if(chosenMode==='1p'){
+    $('pickTitle').textContent='Choose Your Champion';
+    $('pickSub').textContent='You will duel the Shadow. Choose well — your foe does not tire.';
+  } else {
+    $('pickTitle').textContent= pickStage===0 ? 'Player 1 — Choose Your Champion' : 'Player 2 — Choose Your Champion';
+    $('pickSub').textContent='Each champion wields their own Power and one ability.';
+  }
+  renderStartActions();
+}
+
+function renderStartActions(){
+  const wrap=$('startActions'); wrap.innerHTML='';
+  const cur=picks[pickStage];
+  if(chosenMode==='1p'){
+    const b=document.createElement('button');
+    b.className='btn'; b.textContent='Begin the Duel';
+    b.disabled=!cur;
+    if(!cur)b.setAttribute('disabled','');
+    b.onclick=()=>{ if(cur) startGame('1p',[cur,null]); };
+    wrap.appendChild(b);
+  } else {
+    if(pickStage===0){
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Lock In — Player 2 Chooses';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[0]){ pickStage=1; renderPick(); window.scrollTo({top:0,behavior:'smooth'});} };
+      wrap.appendChild(b);
+    } else {
+      const back=document.createElement('button');
+      back.className='btn btn-ghost'; back.textContent='Back';
+      back.onclick=()=>{ pickStage=0; renderPick(); };
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Begin the Duel';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[1]) startGame('2p',[picks[0],picks[1]]); };
+      wrap.appendChild(back); wrap.appendChild(b);
+    }
+  }
+}
+
+/* ---------- game setup ---------- */
+function startGame(mode,chars){
+  Sound.click();
+  const shadow={name:"The Shadow", power:"Corruption", c:"#c0392b", isShadow:true};
+  state={
+    mode,
+    served:0,          // questions presented (drives difficulty ramp)
+    used:new Set(),
+    correct:0, total:0,
+    turn:0,            // index of active player
+    answered:false,
+    current:null,
+    insightUsed:false,
+    players:[
+      makePlayer(chars[0]),
+      mode==='1p' ? makeShadow(shadow) : makePlayer(chars[1])
+    ]
+  };
+  // theme bars
+  applyBarTheme();
+  show('game');
+  nextQuestion();
+}
+function makePlayer(ch){
+  return {char:ch, name:ch.name, power:ch.power, hp:MAXHP, isShadow:false,
+          perk:ch.perk, perkName:ch.perkName, perkUsed:false,
+          shield:false, doubleNext:false};
+}
+function makeShadow(s){
+  return {char:s, name:s.name, power:s.power, hp:MAXHP, isShadow:true,
+          perk:null, perkUsed:true, shield:false, doubleNext:false};
+}
+
+function applyBarTheme(){
+  const p1=state.players[0];
+  document.documentElement.style.setProperty('--p1c',p1.char.c);
+  document.documentElement.style.setProperty('--p1c2',p1.char.c2||'#fff');
+  document.documentElement.style.setProperty('--p1g',p1.char.g);
+  $('n1').textContent=p1.name; $('pw1').textContent=p1.power;
+  const p2=state.players[1];
+  const f2=$('f2');
+  if(state.mode==='1p'){
+    $('n2').textContent="The Shadow"; $('pw2').textContent="Corruption";
+    f2.className='fill foe';
+  } else {
+    document.documentElement.style.setProperty('--p2c',p2.char.c);
+    document.documentElement.style.setProperty('--p2c2',p2.char.c2||'#fff');
+    document.documentElement.style.setProperty('--p2g',p2.char.g);
+    $('n2').textContent=p2.name; $('pw2').textContent=p2.power;
+    f2.className='fill p2';
+  }
+  updateBars(true);
+}
+
+function updateBars(instant){
+  const p1=state.players[0], p2=state.players[1];
+  $('f1').style.width=Math.max(0,p1.hp)+'%'; $('hp1').textContent=Math.max(0,p1.hp);
+  $('f2').style.width=Math.max(0,p2.hp)+'%'; $('hp2').textContent=Math.max(0,p2.hp);
+  if(state.mode==='2p'){
+    $('box1').classList.toggle('active',state.turn===0);
+    $('box2').classList.toggle('active',state.turn===1);
+  } else {
+    $('box1').classList.add('active'); $('box2').classList.remove('active');
+  }
+}
+
+/* ---------- difficulty ramp + draw ---------- */
+function allowedTiers(n){
+  if(n<1)  return [1];
+  if(n<3)  return [1,2];
+  if(n<5)  return [2];
+  if(n<7)  return [2,3];
+  return [3];
+}
+function drawQuestion(){
+  const tiers=allowedTiers(state.served);
+  let pool=BANK.filter((q,i)=>tiers.includes(q.t) && !state.used.has(i));
+  if(pool.length===0) pool=BANK.filter((q,i)=>!state.used.has(i));   // any unused
+  if(pool.length===0){ state.used.clear(); pool=BANK.slice(); }      // full reset (long games)
+  const idx=BANK.indexOf(pool[Math.floor(Math.random()*pool.length)]);
+  state.used.add(idx);
+  return {idx, q:BANK[idx]};
+}
+
+/* ---------- render a question ---------- */
+function nextQuestion(){
+  state.served++;
+  state.answered=false;
+  state.insightUsed=false;
+  const {q}=drawQuestion();
+  state.current=q;
+
+  // turn / progress text
+  const active=state.players[state.turn];
+  if(state.mode==='2p'){
+    $('turnTag').textContent=active.name+"'s turn";
+  } else {
+    $('turnTag').textContent="Your turn";
+  }
+  $('prog').textContent='Question '+state.served;
+
+  // tier pips + label
+  ['pip1','pip2','pip3'].forEach((p,i)=>$(p).classList.toggle('on', i<q.t));
+  $('tierLabel').textContent=['','Initiate','Accepted','Aes Sedai'][q.t];
+  $('srcTag').textContent=q.src?('— '+q.src):'';
+  $('qType').textContent= q.type==='mc' ? 'Multiple Choice' : 'Write-In';
+  $('qText').textContent=q.q;
+
+  // reset feedback
+  $('feedback').classList.add('hide');
+  $('hintLine').classList.add('hide'); $('hintLine').textContent='';
+
+  // perk button
+  setupPerk();
+
+  // answer area
+  const opts=$('opts'), ww=$('writeWrap');
+  opts.innerHTML='';
+  if(q.type==='mc'){
+    ww.classList.add('hide'); opts.classList.remove('hide');
+    const letters=['A','B','C','D','E','F'];
+    const shuffled=shuffle(q.options.slice());
+    shuffled.forEach((optText,i)=>{
+      const b=document.createElement('button');
+      b.className='opt'; b.dataset.val=optText;
+      b.innerHTML=`<span class="mark">${letters[i]}</span><span>${optText}</span>`;
+      b.onclick=()=>chooseMC(b,optText);
+      opts.appendChild(b);
+    });
+  } else {
+    opts.classList.add('hide'); ww.classList.remove('hide');
+    const inp=$('writeInput'); inp.value=''; inp.disabled=false;
+    $('submitWrite').disabled=false;
+    inp.focus();
+  }
+  updateBars();
+  $('qText').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- perks ---------- */
+function setupPerk(){
+  const active=state.players[state.turn];
+  const btn=$('perkBtn'), desc=$('perkDesc');
+  if(active.isShadow || !active.perk){
+    $('perkBar').classList.add('hide'); return;
+  }
+  $('perkBar').classList.remove('hide');
+  btn.style.setProperty('--cc',active.char.c);
+  btn.style.setProperty('--ccg',active.char.g);
+  btn.textContent=active.perkName;
+  desc.textContent=PERKS[active.perk].label;
+  btn.disabled=active.perkUsed;
+  if(active.perkUsed){btn.setAttribute('disabled','');desc.textContent='Already spent this duel.';}
+  btn.onclick=()=>usePerk(active);
+}
+function usePerk(p){
+  if(p.perkUsed||state.answered)return;
+  Sound.perk();
+  const q=state.current;
+  if(p.perk==='heal'){
+    p.perkUsed=true;
+    p.hp=Math.min(MAXHP,p.hp+22);
+    updateBars();
+    floatText('+22', '#74c69d', state.turn===0);
+    flashFeedbackNote(p.perkName+': power restored.');
+  } else if(p.perk==='shield'){
+    p.perkUsed=true; p.shield=true;
+    flashFeedbackNote(p.perkName+': the next blow will be turned aside.');
+  } else if(p.perk==='power'){
+    p.perkUsed=true; p.doubleNext=true;
+    flashFeedbackNote(p.perkName+': your next true answer strikes for double.');
+  } else if(p.perk==='luck'){
+    p.perkUsed=true;
+    flashFeedbackNote(p.perkName+': you cast this question aside.');
+    setTimeout(()=>{ state.served--; nextQuestion(); }, 650);
+  } else if(p.perk==='insight'){
+    p.perkUsed=true; state.insightUsed=true;
+    if(q.type==='mc'){
+      const btns=[...$('opts').children].filter(b=>!b.classList.contains('faded'));
+      const wrong=btns.filter(b=>b.dataset.val!==q.answer);
+      shuffle(wrong);
+      wrong.slice(0,2).forEach(b=>{b.classList.add('faded');b.disabled=true;});
+    } else {
+      const ans=q.answer.replace(/\(.*?\)/g,'').trim();
+      const first=ans[0];
+      const len=ans.replace(/[^A-Za-z']/g,'').length;
+      $('hintLine').textContent=`✦ Begins with “${first}” · about ${len} letters`;
+      $('hintLine').classList.remove('hide');
+      $('writeInput').focus();
+    }
+  }
+  setupPerk();
+}
+function flashFeedbackNote(msg){
+  const fb=$('feedback');
+  fb.classList.remove('hide');
+  $('verdict').className='verdict neutral';
+  $('verdict').textContent='✦ '+msg;
+  $('ansLine').textContent=''; $('explain').textContent='';
+  $('nextBtn').classList.add('hide');
+  // auto-hide the note region's next button; re-shown on real answer
+  setTimeout(()=>{ if(!state.answered){ fb.classList.add('hide'); $('nextBtn').classList.remove('hide'); } },1500);
+}
+
+/* ---------- answering ---------- */
+function chooseMC(btn,val){
+  if(state.answered)return;
+  const q=state.current;
+  const right = val===q.answer;
+  [...$('opts').children].forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.val===q.answer)b.classList.add('correct');
+    else if(b===btn && !right)b.classList.add('wrong');
+  });
+  resolve(right);
+}
+$('submitWrite').onclick=submitWrite;
+$('writeInput').addEventListener('keydown',e=>{ if(e.key==='Enter')submitWrite(); });
+function submitWrite(){
+  if(state.answered)return;
+  const q=state.current;
+  const val=$('writeInput').value;
+  if(!val.trim())return;
+  const right=matchWrite(val,q.accept);
+  $('writeInput').disabled=true; $('submitWrite').disabled=true;
+  resolve(right);
+}
+
+/* lenient matching */
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/['’`._,]/g,'').replace(/[-]/g,' ')
+    .replace(/^the\s+/,'').replace(/\s+/g,' ').trim();
+}
+function lev(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n; if(!n)return m;
+  const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+  }
+  return d[m][n];
+}
+function matchWrite(input,accepted){
+  const ni=norm(input); if(!ni)return false;
+  for(const a of accepted){
+    const na=norm(a); if(!na)continue;
+    if(ni===na)return true;
+    if(na.length>=4 && ni.length>=4 && (ni.includes(na)||na.includes(ni)))return true;
+    const thr= na.length<=4?1 : na.length<=8?2 : 3;
+    if(lev(ni,na)<=thr)return true;
+    // token-level: any word in input matches a key word closely
+    const iw=ni.split(' '), aw=na.split(' ');
+    for(const w of aw){ if(w.length>=4){ for(const v of iw){ if(v.length>=4 && lev(v,w)<= (w.length<=6?1:2))return true; } } }
+  }
+  return false;
+}
+
+/* ---------- resolution + damage ---------- */
+function resolve(right){
+  state.answered=true;
+  state.total++;
+  const active=state.players[state.turn];
+  const oppIndex= state.mode==='1p' ? 1 : (state.turn===0?1:0);
+  const opp=state.players[oppIndex];
+
+  let verdictTxt, verdictCls;
+  if(right){
+    state.correct++;
+    let dmg=DMG;
+    if(active.doubleNext){ dmg*=2; active.doubleNext=false; }
+    if(opp.shield){ opp.shield=false; dmg=0; }
+    applyDamage(oppIndex,dmg);
+    Sound.correct();
+    if(dmg>DMG) verdictTxt='The Wheel turns with you — a doubled blow!';
+    else if(dmg===0) verdictTxt='Correct — but your foe warded the blow.';
+    else verdictTxt= state.mode==='1p' ? 'Correct — the Shadow recoils.' : 'Correct — your rival staggers.';
+    verdictCls='good';
+  } else {
+    let dmg=DMG;
+    if(active.shield){ active.shield=false; dmg=0; }
+    applyDamage(state.turn,dmg);
+    Sound.wrong();
+    verdictTxt= dmg===0 ? 'Wrong — but your ward held.' : 'Wrong — the Power drains from you.';
+    verdictCls='bad';
+  }
+
+  const q=state.current;
+  const fb=$('feedback'); fb.classList.remove('hide');
+  $('verdict').className='verdict '+verdictCls;
+  $('verdict').textContent=(right?'✓ ':'✕ ')+verdictTxt;
+  $('ansLine').innerHTML = right ? '' : 'The answer: <b>'+q.answer+'</b>';
+  $('explain').textContent=q.explain||'';
+  $('nextBtn').classList.remove('hide');
+
+  updateBars();
+
+  // win check
+  setTimeout(()=>{
+    if(state.players[0].hp<=0 || state.players[1].hp<=0){
+      $('nextBtn').textContent='See the Pattern';
+      $('nextBtn').onclick=endGame;
+    } else {
+      $('nextBtn').textContent='Continue';
+      $('nextBtn').onclick=advance;
+    }
+  },50);
+}
+
+function applyDamage(idx,dmg){
+  if(dmg<=0){ floatText('warded','#9fb3c8'); return; }
+  state.players[idx].hp=Math.max(0,state.players[idx].hp-dmg);
+  // fx
+  document.querySelector('.wrap').classList.add('shake');
+  const hf=$('hitflash'); hf.classList.remove('go'); void hf.offsetWidth; hf.classList.add('go');
+  setTimeout(()=>document.querySelector('.wrap').classList.remove('shake'),500);
+  Sound.hit();
+  floatText('-'+dmg, idx===0?'#e07a6a':'#e7c873', idx===0);
+}
+
+function floatText(txt,color,leftSide){
+  const box = leftSide ? $('box1') : $('box2');
+  const r=box.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='float'; el.textContent=txt; el.style.color=color;
+  el.style.left=(r.left+r.width/2-12)+'px';
+  el.style.top=(r.top+8)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
+
+function advance(){
+  if(state.mode==='2p') state.turn=state.turn===0?1:0;
+  nextQuestion();
+}
+
+/* ---------- end ---------- */
+function endGame(){
+  const p1=state.players[0], p2=state.players[1];
+  let win; // human is player 0; they win if they still have power
+  win = p1.hp>0;
+  let winnerName;
+  if(state.mode==='2p'){
+    winnerName = p1.hp>0 ? p1.name : p2.name;
+  }
+
+  const end=$('end');
+  end.classList.remove('win','lose');
+
+  if(state.mode==='1p'){
+    end.classList.add(win?'win':'lose');
+    $('endKicker').textContent= win ? 'The Light Endures' : 'The Shadow Falls Upon You';
+    $('endTitle').textContent = win ? 'Victory' : 'Defeat';
+    $('endQuote').textContent = win
+      ? 'The Shadow recoils, and the Dragon\u2019s deeds are remembered. You have woven well.'
+      : 'Your Power is spent, and darkness closes in. But the Wheel turns — there is always another turning.';
+  } else {
+    end.classList.add('win');
+    $('endKicker').textContent='A Victor is Woven';
+    $('endTitle').textContent=winnerName+' Prevails';
+    $('endQuote').textContent= (p1.hp>0?p1.name:p2.name)+' stands while the other\u2019s Power runs dry. Sing it into the old tales.';
+  }
+
+  const acc = state.total? Math.round(100*state.correct/state.total):0;
+  $('stCorrect').textContent=state.correct;
+  $('stTotal').textContent=state.total;
+  $('stAcc').textContent=acc+'%';
+
+  (state.mode==='1p' && !win) ? Sound.lose() : Sound.win();
+  show('end');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$('againBtn').onclick=()=>{
+  // replay with same champions + mode
+  const chars=[state.players[0].char, state.mode==='2p'?state.players[1].char:null];
+  startGame(state.mode,chars);
+};
+$('homeBtn').onclick=()=>{
+  chosenMode=null; pickStage=0; picks=[null,null];
+  document.querySelectorAll('.mode').forEach(b=>b.classList.remove('sel'));
+  $('pickArea').classList.add('hide');
+  show('start'); window.scrollTo({top:0,behavior:'smooth'});
+};
+$('nextBtn').onclick=advance;
+</script>
+</body>
+</html>
