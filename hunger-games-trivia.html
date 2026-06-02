@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Mockingjay — A Hunger Games Trivia Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#0a0908; --bg1:#13110e; --bg2:#1f1a16;
+    --ink:#e9e2d0; --ink-dim:#b3aa92; --ink-faint:#7a7358;
+    --gold:#c8a24a; --gold-bright:#e8cf86; --gold-deep:#876a26;
+    --accent:#e8682c; --accent-glow:rgba(232,104,44,.55);
+    --shadow-red:#e3849c; --shadow-glow:rgba(227,132,156,.5);
+    --good:#74c69d; --bad:#e07a6a;
+    --line:rgba(201,164,76,.28);
+    --card:rgba(20,16,40,.72);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    color:var(--ink);
+    background:var(--bg0);
+    min-height:100vh;
+    line-height:1.5;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* atmosphere */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-3;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #3a2410 0%, transparent 55%),
+      radial-gradient(900px 700px at 85% 110%, #281610 0%, transparent 60%),
+      linear-gradient(160deg,var(--bg1),var(--bg0) 70%);
+  }
+  /* faint seven-pointed star watermark */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23c9a44c' stroke-width='1.1' opacity='0.5'><circle cx='300' cy='300' r='250'/><circle cx='300' cy='300' r='180'/><circle cx='300' cy='300' r='70'/>%SPOKES%</g></svg>");
+    background-repeat:no-repeat;background-position:center 22%;
+    background-size:min(86vw,720px);
+    opacity:.05;
+  }
+  .stars{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5}
+  .stars span{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.4;animation:tw 4s infinite ease-in-out}
+  @keyframes tw{0%,100%{opacity:.12}50%{opacity:.7}}
+
+  .wrap{max-width:760px;margin:0 auto;padding:26px 18px 60px;position:relative}
+
+  /* ---------- shared bits ---------- */
+  .kicker{font-family:'Oswald',sans-serif;letter-spacing:.32em;text-transform:uppercase;font-size:.66rem;color:var(--gold);opacity:.85}
+  h1{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.04em;line-height:1.05;margin:.25em 0 .15em;
+     font-size:clamp(2rem,7vw,3.1rem);
+     background:linear-gradient(180deg,var(--gold-bright),var(--gold) 55%,var(--gold-deep));
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 2px 30px rgba(201,164,76,.18)}
+  .serpent{display:block;width:min(58vw,180px);margin:6px auto 2px}
+  .lead{color:var(--ink-dim);font-size:1.08rem;max-width:46ch;margin:0 auto}
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px 20px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .center{text-align:center}
+
+  button{font-family:inherit;cursor:pointer;color:inherit;border:none;background:none}
+  .btn{
+    font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    font-size:.82rem;
+    padding:14px 22px;border-radius:11px;
+    border:1px solid var(--gold-deep);
+    background:linear-gradient(180deg,rgba(201,164,76,.22),rgba(201,164,76,.06));
+    color:var(--gold-bright);
+    transition:transform .12s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(201,164,76,.22);background:linear-gradient(180deg,rgba(201,164,76,.34),rgba(201,164,76,.1))}
+  .btn:active{transform:translateY(0)}
+  .btn[disabled]{opacity:.4;cursor:default;transform:none;box-shadow:none}
+  .btn-ghost{border-color:var(--line);background:rgba(255,255,255,.03);color:var(--ink-dim)}
+  .btn-ghost:hover{box-shadow:none;color:var(--ink)}
+
+  .fade{animation:fade .55s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .hide{display:none !important}
+
+  /* ---------- start screen ---------- */
+  #start .hero{text-align:center;margin-bottom:26px}
+  .stage-title{font-family:'Oswald',sans-serif;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:.82rem;text-align:center;margin:30px 0 14px}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mode{
+    text-align:left;border:1px solid var(--line);border-radius:14px;padding:18px 16px;
+    background:rgba(255,255,255,.025);transition:all .18s ease;position:relative;overflow:hidden;
+  }
+  .mode .mt{font-family:'Oswald',sans-serif;letter-spacing:.08em;color:var(--gold-bright);font-size:1.02rem}
+  .mode .md{color:var(--ink-faint);font-size:.92rem;margin-top:4px}
+  .mode:hover,.mode.sel{border-color:var(--gold);background:rgba(201,164,76,.1);transform:translateY(-2px)}
+  .mode.sel::after{content:"✦";position:absolute;top:10px;right:12px;color:var(--gold-bright)}
+
+  .char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+  .char{
+    border:1px solid var(--line);border-radius:13px;padding:14px 12px 13px;text-align:center;
+    background:rgba(255,255,255,.02);transition:all .16s ease;position:relative;overflow:hidden;
+  }
+  .char .ring{width:46px;height:46px;margin:0 auto 8px;border-radius:50%;
+    display:grid;place-items:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1.2rem;
+    color:#0b0813;background:radial-gradient(circle at 35% 30%, #fff7, transparent 60%), var(--cc,#888);
+    box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 0 18px 2px var(--ccg,transparent);
+  }
+  .char .cn{font-family:'Oswald',sans-serif;font-size:.86rem;letter-spacing:.04em;color:var(--ink)}
+  .char .ct{font-size:.78rem;color:var(--ink-faint);margin-top:2px;min-height:2.1em}
+  .char .cp{font-size:.72rem;color:var(--cc,var(--gold));margin-top:6px;letter-spacing:.06em;text-transform:uppercase;font-family:'Oswald',sans-serif}
+  .char:hover,.char.sel{transform:translateY(-3px);border-color:var(--cc,var(--gold))}
+  .char.sel{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px var(--cc), 0 10px 30px -8px var(--ccg)}
+
+  .pick-head{display:flex;align-items:baseline;justify-content:center;gap:10px;flex-wrap:wrap;margin:24px 0 6px}
+  .pick-head h2{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.18rem;margin:0;color:var(--ink)}
+  .pick-sub{color:var(--ink-faint);font-size:.95rem;text-align:center;margin:0 0 16px}
+
+  .perk-line{font-size:.92rem;color:var(--ink-dim);margin-top:14px;min-height:1.4em;text-align:center}
+  .perk-line b{color:var(--gold-bright);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em}
+
+  .footer-note{margin-top:20px;color:var(--ink-faint);font-size:.84rem;text-align:center}
+  .start-actions{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+
+  /* ---------- game screen ---------- */
+  .bars{display:flex;gap:14px;align-items:stretch;margin-bottom:6px}
+  .barbox{flex:1;min-width:0}
+  .barbox .who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+  .barbox .name{font-family:'Oswald',sans-serif;font-size:.86rem;letter-spacing:.03em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barbox .pwr{font-size:.72rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em;font-family:'Oswald',sans-serif}
+  .barbox .hpnum{font-variant-numeric:tabular-nums;color:var(--ink-dim);font-size:.84rem}
+  .track{height:16px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);overflow:hidden;position:relative}
+  .fill{height:100%;border-radius:9px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
+  .fill::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35));mix-blend-mode:overlay;animation:shine 2.6s linear infinite}
+  @keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .fill.you{background:linear-gradient(90deg,var(--p1c,#6db6ff),var(--p1c2,#bfe0ff));box-shadow:0 0 14px var(--p1g,var(--accent-glow))}
+  .fill.foe{background:linear-gradient(90deg,#9c3050,#e3849c);box-shadow:0 0 14px var(--shadow-glow)}
+  .fill.p2{background:linear-gradient(90deg,var(--p2c,#e7c873),var(--p2c2,#fff0c4));box-shadow:0 0 14px var(--p2g,rgba(231,200,115,.5))}
+  .vs{align-self:center;font-family:'Oswald',sans-serif;color:var(--gold);opacity:.7;font-size:.8rem;letter-spacing:.1em;padding:0 2px}
+  .barbox.active{animation:activeglow 1.8s ease-in-out infinite}
+  @keyframes activeglow{0%,100%{filter:none}50%{filter:drop-shadow(0 0 6px var(--gold-bright))}}
+  .barbox.active .name::before{content:"▸ ";color:var(--gold-bright)}
+
+  .turnbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 12px}
+  .turn-tag{font-family:'Oswald',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;color:var(--gold-bright)}
+  .progress{font-size:.78rem;color:var(--ink-faint);letter-spacing:.06em}
+
+  .qcard{position:relative}
+  .qmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .tier{display:flex;gap:5px;align-items:center}
+  .tier .pip{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .tier .pip.on{background:var(--gold-bright);box-shadow:0 0 8px var(--gold)}
+  .tier .tl{font-size:.72rem;color:var(--ink-faint);letter-spacing:.08em;text-transform:uppercase;font-family:'Oswald',sans-serif;margin-left:6px}
+  .srctag{font-size:.74rem;color:var(--ink-faint);font-style:italic}
+  .qtype{font-family:'Oswald',sans-serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8}
+  .question{font-size:1.28rem;line-height:1.4;color:var(--ink);margin:6px 0 18px}
+
+  .opts{display:grid;gap:10px}
+  .opt{
+    text-align:left;border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+    background:rgba(255,255,255,.02);font-size:1.04rem;color:var(--ink);transition:all .14s ease;
+    display:flex;gap:11px;align-items:flex-start;
+  }
+  .opt .mark{font-family:'Oswald',sans-serif;color:var(--gold);font-size:.9rem;min-width:1.1em}
+  .opt:hover:not([disabled]){border-color:var(--gold);background:rgba(201,164,76,.09);transform:translateX(3px)}
+  .opt.correct{border-color:var(--good);background:rgba(116,198,157,.16);color:#dffbec}
+  .opt.wrong{border-color:var(--bad);background:rgba(224,122,106,.14);color:#ffe4dd}
+  .opt.faded{opacity:.32;text-decoration:line-through}
+  .opt[disabled]{cursor:default}
+
+  .writein{display:flex;gap:10px;flex-wrap:wrap}
+  .writein input{
+    flex:1;min-width:200px;font-family:inherit;font-size:1.1rem;color:var(--ink);
+    background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+  }
+  .writein input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,164,76,.14)}
+  .hintline{font-size:.92rem;color:var(--accent);margin-top:10px;letter-spacing:.18em;font-family:'Oswald',sans-serif}
+
+  .perkbar{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .perk-btn{
+    font-family:'Oswald',sans-serif;letter-spacing:.06em;font-size:.76rem;text-transform:uppercase;
+    padding:10px 14px;border-radius:10px;border:1px dashed var(--cc,var(--gold));
+    background:rgba(255,255,255,.03);color:var(--cc,var(--gold-bright));transition:all .15s ease;
+  }
+  .perk-btn:hover:not([disabled]){background:rgba(201,164,76,.12)}
+  .perk-btn[disabled]{opacity:.35;cursor:default;border-style:solid}
+  .perk-desc{font-size:.84rem;color:var(--ink-faint);flex:1;min-width:160px}
+
+  .feedback{margin-top:18px;border-top:1px solid var(--line);padding-top:16px;animation:fade .4s ease both}
+  .verdict{font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:.04em;margin-bottom:4px}
+  .verdict.good{color:var(--good)}
+  .verdict.bad{color:var(--bad)}
+  .verdict.neutral{color:var(--gold-bright)}
+  .ans{color:var(--ink);font-size:1.02rem}
+  .ans b{color:var(--gold-bright)}
+  .explain{color:var(--ink-dim);font-size:.96rem;margin-top:7px;font-style:italic}
+  .next-row{display:flex;justify-content:flex-end;margin-top:16px}
+
+  /* damage fx */
+  .shake{animation:shake .5s ease}
+  @keyframes shake{0%,100%{transform:none}15%{transform:translate(-6px,2px)}30%{transform:translate(6px,-2px)}45%{transform:translate(-5px,1px)}60%{transform:translate(4px,-1px)}75%{transform:translate(-2px,1px)}}
+  .hitflash{position:fixed;inset:0;background:radial-gradient(circle,transparent 40%,rgba(190,40,40,.35));z-index:50;pointer-events:none;opacity:0}
+  .hitflash.go{animation:flash .5s ease}
+  @keyframes flash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+  .float{position:fixed;font-family:'Oswald',sans-serif;font-weight:700;z-index:60;pointer-events:none;font-size:1.4rem;animation:floatup 1.05s ease-out forwards;text-shadow:0 1px 8px #000}
+  @keyframes floatup{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translateY(-46px) scale(1.1)}}
+
+  /* end screen */
+  #end .endcard{text-align:center}
+  .endtitle{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(1.8rem,6vw,2.6rem);letter-spacing:.03em;margin:6px 0}
+  .win .endtitle{background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lose .endtitle{color:var(--shadow-red);text-shadow:0 0 24px var(--shadow-glow)}
+  .endquote{color:var(--ink-dim);font-style:italic;max-width:40ch;margin:10px auto 0;font-size:1.05rem}
+  .stats{display:flex;gap:18px;justify-content:center;margin:22px 0 6px;flex-wrap:wrap}
+  .stat{min-width:90px}
+  .stat .v{font-family:'Oswald',sans-serif;font-size:1.7rem;color:var(--gold-bright)}
+  .stat .l{font-size:.74rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .brand{font-family:'Oswald',sans-serif;letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;color:var(--gold);opacity:.8}
+  .sound{font-size:1.1rem;opacity:.7;padding:6px 8px;border-radius:8px}
+  .sound:hover{opacity:1;background:rgba(255,255,255,.05)}
+
+  @media(max-width:480px){
+    .modes{grid-template-columns:1fr}
+    .question{font-size:1.14rem}
+    .char-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+    .bars{gap:8px}
+    .vs{display:none}
+  }
+
+  /* ---- order + multi question types ---- */
+  .order-pool{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .orderchip{position:relative;display:inline-flex;align-items:center;gap:8px;
+    font-family:'EB Garamond',serif;font-size:1rem;color:var(--ink);
+    background:var(--card);border:1px solid var(--line);border-radius:11px;
+    padding:11px 15px;cursor:pointer;transition:all .15s ease}
+  .orderchip:hover:not(.picked){background:rgba(201,164,76,.1);border-color:var(--gold-deep)}
+  .orderchip.picked{border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow);opacity:.9;cursor:default}
+  .orderchip .seq{display:none;min-width:22px;height:22px;line-height:22px;text-align:center;
+    border-radius:50%;background:var(--accent);color:#0a0a14;font-family:'Oswald',sans-serif;font-size:.8rem;font-weight:700}
+  .orderchip.picked .seq{display:inline-block}
+  .orderchip.correct{border-color:var(--good);box-shadow:0 0 12px rgba(116,198,157,.4)}
+  .orderchip.wrong{border-color:var(--bad);box-shadow:0 0 12px rgba(224,122,106,.4)}
+  .order-actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .order-actions .btn{flex:0 0 auto}
+  .opt.sel{border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow);background:rgba(181,140,240,.1)}
+  .opt.sel .mark{background:var(--accent);color:#0a0a14}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="hitflash" id="hitflash"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <span class="brand">The Mockingjay</span>
+    <button class="sound" id="soundBtn" title="Toggle sound">🔊</button>
+  </div>
+
+  <!-- ================= START ================= -->
+  <section id="start" class="fade">
+    <div class="hero">
+      <svg class="serpent" viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe1a0"/><stop offset="1" stop-color="#b9831f"/>
+        </linearGradient></defs>
+        <circle cx="100" cy="66" r="54" fill="none" stroke="url(#g)" stroke-width="3"/>
+        <!-- mockingjay silhouette -->
+        <g fill="url(#g)">
+          <path d="M100 50 C96 50 95 58 95 70 L100 98 L105 70 C105 58 104 50 100 50 Z"/>
+          <circle cx="100" cy="47" r="6.5"/>
+          <path d="M98 60 C80 42 58 40 38 58 C56 54 76 56 96 67 Z"/>
+          <path d="M102 60 C120 42 142 40 162 58 C144 54 124 56 104 67 Z"/>
+        </g>
+        <!-- arrow across -->
+        <g stroke="url(#g)" stroke-width="2.4" stroke-linecap="round" fill="none">
+          <path d="M55 96 L146 36"/>
+          <path d="M146 36 L137 38 M146 36 L141 45"/>
+          <path d="M55 96 L62 94 M55 96 L57 89"/>
+        </g>
+      </svg>
+      <div class="kicker">A Hunger Games — Trivia Duel</div>
+      <h1>The<br>Hunger Games</h1>
+      <p class="lead">Step into the arena. Answer true, and your opponent takes the hit; falter, and the odds turn against you. May the odds be ever in your favor — but a tribute had best know their Panem.</p>
+    </div>
+
+    <div class="panel">
+      <div class="stage-title">I. Choose Your Trial</div>
+      <div class="modes">
+        <button class="mode" data-mode="1p">
+          <div class="mt">Defy President Snow</div>
+          <div class="md">One player. Stand against the Capitol itself. Right answers strike Snow; wrong ones, and the arena claims you.</div>
+        </button>
+        <button class="mode" data-mode="2p">
+          <div class="mt">Tribute vs. Tribute</div>
+          <div class="md">Two players, turn by turn. A right answer strikes your rival; a wrong one rebounds on you. Only one is left standing.</div>
+        </button>
+      </div>
+
+      <div id="pickArea" class="hide">
+        <div class="pick-head"><h2 id="pickTitle">Choose Your Tribute</h2></div>
+        <p class="pick-sub" id="pickSub">Your choice sets your strength — and one signature skill, used but once.</p>
+        <div class="char-grid" id="charGrid"></div>
+        <div class="perk-line" id="perkLine"></div>
+        <div class="start-actions" id="startActions"></div>
+      </div>
+    </div>
+    <p class="footer-note">Drawn from the original trilogy — <i>The Hunger Games</i>, <i>Catching Fire</i>, and <i>Mockingjay</i> — book canon only, never the films. Hard by design and climbing fast, mixing write-in, put-in-order, and choose-all-that-apply. Spelling is forgiven.</p>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="game" class="hide">
+    <div class="bars">
+      <div class="barbox" id="box1">
+        <div class="who"><span class="name" id="n1">You</span><span class="hpnum"><span id="hp1">100</span></span></div>
+        <div class="track"><div class="fill you" id="f1" style="width:100%"></div></div>
+        <div class="pwr" id="pw1">Honor</div>
+      </div>
+      <div class="vs">✶</div>
+      <div class="barbox" id="box2">
+        <div class="who"><span class="name" id="n2">President Snow</span><span class="hpnum"><span id="hp2">100</span></span></div>
+        <div class="track"><div class="fill foe" id="f2" style="width:100%"></div></div>
+        <div class="pwr" id="pw2">The Capitol</div>
+      </div>
+    </div>
+
+    <div class="turnbar">
+      <span class="turn-tag" id="turnTag">Your turn</span>
+      <span class="progress" id="prog">Question 1</span>
+    </div>
+
+    <div class="panel qcard">
+      <div class="qmeta">
+        <div class="tier">
+          <span class="pip" id="pip1"></span><span class="pip" id="pip2"></span><span class="pip" id="pip3"></span>
+          <span class="tl" id="tierLabel">Tribute</span>
+        </div>
+        <span class="srctag" id="srcTag"></span>
+      </div>
+      <div class="qtype" id="qType">Multiple Choice</div>
+      <div class="question" id="qText">…</div>
+
+      <div class="opts" id="opts"></div>
+      <div class="writein hide" id="writeWrap">
+        <input id="writeInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer…">
+        <button class="btn" id="submitWrite">Answer</button>
+      </div>
+      <div class="orderwrap hide" id="orderWrap">
+        <div class="order-pool" id="orderPool"></div>
+        <div class="order-actions">
+          <button class="btn btn-ghost" id="orderClear">Clear</button>
+          <button class="btn" id="orderSubmit" disabled>Submit Order</button>
+        </div>
+      </div>
+      <div class="multiwrap hide" id="multiWrap">
+        <div class="opts" id="multiOpts"></div>
+        <div class="order-actions">
+          <button class="btn" id="multiSubmit" disabled>Submit Choices</button>
+        </div>
+      </div>
+      <div class="hintline hide" id="hintLine"></div>
+
+      <div class="perkbar" id="perkBar">
+        <button class="perk-btn" id="perkBtn">Ability</button>
+        <span class="perk-desc" id="perkDesc"></span>
+      </div>
+
+      <div class="feedback hide" id="feedback">
+        <div class="verdict" id="verdict"></div>
+        <div class="ans" id="ansLine"></div>
+        <div class="explain" id="explain"></div>
+        <div class="next-row"><button class="btn" id="nextBtn">Continue</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= END ================= -->
+  <section id="end" class="hide">
+    <div class="panel endcard">
+      <div class="kicker" id="endKicker">The Odds Are Cast</div>
+      <div class="endtitle" id="endTitle">Victory</div>
+      <p class="endquote" id="endQuote"></p>
+      <div class="stats">
+        <div class="stat"><div class="v" id="stCorrect">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="v" id="stTotal">0</div><div class="l">Questions</div></div>
+        <div class="stat"><div class="v" id="stAcc">0%</div><div class="l">Accuracy</div></div>
+      </div>
+      <div class="start-actions">
+        <button class="btn" id="againBtn">Volunteer Again</button>
+        <button class="btn btn-ghost" id="homeBtn">New Tributes</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   THE MOCKINGJAY — Hunger Games trivia duel
+   (book canon only — the original trilogy)
+   ============================================================ */
+
+/* ---------- decorative stars + wheel spokes ---------- */
+(function(){
+  const s=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const d=document.createElement('span');
+    d.style.left=Math.random()*100+'%';
+    d.style.top=Math.random()*100+'%';
+    d.style.animationDelay=(Math.random()*4)+'s';
+    if(Math.random()>.7){d.style.width=d.style.height='3px';}
+    s.appendChild(d);
+  }
+  // faint mockingjay-in-a-ring for the watermark
+  const style=document.createElement('style');
+  style.textContent=`body::after{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><g fill='none' stroke='%23d2a23e' stroke-width='1.6'><circle cx='300' cy='300' r='250'/><path d='M300 250 C240 190 160 188 100 250'/><path d='M300 250 C360 190 440 188 500 250'/><path d='M300 250 L300 388'/><path d='M168 404 L432 196'/></g></svg>");}`;
+  document.head.appendChild(style);
+})();
+
+/* ---------- sound ---------- */
+const Sound=(function(){
+  let on=true, ctx=null;
+  function ac(){ if(!ctx){ try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return ctx; }
+  function tone(freq,dur,type,vol){
+    if(!on)return; const c=ac(); if(!c)return;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.value=0.0001; o.connect(g); g.connect(c.destination);
+    const t=c.currentTime;
+    g.gain.exponentialRampToValueAtTime(vol||0.06,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(t); o.stop(t+dur+0.02);
+  }
+  return {
+    correct(){ tone(523.25,.12,'triangle',.05); setTimeout(()=>tone(783.99,.18,'triangle',.05),90); },
+    wrong(){ tone(196,.22,'sawtooth',.05); setTimeout(()=>tone(146.83,.28,'sawtooth',.045),110); },
+    hit(){ tone(110,.3,'sawtooth',.07); },
+    click(){ tone(440,.05,'sine',.03); },
+    perk(){ tone(659.25,.1,'sine',.05); setTimeout(()=>tone(987.77,.2,'sine',.05),80); },
+    win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.3,'triangle',.06),i*150)); },
+    lose(){ [330,277,220,165].forEach((f,i)=>setTimeout(()=>tone(f,.4,'sawtooth',.06),i*180)); },
+    toggle(){ on=!on; return on; },
+    get on(){ return on; }
+  };
+})();
+document.getElementById('soundBtn').onclick=function(){
+  const on=Sound.toggle(); this.textContent=on?'🔊':'🔇';
+};
+
+/* ---------- characters ---------- */
+const PERKS={
+  shield:{label:'Take cover — ward off the next hit you would take.'},
+  power: {label:'Your next correct answer strikes for double.'},
+  heal:  {label:"A sponsor's parachute — restore 22 strength."},
+  insight:{label:'Cut wrong answers — or reveal a clue on a write-in/order.'},
+  luck:  {label:'May the odds be in your favor — skip this question, no harm done.'}
+};
+const CHARS=[
+  {id:'katniss', name:"Katniss Everdeen", title:"The Girl on Fire", power:"The Bow", c:"#e8682c",c2:"#ffb060",g:"rgba(232,104,44,.5)", in:"K", perk:"power", perkName:"A Perfect Shot"},
+  {id:'peeta', name:"Peeta Mellark", title:"The Boy with the Bread", power:"Strength", c:"#d8a850",c2:"#f3d99a",g:"rgba(216,168,80,.5)", in:"P", perk:"shield", perkName:"The Boy with the Bread"},
+  {id:'gale', name:"Gale Hawthorne", title:"The Hunter of District 12", power:"The Hunt", c:"#6b7280",c2:"#aeb6c0",g:"rgba(107,114,128,.5)", in:"G", perk:"power", perkName:"Hunter's Snare"},
+  {id:'haymitch', name:"Haymitch Abernathy", title:"Victor of the Fiftieth Games", power:"Cunning", c:"#c0883a",c2:"#e6bd7e",g:"rgba(192,136,58,.5)", in:"H", perk:"insight", perkName:"Mentor's Eye"},
+  {id:'finnick', name:"Finnick Odair", title:"Victor of District 4", power:"The Trident", c:"#2ba39a",c2:"#8fe0d8",g:"rgba(43,163,154,.5)", in:"F", perk:"power", perkName:"Trident Strike"},
+  {id:'johanna', name:"Johanna Mason", title:"Victor of District 7", power:"Fury", c:"#5f8a4a",c2:"#aecf93",g:"rgba(95,138,74,.5)", in:"J", perk:"power", perkName:"Axe Throw"},
+  {id:'rue', name:"Rue", title:"The Girl from District 11", power:"Stealth", c:"#86b96a",c2:"#cfe6b0",g:"rgba(134,185,106,.5)", in:"R", perk:"insight", perkName:"Eyes in the Trees"},
+  {id:'beetee', name:"Beetee", title:"The Inventor of District 3", power:"Ingenuity", c:"#3f7fd0",c2:"#9cc4f0",g:"rgba(63,127,208,.5)", in:"B", perk:"insight", perkName:"Wire and Wit"},
+  {id:'mags', name:"Mags", title:"Eldest Victor of District 4", power:"Wisdom", c:"#8aa0a8",c2:"#cfdfe4",g:"rgba(138,160,168,.5)", in:"M", perk:"heal", perkName:"Old Wisdom"},
+  {id:'enobaria', name:"Enobaria", title:"Victor of District 2", power:"Ferocity", c:"#a8432f",c2:"#e08a6e",g:"rgba(168,67,47,.5)", in:"E", perk:"power", perkName:"Sharpened Teeth"},
+  {id:'cinna', name:"Cinna", title:"The Stylist", power:"Artistry", c:"#c9a44c",c2:"#f0d68a",g:"rgba(201,164,76,.5)", in:"C", perk:"shield", perkName:"The Girl on Fire"},
+  {id:'effie', name:"Effie Trinket", title:"The Escort", power:"Manners", c:"#d65fa0",c2:"#f5a8d0",g:"rgba(214,95,160,.5)", in:"E", perk:"luck", perkName:"May the Odds"}
+];
+
+/* ============================================================
+   QUESTION BANK
+   tier: 1 easy · 2 intermediate · 3 hard
+   type: 'mc' (options + answer) or 'write' (accept array + answer label)
+   ============================================================ */
+const BANK=[
+/* ================= TIER 1 — Tribute (fair for readers) ================= */
+{t:1,type:'write',src:"The Hunger Games",q:"What is the main industry of District 12?",accept:["coal","coal mining","mining","coal-mining"],answer:"Coal mining",explain:"The poorest district digs coal; Katniss's father died in a mine explosion that haunts the whole trilogy."},
+{t:1,type:'write',src:"The Hunger Games",q:"What is the name of Katniss's younger sister, for whom she volunteers?",accept:["prim","primrose","primrose everdeen"],answer:"Primrose (Prim)",explain:"It is Prim's name drawn at the reaping; Katniss volunteers in her place \u2014 the spark that lights everything."},
+{t:1,type:'write',src:"Lore",q:"What is the name of the nation that rose from the ruins of North America?",accept:["panem"],answer:"Panem",explain:"From the Latin 'panem et circenses' \u2014 bread and circuses \u2014 the Capitol's recipe for control."},
+{t:1,type:'multi',src:"Lore",q:"Which of these characters are from District 12? (Choose all that apply.)",options:["Katniss","Peeta","Gale","Haymitch","Rue","Finnick"],correct:["Katniss","Peeta","Gale","Haymitch"],answer:"Katniss, Peeta, Gale, Haymitch",explain:"Rue is from District 11; Finnick from District 4."},
+{t:1,type:'order',src:"The Hunger Games",q:"Put these events of the first book in the order they happen.",seq:["Katniss volunteers in Prim's place","Katniss drops a tracker jacker nest on the Careers","Rue dies and Katniss covers her in flowers","Katniss and Peeta threaten to eat the nightlock"],answer:"Volunteers → tracker jackers → Rue's death → nightlock",explain:"The berry standoff forces the Gamemakers to allow two victors \u2014 the first open defiance of the Capitol."},
+{t:1,type:'write',src:"The Hunger Games",q:"What poisonous berries do Katniss and Peeta threaten to eat together at the end of the first Games?",accept:["nightlock"],answer:"Nightlock",explain:"The same berries kill Foxface by accident; the rebels later name their suicide pills after them."},
+{t:1,type:'write',src:"The Hunger Games",q:"Who is Katniss's hunting partner and closest friend in District 12?",accept:["gale","gale hawthorne"],answer:"Gale Hawthorne",explain:"Their illegal hunting beyond the fence keeps both families fed \u2014 and feeds a slow-burning love triangle."},
+{t:1,type:'write',src:"The Hunger Games",q:"Who is Katniss and Peeta's mentor, the only living District 12 victor?",accept:["haymitch","haymitch abernathy"],answer:"Haymitch Abernathy",explain:"A drunk with a sharp mind; his sponsorship gifts and timing repeatedly keep his tributes alive."},
+{t:1,type:'write',src:"Lore",q:"The mockingjay is a hybrid bird, the offspring of mockingbirds and which Capitol-made creature?",accept:["jabberjays","jabberjay","jabber jays"],answer:"Jabberjays",explain:"An accident the Capitol never intended \u2014 which is exactly why it becomes such a potent symbol of rebellion."},
+{t:1,type:'write',src:"The Hunger Games",q:"Complete the Capitol's catchphrase: 'May the odds be ever in your ___.'",accept:["favor","favour","your favor"],answer:"favor",explain:"Effie Trinket's chirped blessing, dripping with the obscenity of children sent to die."},
+{t:1,type:'write',src:"The Hunger Games",q:"Who is the blue-haired, ever-smiling host who interviews the tributes before the Games?",accept:["caesar flickerman","caesar","flickerman"],answer:"Caesar Flickerman",explain:"His relentless showmanship turns the slaughter into prime-time entertainment year after year."},
+{t:1,type:'multi',src:"Lore",q:"Which of these are muttations \u2014 creatures deliberately engineered by the Capitol? (Choose all that apply.)",options:["Tracker jackers","Jabberjays","Mutt wolves","Mockingjays","Buttercup"],correct:["Tracker jackers","Jabberjays","Mutt wolves"],answer:"Tracker jackers, jabberjays, mutt wolves",explain:"Mockingjays arose by accident, never by design; Buttercup is just Prim's bad-tempered cat."},
+{t:1,type:'write',src:"The Hunger Games",q:"What is the name of District 12's black market, where Katniss trades her game?",accept:["hob","the hob"],answer:"The Hob",explain:"Run out of an old coal warehouse; Greasy Sae's soup and the Peacekeepers' bribed blind eyes keep it alive."},
+{t:1,type:'write',src:"The Hunger Games",q:"What is the name of Prim's cat?",accept:["buttercup"],answer:"Buttercup",explain:"Katniss once tried to drown him; he survives the entire trilogy and returns to her in the end."},
+{t:1,type:'write',src:"Catching Fire",q:"Every 25 years the Capitol holds a special Hunger Games with an added twist. What is it called?",accept:["quarter quell","the quarter quell","quell"],answer:"The Quarter Quell",explain:"A 'gift' to remind the districts that even their children's deaths bend to the Capitol's whim."},
+{t:1,type:'write',src:"The Hunger Games",q:"Katniss earns the nickname 'the girl on ___' after Cinna's chariot costume. Fill the blank.",accept:["fire","the girl on fire"],answer:"fire",explain:"Cinna's synthetic flames make her unforgettable \u2014 and the image becomes the rebellion's emblem."},
+
+/* ================= TIER 2 — Victor (deep reader) ================= */
+{t:2,type:'order',src:"Lore",q:"Put these Hunger Games in chronological order by when they were held.",seq:["The 50th Games, won by Haymitch","The 74th Games, Katniss and Peeta's first","The 75th Games, the Quarter Quell of victors"],answer:"50th → 74th → 75th",explain:"Twenty-four years separate Haymitch's victory from the arena that finally cracks the Capitol open."},
+{t:2,type:'write',src:"Catching Fire",q:"What is the twist of the 75th Hunger Games (the third Quarter Quell)?",accept:["victors","existing victors","reaped from victors","previous victors","former victors","tributes from victors"],answer:"Tributes are reaped from the existing pool of victors",explain:"Snow's attempt to destroy Katniss's symbol by forcing her back into the arena \u2014 it backfires spectacularly."},
+{t:2,type:'write',src:"Catching Fire",q:"Which district is Finnick Odair from?",accept:["4","district 4","four","district four"],answer:"District 4",explain:"He won at fourteen, the youngest victor ever, and is paraded by the Capitol as a romantic idol."},
+{t:2,type:'write',src:"Catching Fire",q:"What weapon did sponsors send the young Finnick in his Games \u2014 the most expensive gift ever seen?",accept:["trident"],answer:"A trident",explain:"Fitting for a boy from a fishing district; he nets his enemies and finishes them with it."},
+{t:2,type:'write',src:"Catching Fire",q:"Which elderly District 4 victor volunteers to take Annie Cresta's place in the Quell?",accept:["mags"],answer:"Mags",explain:"Finnick's old mentor; she walks into the poison fog herself so the others can keep moving."},
+{t:2,type:'write',src:"Catching Fire",q:"Which district is Johanna Mason from?",accept:["7","district 7","seven","district seven"],answer:"District 7",explain:"Lumber country \u2014 hence her deadly skill with an axe, behind a long-running act of being weak and weepy."},
+{t:2,type:'write',src:"Catching Fire",q:"Wiress keeps repeating which two words, the clue that reveals the arena is a giant clock?",accept:["tick tock","tick, tock","tick-tock","ticktock"],answer:"\u201cTick, tock\u201d",explain:"Each hour-wedge of the arena unleashes its own horror, rotating like a clock face."},
+{t:2,type:'multi',src:"Catching Fire",q:"Which of these victors are part of Katniss's alliance inside the Quarter Quell arena? (Choose all that apply.)",options:["Finnick","Mags","Beetee","Wiress","Cato"],correct:["Finnick","Mags","Beetee","Wiress"],answer:"Finnick, Mags, Beetee, Wiress",explain:"Cato died in the first book's arena \u2014 he was never a victor and never in the Quell."},
+{t:2,type:'write',src:"Catching Fire",q:"Who is the Head Gamemaker of the Quell, secretly one of the rebellion's leaders?",accept:["plutarch","plutarch heavensbee","heavensbee"],answer:"Plutarch Heavensbee",explain:"His engineered arena and the hovercraft extraction were the rescue plan all along."},
+{t:2,type:'write',src:"Catching Fire",q:"What nicknames does Johanna give Beetee and Wiress of District 3?",accept:["nuts and volts","volts and nuts","nuts volts"],answer:"\u201cNuts and Volts\u201d",explain:"Wiress is Nuts, Beetee is Volts \u2014 Johanna's contempt for the pair never quite hides her reliance on them."},
+{t:2,type:'write',src:"Mockingjay",q:"What secret district, hidden underground, leads the rebellion?",accept:["13","district 13","thirteen","district thirteen"],answer:"District 13",explain:"Believed destroyed; in truth it bought independence by threatening the Capitol with its nuclear arsenal."},
+{t:2,type:'write',src:"Mockingjay",q:"Who is the president of District 13?",accept:["coin","alma coin","president coin","alma"],answer:"President Alma Coin",explain:"Cold and calculating; by the end Katniss judges her no better than Snow."},
+{t:2,type:'order',src:"Catching Fire",q:"Put these events of the second book in order.",seq:["Katniss and Peeta begin the Victory Tour","The third Quarter Quell is announced","Katniss's wedding dress burns into a mockingjay","An arrow into the force field shatters the arena"],answer:"Victory Tour → Quell announced → mockingjay dress → arena broken",explain:"Beetee's wire plan, finished by Katniss's arrow, ends the Games and triggers the rescue."},
+{t:2,type:'write',src:"Mockingjay",q:"What does the rebellion call the staged propaganda clips it films of Katniss?",accept:["propos","propo","propaganda spots"],answer:"\u201cPropos\u201d",explain:"Propaganda spots; Katniss is hopeless when scripted and electric only when something real happens."},
+{t:2,type:'write',src:"Catching Fire",q:"Whom does Finnick love and eventually marry?",accept:["annie","annie cresta","annie odair"],answer:"Annie Cresta",explain:"A District 4 victor unhinged by her own Games; she bears Finnick's child after his death."},
+{t:2,type:'multi',src:"Lore",q:"Which of these characters are alive at the end of the trilogy? (Choose all that apply.)",options:["Haymitch","Effie","Gale","Finnick","Prim"],correct:["Haymitch","Effie","Gale"],answer:"Haymitch, Effie, Gale",explain:"Finnick is killed by mutts in the Capitol; Prim dies in the parachute bombing \u2014 the loss that breaks Katniss."},
+{t:2,type:'write',src:"Catching Fire",q:"Which stylist designed Katniss's mockingjay transformation and is beaten before her eyes before the Quell?",accept:["cinna"],answer:"Cinna",explain:"He sketches her Mockingjay uniform before he is taken; his death is meant to break her, and nearly does."},
+{t:2,type:'write',src:"Mockingjay",q:"With what venom is the captured Peeta tortured and brainwashed to fear and hate Katniss?",accept:["tracker jacker venom","tracker jacker","trackerjacker venom","tracker jackers"],answer:"Tracker jacker venom",explain:"'Hijacking' twists his memories so the boy who always loved her now strangles her on sight."},
+{t:2,type:'write',src:"Mockingjay",q:"What four-word question does the hijacked Peeta repeat to sort true memories from implanted ones?",accept:["real or not real","real or not"],answer:"\u201cReal or not real?\u201d",explain:"It becomes the language of his recovery \u2014 and the trilogy's quiet last line of love."},
+{t:2,type:'write',src:"Catching Fire",q:"How does Katniss break the Quarter Quell arena, using the wire Beetee gave her?",accept:["force field","forcefield","the force field","arrow into the force field","lightning","shoots the force field"],answer:"She fires a wired arrow into the force field",explain:"Channeling the lightning tree's strike into the dome, she blows out the arena \u2014 and the cameras."},
+{t:2,type:'write',src:"Mockingjay",q:"What is the nickname for District 2's heavily fortified mountain that the rebels must capture?",accept:["the nut","nut"],answer:"The Nut",explain:"Gale's plan to bury its people in an avalanche forces Katniss to confront how ruthless he has become."},
+
+/* ================= TIER 3 — Mockingjay (obsessive detail) ================= */
+{t:3,type:'order',src:"Mockingjay",q:"Put these stages of the rebellion in order.",seq:["District 12 is firebombed to ash","Katniss agrees to become the Mockingjay in District 13","The rebel assault reaches the Capitol","Katniss kills Coin at the execution"],answer:"12 burns → becomes Mockingjay → Capitol assault → Coin's death",explain:"From the ruins of her home to the arrow that ends the woman who would replace Snow."},
+{t:3,type:'write',src:"The Hunger Games",q:"In the books (not the films), who gives Katniss the mockingjay pin?",accept:["madge","madge undersee"],answer:"Madge Undersee",explain:"The mayor's quiet daughter \u2014 a character the films cut entirely, folding the pin's origin into other scenes."},
+{t:3,type:'write',src:"Catching Fire",q:"The pin first belonged to Madge's aunt, Haymitch's ally in his own Games. Name her.",accept:["maysilee donner","maysilee"],answer:"Maysilee Donner",explain:"She saved Haymitch's life in the 50th Games before dying; Madge's mother was her twin sister."},
+{t:3,type:'write',src:"Catching Fire",q:"Which Hunger Games did Haymitch win \u2014 the one with twice the usual tributes?",accept:["50th","50","fiftieth","2nd quarter quell","second quarter quell","fiftieth hunger games"],answer:"The 50th (the 2nd Quarter Quell)",explain:"Forty-eight tributes instead of twenty-four; Haymitch won by turning the arena's own force field into a weapon."},
+{t:3,type:'order',src:"Mockingjay",q:"Put these deaths from the final book in the order they occur.",seq:["Boggs","Finnick Odair","Primrose Everdeen","President Coin"],answer:"Boggs → Finnick → Prim → Coin",explain:"Boggs to a pod, Finnick to the sewer mutts, Prim to the parachute bombs, Coin to Katniss's own arrow."},
+{t:3,type:'write',src:"Mockingjay",q:"Katniss's Capitol squad is the 'Star Squad,' designated by what number (a nod to Ray Bradbury)?",accept:["451","squad 451"],answer:"451",explain:"A wink at Fahrenheit 451; the propo team is sent to film, not to fight \u2014 in theory."},
+{t:3,type:'write',src:"Mockingjay",q:"What device does Boggs hand to Katniss as he dies?",accept:["holo","the holo","holo device"],answer:"The Holo",explain:"A map of the Capitol's deadly 'pods'; he transfers command to her with his last breaths."},
+{t:3,type:'write',src:"Mockingjay",q:"Name the former Capitol stylist, surgically altered to resemble a tiger, who shelters Katniss's squad.",accept:["tigris"],answer:"Tigris",explain:"Discarded by Snow for going too far with her body modifications, she hides the rebels in her fur-shop cellar."},
+{t:3,type:'write',src:"Mockingjay",q:"What creatures kill Finnick in the Capitol's underground sewers?",accept:["lizard mutts","mutts","lizard mutations","mutations","lizard muttations"],answer:"Lizard mutts",explain:"White, hissing 'Katniss, Katniss' \u2014 they overwhelm him before she can detonate the Holo to end it."},
+{t:3,type:'write',src:"Mockingjay",q:"Which single word does Katniss shout three times to self-destruct the Holo and end Finnick's death?",accept:["nightlock"],answer:"\u201cNightlock\u201d",explain:"The Holo's suicide command \u2014 named for the berries that began her defiance two books earlier."},
+{t:3,type:'write',src:"Mockingjay",q:"What kills Prim in the Capitol \u2014 the event that finally breaks Katniss?",accept:["bombs","parachute bombs","parachutes","bomb","exploding parachutes","parachute bomb"],answer:"Exploding parachute bombs",explain:"A double blast \u2014 the second timed to kill the medics who rush in \u2014 catches Prim among the rescuers."},
+{t:3,type:'write',src:"Mockingjay",q:"Katniss believes the cruel double-bomb design that killed Prim was devised by Gale and which inventor?",accept:["beetee","beete"],answer:"Beetee",explain:"The 'human weakness' trap that exploits rescuers' compassion; she can never look at Gale the same way again."},
+{t:3,type:'write',src:"Mockingjay",q:"At the public execution, whom does Katniss shoot dead with her arrow instead of Snow?",accept:["coin","alma coin","president coin","alma"],answer:"President Coin",explain:"Realizing Coin ordered the bombs and would rule no better than Snow, Katniss aims her one arrow upward."},
+{t:3,type:'write',src:"Mockingjay",q:"Per the book, why does President Snow always smell of roses?",accept:["mask the smell of blood","blood","mouth sores","cover the smell of blood","blood from sores","to hide the blood","hide the smell of blood"],answer:"To mask the smell of blood from sores in his mouth",explain:"He poisoned rivals and drank from the same cups to deflect suspicion; the antidotes never fully healed the sores."},
+{t:3,type:'multi',src:"The Hunger Games",q:"Which of these tributes die inside the first book's arena? (Choose all that apply.)",options:["Rue","Glimmer","Foxface","Cato","Finnick"],correct:["Rue","Glimmer","Foxface","Cato"],answer:"Rue, Glimmer, Foxface, Cato",explain:"Finnick won years earlier and never competed in the 74th Games."},
+{t:3,type:'write',src:"The Hunger Games",q:"Name the clever District 5 tribute who dies after eating nightlock berries she stole from Peeta's gatherings.",accept:["foxface","fox face"],answer:"Foxface",explain:"Never named by the Capitol; Katniss calls her Foxface for her sly, sharp-featured survival strategy."},
+{t:3,type:'write',src:"The Hunger Games",q:"Which District 11 tribute spares Katniss in the arena because of her kindness to Rue?",accept:["thresh"],answer:"Thresh",explain:"He kills Clove for gloating over Rue's death, then lets Katniss go \u2014 'just this once,' for Rue."},
+{t:3,type:'write',src:"The Hunger Games",q:"Which District 1 tribute kills Rue with a spear, only to be shot by Katniss moments later?",accept:["marvel"],answer:"Marvel",explain:"Katniss's arrow through his throat is her first kill made in rage rather than survival."},
+{t:3,type:'multi',src:"Catching Fire",q:"Which of these compete as tributes in the 75th Games (the Quarter Quell)? (Choose all that apply.)",options:["Finnick","Johanna","Beetee","Enobaria","Cinna"],correct:["Finnick","Johanna","Beetee","Enobaria"],answer:"Finnick, Johanna, Beetee, Enobaria",explain:"Cinna is a stylist, not a victor; he is beaten before Katniss even enters the arena."},
+{t:3,type:'write',src:"Mockingjay",q:"What is the title of the eerie song Katniss learned from her father, which becomes a rebel anthem?",accept:["the hanging tree","hanging tree"],answer:"\u201cThe Hanging Tree\u201d",explain:"Her unguarded performance of it, caught on camera, spreads through the districts as a call to rise."},
+{t:3,type:'write',src:"The Hunger Games",q:"Katniss sings a lullaby to the dying Rue: 'Deep in the ___.' Fill the blank.",accept:["meadow","deep in the meadow"],answer:"meadow",explain:"She sings it again in the epilogue, to her own child, over a meadow grown atop a mass grave."},
+{t:3,type:'multi',src:"Lore",q:"Which of these district-and-industry pairings are correct? (Choose all that apply.)",options:["District 4 — Fishing","District 3 — Technology","District 7 — Lumber","District 11 — Agriculture","District 1 — Coal"],correct:["District 4 — Fishing","District 3 — Technology","District 7 — Lumber","District 11 — Agriculture"],answer:"4-Fishing, 3-Technology, 7-Lumber, 11-Agriculture",explain:"District 1 makes luxury goods; coal is District 12."},
+{t:3,type:'write',src:"Mockingjay",q:"Name any one of Katniss's three Capitol prep-team members.",accept:["venia","octavia","flavius"],answer:"Venia, Octavia, or Flavius",explain:"Found chained and starving in District 13 for a minor infraction \u2014 a glimpse of the rebels' own cruelty."},
+{t:3,type:'write',src:"Mockingjay",q:"Who was Peeta's stylist (Cinna's counterpart), arrested and killed during the war?",accept:["portia"],answer:"Portia",explain:"She dressed Peeta in matching flame; like the prep teams, she pays a brutal price for proximity to the Mockingjay."},
+{t:3,type:'write',src:"Lore",q:"What were jabberjays originally created by the Capitol to do?",accept:["spy","spying","repeat conversations","memorize conversations","eavesdrop","record conversations","memorise conversations"],answer:"Spy \u2014 memorize and repeat human conversations",explain:"When rebels realized this and fed them lies, the Capitol abandoned them \u2014 and they bred with mockingbirds."},
+{t:3,type:'order',src:"Lore",q:"Put the origin of the mockingjay in the correct order.",seq:["The Capitol creates jabberjays to spy","Rebels feed the jabberjays false information","The Capitol abandons the jabberjays in the wild","Jabberjays breed with mockingbirds to make mockingjays"],answer:"Created → fed lies → abandoned → bred into mockingjays",explain:"A creature born from the Capitol's own failed weapon becomes the face of its undoing."},
+{t:3,type:'write',src:"Catching Fire",q:"The drug-addicted District 6 tributes in the Quell are known by what name?",accept:["morphlings","morphling"],answer:"The morphlings",explain:"One of them dies shielding Peeta from a monkey mutt, painting her last moments \u2014 she was an artist."},
+{t:3,type:'write',src:"Mockingjay",q:"Which former District 12 Peacekeeper, turned into a tongueless Avox, is found among the rebels?",accept:["darius"],answer:"Darius",explain:"Once a friendly red-haired guard, punished for mercy; his mute presence is one of the war's quiet horrors."},
+{t:3,type:'multi',src:"Mockingjay",q:"Which of these are members of Squad 451 sent into the Capitol? (Choose all that apply.)",options:["Boggs","Finnick","Gale","Peeta","Effie"],correct:["Boggs","Finnick","Gale","Peeta"],answer:"Boggs, Finnick, Gale, Peeta",explain:"Coin pointedly sends the still-unstable Peeta to the squad; Effie stays behind as Katniss's escort-in-exile."},
+{t:3,type:'write',src:"The Hunger Games",q:"What is the name of the goat Katniss bought for Prim?",accept:["lady"],answer:"Lady",explain:"Bought with her tracker-jacker winnings; the goat's milk and cheese become a small lifeline for the family."}
+];
+
+/* ============================================================
+   STATE + LOGIC
+   ============================================================ */
+const MAXHP=100, DMG=11;
+let state=null;
+
+const $=id=>document.getElementById(id);
+function show(sec){['start','game','end'].forEach(s=>$(s).classList.toggle('hide',s!==sec));}
+
+/* ---------- start screen flow ---------- */
+let chosenMode=null;
+let pickStage=0;   // for 2P: 0=p1 picking, 1=p2 picking
+let picks=[null,null];
+
+document.querySelectorAll('.mode').forEach(btn=>{
+  btn.onclick=()=>{
+    Sound.click();
+    chosenMode=btn.dataset.mode;
+    document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('sel',b===btn));
+    pickStage=0; picks=[null,null];
+    $('pickArea').classList.remove('hide');
+    renderPick();
+    $('pickArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+});
+
+function buildCharGrid(){
+  const grid=$('charGrid'); grid.innerHTML='';
+  CHARS.forEach(ch=>{
+    const el=document.createElement('button');
+    el.className='char';
+    el.style.setProperty('--cc',ch.c);
+    el.style.setProperty('--ccg',ch.g);
+    el.innerHTML=`<div class="ring" style="--cc:${ch.c};--ccg:${ch.g}">${ch.in}</div>
+      <div class="cn">${ch.name}</div>
+      <div class="ct">${ch.title}</div>
+      <div class="cp">${ch.power}</div>`;
+    el.onclick=()=>{
+      Sound.click();
+      picks[pickStage]=ch;
+      [...grid.children].forEach((c,i)=>c.classList.toggle('sel',CHARS[i].id===ch.id));
+      $('perkLine').innerHTML=`Ability — <b>${ch.perkName}</b>: ${PERKS[ch.perk].label}`;
+      renderStartActions();
+    };
+    grid.appendChild(el);
+  });
+}
+
+function renderPick(){
+  buildCharGrid();
+  $('perkLine').innerHTML='';
+  if(chosenMode==='1p'){
+    $('pickTitle').textContent='Choose Your Tribute';
+    $('pickSub').textContent='You will defy President Snow and the Capitol. Choose well — he does not forget, and he does not forgive.';
+  } else {
+    $('pickTitle').textContent= pickStage===0 ? 'Player 1 — Choose Your Tribute' : 'Player 2 — Choose Your Tribute';
+    $('pickSub').textContent='Each tribute brings their own strength and one signature skill.';
+  }
+  renderStartActions();
+}
+
+function renderStartActions(){
+  const wrap=$('startActions'); wrap.innerHTML='';
+  const cur=picks[pickStage];
+  if(chosenMode==='1p'){
+    const b=document.createElement('button');
+    b.className='btn'; b.textContent='Begin the Duel';
+    b.disabled=!cur;
+    if(!cur)b.setAttribute('disabled','');
+    b.onclick=()=>{ if(cur) startGame('1p',[cur,null]); };
+    wrap.appendChild(b);
+  } else {
+    if(pickStage===0){
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Lock In — Player 2 Chooses';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[0]){ pickStage=1; renderPick(); window.scrollTo({top:0,behavior:'smooth'});} };
+      wrap.appendChild(b);
+    } else {
+      const back=document.createElement('button');
+      back.className='btn btn-ghost'; back.textContent='Back';
+      back.onclick=()=>{ pickStage=0; renderPick(); };
+      const b=document.createElement('button');
+      b.className='btn'; b.textContent='Begin the Duel';
+      if(!cur)b.setAttribute('disabled','');
+      b.onclick=()=>{ if(picks[1]) startGame('2p',[picks[0],picks[1]]); };
+      wrap.appendChild(back); wrap.appendChild(b);
+    }
+  }
+}
+
+/* ---------- game setup ---------- */
+function startGame(mode,chars){
+  Sound.click();
+  const shadow={name:"President Snow", power:"The Capitol", c:"#e3849c", isShadow:true};
+  state={
+    mode,
+    served:0,          // questions presented (drives difficulty ramp)
+    used:new Set(),
+    correct:0, total:0,
+    turn:0,            // index of active player
+    answered:false,
+    current:null,
+    insightUsed:false,
+    players:[
+      makePlayer(chars[0]),
+      mode==='1p' ? makeShadow(shadow) : makePlayer(chars[1])
+    ]
+  };
+  // theme bars
+  applyBarTheme();
+  show('game');
+  nextQuestion();
+}
+function makePlayer(ch){
+  return {char:ch, name:ch.name, power:ch.power, hp:MAXHP, isShadow:false,
+          perk:ch.perk, perkName:ch.perkName, perkUsed:false,
+          shield:false, doubleNext:false};
+}
+function makeShadow(s){
+  return {char:s, name:s.name, power:s.power, hp:MAXHP, isShadow:true,
+          perk:null, perkUsed:true, shield:false, doubleNext:false};
+}
+
+function applyBarTheme(){
+  const p1=state.players[0];
+  document.documentElement.style.setProperty('--p1c',p1.char.c);
+  document.documentElement.style.setProperty('--p1c2',p1.char.c2||'#fff');
+  document.documentElement.style.setProperty('--p1g',p1.char.g);
+  $('n1').textContent=p1.name; $('pw1').textContent=p1.power;
+  const p2=state.players[1];
+  const f2=$('f2');
+  if(state.mode==='1p'){
+    $('n2').textContent="President Snow"; $('pw2').textContent="The Capitol";
+    f2.className='fill foe';
+  } else {
+    document.documentElement.style.setProperty('--p2c',p2.char.c);
+    document.documentElement.style.setProperty('--p2c2',p2.char.c2||'#fff');
+    document.documentElement.style.setProperty('--p2g',p2.char.g);
+    $('n2').textContent=p2.name; $('pw2').textContent=p2.power;
+    f2.className='fill p2';
+  }
+  updateBars(true);
+}
+
+function updateBars(instant){
+  const p1=state.players[0], p2=state.players[1];
+  $('f1').style.width=Math.max(0,p1.hp)+'%'; $('hp1').textContent=Math.max(0,p1.hp);
+  $('f2').style.width=Math.max(0,p2.hp)+'%'; $('hp2').textContent=Math.max(0,p2.hp);
+  if(state.mode==='2p'){
+    $('box1').classList.toggle('active',state.turn===0);
+    $('box2').classList.toggle('active',state.turn===1);
+  } else {
+    $('box1').classList.add('active'); $('box2').classList.remove('active');
+  }
+}
+
+/* ---------- difficulty ramp + draw ---------- */
+function allowedTiers(n){
+  if(n<1)  return [1];
+  if(n<3)  return [1,2];
+  if(n<5)  return [2];
+  if(n<7)  return [2,3];
+  return [3];
+}
+function drawQuestion(){
+  const tiers=allowedTiers(state.served);
+  let pool=BANK.filter((q,i)=>tiers.includes(q.t) && !state.used.has(i));
+  if(pool.length===0) pool=BANK.filter((q,i)=>!state.used.has(i));   // any unused
+  if(pool.length===0){ state.used.clear(); pool=BANK.slice(); }      // full reset (long games)
+  const idx=BANK.indexOf(pool[Math.floor(Math.random()*pool.length)]);
+  state.used.add(idx);
+  return {idx, q:BANK[idx]};
+}
+
+/* ---------- render a question ---------- */
+function nextQuestion(){
+  state.served++;
+  state.answered=false;
+  state.insightUsed=false;
+  const {q}=drawQuestion();
+  state.current=q;
+
+  // turn / progress text
+  const active=state.players[state.turn];
+  if(state.mode==='2p'){
+    $('turnTag').textContent=active.name+"'s turn";
+  } else {
+    $('turnTag').textContent="Your turn";
+  }
+  $('prog').textContent='Question '+state.served;
+
+  // tier pips + label
+  ['pip1','pip2','pip3'].forEach((p,i)=>$(p).classList.toggle('on', i<q.t));
+  $('tierLabel').textContent=['','Tribute','Victor','Mockingjay'][q.t];
+  $('srcTag').textContent=q.src?('— '+q.src):'';
+  $('qType').textContent= {mc:'Multiple Choice', write:'Write-In', order:'Put in Order', multi:'Choose All That Apply'}[q.type] || 'Question';
+  $('qText').textContent=q.q;
+
+  // reset feedback
+  $('feedback').classList.add('hide');
+  $('hintLine').classList.add('hide'); $('hintLine').textContent='';
+
+  // perk button
+  setupPerk();
+
+  // answer area — hide all, then render by type
+  const opts=$('opts'), ww=$('writeWrap'), ow=$('orderWrap'), mw=$('multiWrap');
+  opts.innerHTML=''; $('orderPool').innerHTML=''; $('multiOpts').innerHTML='';
+  [opts,ww,ow,mw].forEach(el=>el.classList.add('hide'));
+  state.orderPick=[]; state.multiPick=[];
+  const letters=['A','B','C','D','E','F','G','H'];
+  if(q.type==='mc'){
+    opts.classList.remove('hide');
+    shuffle(q.options.slice()).forEach((optText,i)=>{
+      const b=document.createElement('button');
+      b.className='opt'; b.dataset.val=optText;
+      b.innerHTML=`<span class="mark">${letters[i]}</span><span>${optText}</span>`;
+      b.onclick=()=>chooseMC(b,optText);
+      opts.appendChild(b);
+    });
+  } else if(q.type==='order'){
+    ow.classList.remove('hide');
+    $('orderSubmit').disabled=true; $('orderClear').disabled=false;
+    shuffle(q.seq.slice()).forEach(item=>{
+      const b=document.createElement('button');
+      b.className='orderchip'; b.dataset.item=item;
+      b.innerHTML=`<span class="seq"></span><span>${item}</span>`;
+      b.onclick=()=>pickOrder(b,item);
+      $('orderPool').appendChild(b);
+    });
+  } else if(q.type==='multi'){
+    mw.classList.remove('hide');
+    $('multiSubmit').disabled=true;
+    shuffle(q.options.slice()).forEach((optText,i)=>{
+      const b=document.createElement('button');
+      b.className='opt'; b.dataset.val=optText;
+      b.innerHTML=`<span class="mark">${letters[i]}</span><span>${optText}</span>`;
+      b.onclick=()=>toggleMulti(b,optText);
+      $('multiOpts').appendChild(b);
+    });
+  } else {
+    ww.classList.remove('hide');
+    const inp=$('writeInput'); inp.value=''; inp.disabled=false;
+    $('submitWrite').disabled=false;
+    inp.focus();
+  }
+  updateBars();
+  $('qText').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- perks ---------- */
+function setupPerk(){
+  const active=state.players[state.turn];
+  const btn=$('perkBtn'), desc=$('perkDesc');
+  if(active.isShadow || !active.perk){
+    $('perkBar').classList.add('hide'); return;
+  }
+  $('perkBar').classList.remove('hide');
+  btn.style.setProperty('--cc',active.char.c);
+  btn.style.setProperty('--ccg',active.char.g);
+  btn.textContent=active.perkName;
+  desc.textContent=PERKS[active.perk].label;
+  btn.disabled=active.perkUsed;
+  if(active.perkUsed){btn.setAttribute('disabled','');desc.textContent='Already spent this duel.';}
+  btn.onclick=()=>usePerk(active);
+}
+function usePerk(p){
+  if(p.perkUsed||state.answered)return;
+  Sound.perk();
+  const q=state.current;
+  if(p.perk==='heal'){
+    p.perkUsed=true;
+    p.hp=Math.min(MAXHP,p.hp+22);
+    updateBars();
+    floatText('+22', '#74c69d', state.turn===0);
+    flashFeedbackNote(p.perkName+': power restored.');
+  } else if(p.perk==='shield'){
+    p.perkUsed=true; p.shield=true;
+    flashFeedbackNote(p.perkName+': the next blow will be turned aside.');
+  } else if(p.perk==='power'){
+    p.perkUsed=true; p.doubleNext=true;
+    flashFeedbackNote(p.perkName+': your next true answer strikes for double.');
+  } else if(p.perk==='luck'){
+    p.perkUsed=true;
+    flashFeedbackNote(p.perkName+': you cast this question aside.');
+    setTimeout(()=>{ state.served--; nextQuestion(); }, 650);
+  } else if(p.perk==='insight'){
+    p.perkUsed=true; state.insightUsed=true;
+    if(q.type==='mc'){
+      const btns=[...$('opts').children].filter(b=>!b.classList.contains('faded'));
+      const wrong=btns.filter(b=>b.dataset.val!==q.answer);
+      shuffle(wrong);
+      wrong.slice(0,2).forEach(b=>{b.classList.add('faded');b.disabled=true;});
+    } else if(q.type==='order'){
+      $('hintLine').textContent=`✦ First in the sequence: “${q.seq[0]}”`;
+      $('hintLine').classList.remove('hide');
+    } else if(q.type==='multi'){
+      const wrongBtns=[...$('multiOpts').children].filter(b=>!q.correct.includes(b.dataset.val)&&!b.classList.contains('faded'));
+      shuffle(wrongBtns);
+      if(wrongBtns[0]){wrongBtns[0].classList.add('faded');wrongBtns[0].disabled=true;}
+      $('hintLine').textContent=`✦ ${q.correct.length} of these are correct`;
+      $('hintLine').classList.remove('hide');
+    } else {
+      const ans=q.answer.replace(/\(.*?\)/g,'').trim();
+      const first=ans[0];
+      const len=ans.replace(/[^A-Za-z']/g,'').length;
+      $('hintLine').textContent=`✦ Begins with “${first}” · about ${len} letters`;
+      $('hintLine').classList.remove('hide');
+      $('writeInput').focus();
+    }
+  }
+  setupPerk();
+}
+function flashFeedbackNote(msg){
+  const fb=$('feedback');
+  fb.classList.remove('hide');
+  $('verdict').className='verdict neutral';
+  $('verdict').textContent='✦ '+msg;
+  $('ansLine').textContent=''; $('explain').textContent='';
+  $('nextBtn').classList.add('hide');
+  // auto-hide the note region's next button; re-shown on real answer
+  setTimeout(()=>{ if(!state.answered){ fb.classList.add('hide'); $('nextBtn').classList.remove('hide'); } },1500);
+}
+
+/* ---------- answering ---------- */
+function chooseMC(btn,val){
+  if(state.answered)return;
+  const q=state.current;
+  const right = val===q.answer;
+  [...$('opts').children].forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.val===q.answer)b.classList.add('correct');
+    else if(b===btn && !right)b.classList.add('wrong');
+  });
+  resolve(right);
+}
+$('submitWrite').onclick=submitWrite;
+$('writeInput').addEventListener('keydown',e=>{ if(e.key==='Enter')submitWrite(); });
+function submitWrite(){
+  if(state.answered)return;
+  const q=state.current;
+  const val=$('writeInput').value;
+  if(!val.trim())return;
+  const right=matchWrite(val,q.accept);
+  $('writeInput').disabled=true; $('submitWrite').disabled=true;
+  resolve(right);
+}
+
+/* ---------- order question ---------- */
+function pickOrder(btn,item){
+  if(state.answered||btn.classList.contains('picked'))return;
+  state.orderPick.push(item);
+  btn.classList.add('picked');
+  btn.querySelector('.seq').textContent=state.orderPick.length;
+  Sound.click();
+  $('orderSubmit').disabled = state.orderPick.length!==state.current.seq.length;
+}
+$('orderClear').onclick=()=>{
+  if(state.answered)return;
+  state.orderPick=[];
+  [...$('orderPool').children].forEach(b=>{b.classList.remove('picked');b.querySelector('.seq').textContent='';});
+  $('orderSubmit').disabled=true;
+};
+$('orderSubmit').onclick=()=>{
+  if(state.answered)return;
+  const q=state.current;
+  const right = state.orderPick.length===q.seq.length && state.orderPick.every((v,i)=>v===q.seq[i]);
+  [...$('orderPool').children].forEach(b=>{
+    b.disabled=true;
+    const correctPos=q.seq.indexOf(b.dataset.item);
+    const gotPos=state.orderPick.indexOf(b.dataset.item);
+    b.classList.add(correctPos===gotPos?'correct':'wrong');
+  });
+  $('orderSubmit').disabled=true; $('orderClear').disabled=true;
+  resolve(right);
+};
+
+/* ---------- multi (choose all that apply) ---------- */
+function toggleMulti(btn,val){
+  if(state.answered)return;
+  const i=state.multiPick.indexOf(val);
+  if(i>=0){ state.multiPick.splice(i,1); btn.classList.remove('sel'); }
+  else { state.multiPick.push(val); btn.classList.add('sel'); }
+  Sound.click();
+  $('multiSubmit').disabled = state.multiPick.length===0;
+}
+$('multiSubmit').onclick=()=>{
+  if(state.answered)return;
+  const q=state.current;
+  const corr=q.correct.slice().sort(), got=state.multiPick.slice().sort();
+  const right = corr.length===got.length && corr.every((v,i)=>v===got[i]);
+  [...$('multiOpts').children].forEach(b=>{
+    b.disabled=true;
+    const inCorrect=q.correct.includes(b.dataset.val);
+    const chosen=state.multiPick.includes(b.dataset.val);
+    if(inCorrect)b.classList.add('correct'); else if(chosen)b.classList.add('wrong');
+  });
+  $('multiSubmit').disabled=true;
+  resolve(right);
+};
+
+/* lenient matching */
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/['’`._,]/g,'').replace(/[-]/g,' ')
+    .replace(/^the\s+/,'').replace(/\s+/g,' ').trim();
+}
+function lev(a,b){
+  const m=a.length,n=b.length;
+  if(!m)return n; if(!n)return m;
+  const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+  }
+  return d[m][n];
+}
+function matchWrite(input,accepted){
+  const ni=norm(input); if(!ni)return false;
+  const numsOf=s=>(s.match(/\d+/g)||[]);
+  const niNums=numsOf(ni);
+  for(const a of accepted){
+    const na=norm(a); if(!na)continue;
+    if(ni===na)return true;
+    // if either side carries numbers, the digits must agree exactly (no fuzzing 4↔1)
+    const naNums=numsOf(na);
+    const numsAgree = naNums.length===0 ? true
+      : (niNums.length===naNums.length && naNums.every((n,k)=>n===niNums[k]));
+    if(!numsAgree) continue;
+    if(na.length>=4 && ni.length>=4 && (ni.includes(na)||na.includes(ni)))return true;
+    const thr= na.length<=4?1 : na.length<=8?2 : 3;
+    if(lev(ni,na)<=thr)return true;
+    // token-level: any word in input matches a key word closely (skip generic stopwords)
+    const STOP=new Set(['district','the','of','games','hunger','quell','victor','lord','president']);
+    const iw=ni.split(' '), aw=na.split(' ');
+    for(const w of aw){ if(w.length>=4 && !STOP.has(w)){ for(const v of iw){ if(v.length>=4 && lev(v,w)<= (w.length<=6?1:2))return true; } } }
+  }
+  return false;
+}
+
+/* ---------- resolution + damage ---------- */
+function resolve(right){
+  state.answered=true;
+  state.total++;
+  const active=state.players[state.turn];
+  const oppIndex= state.mode==='1p' ? 1 : (state.turn===0?1:0);
+  const opp=state.players[oppIndex];
+
+  let verdictTxt, verdictCls;
+  if(right){
+    state.correct++;
+    let dmg=DMG;
+    if(active.doubleNext){ dmg*=2; active.doubleNext=false; }
+    if(opp.shield){ opp.shield=false; dmg=0; }
+    applyDamage(oppIndex,dmg);
+    Sound.correct();
+    if(dmg>DMG) verdictTxt='A perfect shot — double the damage!';
+    else if(dmg===0) verdictTxt='Correct — but your foe warded the blow.';
+    else verdictTxt= state.mode==='1p' ? 'Correct — Snow recoils.' : 'Correct — your rival staggers.';
+    verdictCls='good';
+  } else {
+    let dmg=DMG;
+    if(active.shield){ active.shield=false; dmg=0; }
+    applyDamage(state.turn,dmg);
+    Sound.wrong();
+    verdictTxt= dmg===0 ? 'Wrong — but you took cover.' : 'Wrong — the odds turn against you.';
+    verdictCls='bad';
+  }
+
+  const q=state.current;
+  const fb=$('feedback'); fb.classList.remove('hide');
+  $('verdict').className='verdict '+verdictCls;
+  $('verdict').textContent=(right?'✓ ':'✕ ')+verdictTxt;
+  let ansHtml='';
+  if(!right){
+    if(q.type==='order') ansHtml='Correct order: <b>'+q.seq.join(' → ')+'</b>';
+    else if(q.type==='multi') ansHtml='Correct: <b>'+q.correct.join(', ')+'</b>';
+    else ansHtml='The answer: <b>'+q.answer+'</b>';
+  }
+  $('ansLine').innerHTML = ansHtml;
+  $('explain').textContent=q.explain||'';
+  $('nextBtn').classList.remove('hide');
+
+  updateBars();
+
+  // win check
+  setTimeout(()=>{
+    if(state.players[0].hp<=0 || state.players[1].hp<=0){
+      $('nextBtn').textContent='The Odds Are Cast';
+      $('nextBtn').onclick=endGame;
+    } else {
+      $('nextBtn').textContent='Continue';
+      $('nextBtn').onclick=advance;
+    }
+  },50);
+}
+
+function applyDamage(idx,dmg){
+  if(dmg<=0){ floatText('covered','#e8682c'); return; }
+  state.players[idx].hp=Math.max(0,state.players[idx].hp-dmg);
+  // fx
+  document.querySelector('.wrap').classList.add('shake');
+  const hf=$('hitflash'); hf.classList.remove('go'); void hf.offsetWidth; hf.classList.add('go');
+  setTimeout(()=>document.querySelector('.wrap').classList.remove('shake'),500);
+  Sound.hit();
+  floatText('-'+dmg, idx===0?'#e07a6a':'#e7c873', idx===0);
+}
+
+function floatText(txt,color,leftSide){
+  const box = leftSide ? $('box1') : $('box2');
+  const r=box.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='float'; el.textContent=txt; el.style.color=color;
+  el.style.left=(r.left+r.width/2-12)+'px';
+  el.style.top=(r.top+8)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
+
+function advance(){
+  if(state.mode==='2p') state.turn=state.turn===0?1:0;
+  nextQuestion();
+}
+
+/* ---------- end ---------- */
+function endGame(){
+  const p1=state.players[0], p2=state.players[1];
+  let win; // human is player 0; they win if they still have power
+  win = p1.hp>0;
+  let winnerName;
+  if(state.mode==='2p'){
+    winnerName = p1.hp>0 ? p1.name : p2.name;
+  }
+
+  const end=$('end');
+  end.classList.remove('win','lose');
+
+  if(state.mode==='1p'){
+    end.classList.add(win?'win':'lose');
+    $('endKicker').textContent= win ? 'The Mockingjay Rises' : 'The Capitol Endures';
+    $('endTitle').textContent = win ? 'Victory' : 'Defeat';
+    $('endQuote').textContent = win
+      ? 'Snow falls, the arenas burn no more, and a meadow grows over the graves. You are still here.'
+      : 'The odds turned against you and the arena wins. But the Mockingjay always rises again \u2014 volunteer once more.';
+  } else {
+    end.classList.add('win');
+    $('endKicker').textContent='The Victor is Crowned';
+    $('endTitle').textContent=winnerName+' Prevails';
+    $('endQuote').textContent= (p1.hp>0?p1.name:p2.name)+' stands as the other\u2019s strength gives out. Let the trumpets sound \u2014 there can be only one victor.';
+  }
+
+  const acc = state.total? Math.round(100*state.correct/state.total):0;
+  $('stCorrect').textContent=state.correct;
+  $('stTotal').textContent=state.total;
+  $('stAcc').textContent=acc+'%';
+
+  (state.mode==='1p' && !win) ? Sound.lose() : Sound.win();
+  show('end');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+$('againBtn').onclick=()=>{
+  // replay with same champions + mode
+  const chars=[state.players[0].char, state.mode==='2p'?state.players[1].char:null];
+  startGame(state.mode,chars);
+};
+$('homeBtn').onclick=()=>{
+  chosenMode=null; pickStage=0; picks=[null,null];
+  document.querySelectorAll('.mode').forEach(b=>b.classList.remove('sel'));
+  $('pickArea').classList.add('hide');
+  show('start'); window.scrollTo({top:0,behavior:'smooth'});
+};
+$('nextBtn').onclick=advance;
+</script>
+</body>
+</html>
