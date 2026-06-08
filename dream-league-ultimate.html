@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DREAM LEAGUE · Europe Edition</title>
+<style>
+:root{
+  --bg:#0a0e1a;--bg2:#0f1626;--panel:#141d33;--panel2:#1b2742;--line:#26344f;
+  --ink:#eef3ff;--mut:#8294b8;--gold:#ffd24a;--green:#39d98a;--red:#ff5a6e;--blue:#4aa8ff;--accent:#39d98a;
+  --ucl:#0a1a4f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Arial Narrow","Helvetica Neue",Helvetica,Arial,sans-serif;
+  background:radial-gradient(1200px 600px at 80% -10%,rgba(57,217,138,.10),transparent 60%),radial-gradient(900px 500px at -10% 110%,rgba(74,168,255,.10),transparent 60%),var(--bg);
+  color:var(--ink);letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 80px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:14px 4px 20px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand .mark{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,var(--accent),#1f9e63);font-weight:900;font-size:24px;color:#04210f;box-shadow:0 8px 26px rgba(57,217,138,.35);transform:skewX(-7deg)}
+.brand .mark span{transform:skewX(7deg)}
+.brand h1{font-size:30px;font-weight:900;line-height:.9;text-transform:uppercase;letter-spacing:.04em}
+.brand .sub{color:var(--mut);font-size:12.5px;text-transform:uppercase;letter-spacing:.22em;margin-top:3px}
+.step-tag{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.22em;border:1px solid var(--line);padding:8px 14px;border-radius:999px}
+.screen{display:none;animation:fade .35s ease both}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.btn{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;font-size:16px;padding:15px 26px;transition:.15s}
+.btn-go{background:linear-gradient(145deg,var(--accent),#1f9e63);color:#04210f;width:100%;box-shadow:0 12px 30px rgba(57,217,138,.32)}
+.btn-go:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.btn-go:disabled{opacity:.4;cursor:not-allowed;filter:none;transform:none}
+.btn-ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--accent);color:#fff}
+.btn-gold{background:linear-gradient(145deg,var(--gold),#e0a800);color:#2a1d00;box-shadow:0 12px 30px rgba(255,210,74,.28)}
+.btn-gold:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.btn-gold:disabled{opacity:.4;cursor:not-allowed;filter:none;transform:none}
+.btn-sm{font-size:12px;padding:9px 14px;letter-spacing:.08em}
+.setup-card{max-width:780px;margin:24px auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.setup-card h2{font-size:26px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.setup-card p.lead{color:var(--mut);font-size:15px;margin-bottom:20px;line-height:1.5}
+label.fld{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:var(--mut);margin:18px 0 8px}
+.modepick{display:flex;gap:10px;flex-wrap:wrap}
+.modebtn{flex:1;min-width:150px;cursor:pointer;background:var(--bg2);border:1px solid var(--line);border-radius:13px;padding:14px 16px;transition:.12s}
+.modebtn:hover{border-color:var(--accent)}
+.modebtn.on{border-color:var(--accent);background:rgba(57,217,138,.10)}
+.modebtn .mt{font-weight:900;font-size:16px;text-transform:uppercase;letter-spacing:.04em}
+.modebtn .md{color:var(--mut);font-size:12px;margin-top:3px;line-height:1.35}
+.modebtn.on .mt{color:var(--accent)}
+.mgrcount{display:flex;gap:10px;flex-wrap:wrap}
+.cbtn{font-family:inherit;cursor:pointer;background:var(--bg2);border:1px solid var(--line);color:var(--mut);font-weight:900;font-size:15px;padding:12px 20px;border-radius:11px;transition:.12s}
+.cbtn:hover{color:var(--ink);border-color:var(--accent)}
+.cbtn.on{background:var(--accent);color:#04210f;border-color:var(--accent)}
+.mgrcfg{display:flex;flex-direction:column;gap:12px}
+.mgrrow{display:flex;gap:12px;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;flex-wrap:wrap}
+.mgrrow .num{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:900;color:#04210f;flex:none}
+.mgrrow input.name{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-size:17px;font-weight:800;padding:10px 12px;border-radius:9px;text-transform:uppercase;letter-spacing:.04em;font-family:inherit}
+.mgrrow input.name:focus{outline:none;border-color:var(--accent)}
+.mgrrow select{background:var(--panel);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:13px;padding:10px;border-radius:9px;max-width:160px}
+.mgrrow .swl{display:flex;gap:6px}
+.swl .sw{width:26px;height:26px;border-radius:7px;cursor:pointer;border:2px solid transparent}
+.swl .sw.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.repl-lbl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.14em}
+.bar-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.crest{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:13px;flex:none}
+.turnbanner{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-left-width:5px;border-radius:12px;padding:10px 16px}
+.turnbanner .who{font-size:19px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.turnbanner .rd{margin-left:auto;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.18em}
+.mgrchips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px}
+.chip.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.chip .cdot{width:12px;height:12px;border-radius:4px;flex:none}
+.chip .cn{font-weight:800;text-transform:uppercase}
+.chip .cc{color:var(--mut);font-variant-numeric:tabular-nums}
+.tracker{display:flex;gap:8px;flex-wrap:wrap}
+.trk{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;min-width:64px}
+.trk .l{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.16em}
+.trk .v{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums}
+.trk.met{border-color:var(--green)}.trk.met .v{color:var(--green)}
+.trk.over .v{color:var(--gold)}
+.grid{display:grid;grid-template-columns:290px 1fr;gap:16px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.clublist{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;max-height:64vh;overflow:auto}
+.clubrow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:.12s;border:1px solid transparent}
+.clubrow:hover{background:var(--panel2)}
+.clubrow.sel{background:var(--panel2);border-color:var(--accent)}
+.clubrow .nm{flex:1;font-weight:700;font-size:14px;text-transform:uppercase}
+.clubrow .pick{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;text-align:right;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clubrow.done .pick{color:var(--accent);font-weight:700}
+.tick{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);flex:none;display:grid;place-items:center;font-size:11px;font-weight:900}
+.clubrow.done .tick{background:var(--accent);border-color:var(--accent);color:#04210f}
+.rpanel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;min-height:320px}
+.rpanel .ph{display:grid;place-items:center;height:280px;color:var(--mut);text-align:center;font-size:15px;text-transform:uppercase;letter-spacing:.12em}
+.sp-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sp-head .nm{font-size:20px;font-weight:900;text-transform:uppercase}
+.sp-head .meta{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.12em;margin-top:2px}
+.players{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(max-width:520px){.players{grid-template-columns:1fr}}
+.pl{display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;transition:.12s}
+.pl:hover{border-color:var(--accent);transform:translateY(-1px)}
+.pl.gone{opacity:.32;cursor:not-allowed;text-decoration:line-through}
+.pl.gone:hover{transform:none;border-color:var(--line)}
+.role{font-size:9.5px;font-weight:900;color:#04210f;background:var(--mut);width:34px;text-align:center;border-radius:6px;padding:3px 0;flex:none}
+.role.DEF{background:#4aa8ff}.role.MID{background:#39d98a}.role.FWD{background:#ffd24a}.role.GK{background:#ff9f43}
+.pl .pn{flex:1;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ovr{font-weight:900;font-size:15px;width:30px;text-align:center;border-radius:7px;padding:2px 0;flex:none}
+.ovr.t1{background:#1f9e63;color:#04210f}.ovr.t2{background:#3a7a55;color:#dffbed}.ovr.t3{background:#3a4a6b;color:#dbe6ff}.ovr.t4{background:#2a3550;color:#aebdd9}
+.takenby{margin-left:auto;font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:5px;flex:none;color:#04210f}
+.lineup-grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
+@media(max-width:900px){.lineup-grid{grid-template-columns:1fr}}
+.pitchcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.formrow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.formrow .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.18em;width:100%;margin-bottom:2px}
+.fbtn{font-family:inherit;cursor:pointer;background:var(--bg2);border:1px solid var(--line);color:var(--mut);font-weight:800;font-size:12.5px;padding:7px 10px;border-radius:9px;transition:.12s}
+.fbtn:hover{color:var(--ink);border-color:var(--accent)}
+.fbtn.on{background:var(--accent);color:#04210f;border-color:var(--accent)}
+.pitch{position:relative;width:100%;aspect-ratio:3/4;max-height:580px;border-radius:14px;overflow:hidden;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 8.33%,rgba(255,255,255,0) 8.33% 16.66%),linear-gradient(180deg,#11502f,#0c3f25);border:2px solid rgba(255,255,255,.12)}
+.pitch .mark{position:absolute;border:2px solid rgba(255,255,255,.18)}
+.pitch .circle{width:30%;aspect-ratio:1;border-radius:50%;left:35%;top:calc(50% - 15%)}
+.pitch .halfway{left:5%;top:50%;height:0;border-width:1px 0 0 0;width:90%}
+.pitch .box{left:25%;width:50%;height:13%}
+.pitch .box.top{top:0}.pitch .box.bot{bottom:0}
+.slot{position:absolute;transform:translate(-50%,-50%);width:74px;cursor:pointer;text-align:center;z-index:2;overflow:visible}
+.slot .shirt{width:46px;height:46px;margin:0 auto;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:13px;background:rgba(10,14,26,.55);border:2px dashed rgba(255,255,255,.35);color:rgba(255,255,255,.6);transition:.12s}
+.slot.filled .shirt{border-style:solid}
+.slot.sel .shirt{box-shadow:0 0 0 3px var(--gold);border-color:var(--gold)}
+.slot.oop .shirt{border-color:var(--gold)}
+.slot .nm{font-size:10px;font-weight:800;margin:4px auto 0;line-height:1.06;color:#fff;width:92px;margin-left:-9px;white-space:normal;max-height:23px;overflow:hidden;text-shadow:0 1px 2px #000,0 0 5px rgba(0,0,0,.7);letter-spacing:.1px}
+.slot .badge{position:absolute;top:-6px;right:4px;font-size:10px;font-weight:900;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 4px}
+.slot .rl{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;color:rgba(255,255,255,.6)}
+.slot.filled .rl{color:rgba(255,255,255,.85)}
+.slot .oopwarn{position:absolute;top:-6px;left:4px;font-size:11px;color:var(--gold)}
+.lu-side{display:flex;flex-direction:column;gap:12px}
+.minibar{display:flex;gap:8px}
+.str-pill{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 14px;text-align:center;flex:1}
+.str-pill .lab{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.2em}
+.str-pill .val{font-size:22px;font-weight:900;color:var(--accent);line-height:1}
+.squadbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;max-height:560px}
+.squadbox h4{font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:var(--mut);padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.squadscroll{overflow:auto;padding:8px}
+.srow{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:9px;cursor:pointer;border:1px solid transparent;transition:.12s;margin-bottom:3px}
+.srow:hover{background:var(--panel2);border-color:var(--line)}
+.srow.inxi{background:rgba(57,217,138,.10);border-color:rgba(57,217,138,.4)}
+.srow .mini{width:30px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:9px;font-weight:900;flex:none}
+.srow .pn{flex:1;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .tag{font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:5px;flex:none}
+.srow .tag.xi{background:var(--accent);color:#04210f}.srow .tag.bn{background:var(--panel2);color:var(--mut);border:1px solid var(--line)}
+.lu-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.hint{color:var(--mut);font-size:12px;line-height:1.5;margin:0}
+/* RESULTS */
+.season-banner{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.season-banner .yr{font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.season-banner .yr b{color:var(--gold)}
+.mgrcards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.mgrcard{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);border-left-width:5px;border-radius:14px;padding:16px 18px}
+.mgrcard .mn{font-size:17px;font-weight:900;text-transform:uppercase}
+.mgrcard .line{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13.5px}
+.mgrcard .line .k{color:var(--mut);text-transform:uppercase;font-size:10px;letter-spacing:.14em;width:54px}
+.mgrcard .pos{font-weight:900}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tab{font-family:inherit;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--mut);font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:.08em;padding:10px 18px;border-radius:11px}
+.tab.on{background:var(--accent);color:#04210f;border-color:var(--accent)}
+.tabpane{display:none}.tabpane.on{display:block}
+.res-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+@media(max-width:900px){.res-grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card h4{font-size:13px;text-transform:uppercase;letter-spacing:.2em;color:var(--mut);padding:14px 16px;border-bottom:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:7px 7px;font-size:13px;text-align:center}
+th{color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;border-bottom:1px solid var(--line)}
+td.team{text-align:left;font-weight:700}
+td.pos{font-weight:900;width:28px}
+tr.mgr td{color:#fff}tr.mgr td.team{font-weight:900}
+.zone-champ td.pos{color:var(--gold)}.zone-ucl td.pos{color:var(--blue)}.zone-rel td.pos{color:var(--red)}
+.barbadge{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:7px;vertical-align:middle}
+.logtabs{display:flex;gap:6px;padding:10px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.ltab{font-family:inherit;cursor:pointer;background:var(--bg2);border:1px solid var(--line);color:var(--mut);font-weight:800;font-size:12px;padding:6px 11px;border-radius:8px}
+.ltab.on{color:#04210f}
+.log{max-height:430px;overflow:auto}
+.logsec{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.16em;padding:9px 14px 5px;background:var(--bg2)}
+.logrow{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.logrow .ha{font-size:10px;color:var(--mut);width:16px;text-transform:uppercase;font-weight:800}
+.logrow .opp{flex:1;font-weight:600}
+.logrow .sc{font-weight:900;width:46px;text-align:center}
+.logrow .agg{font-size:10px;color:var(--mut);width:62px;text-align:right}
+.logrow .rs{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:900;flex:none}
+.rs.W{background:var(--green);color:#04210f}.rs.D{background:#46557a;color:#fff}.rs.L{background:var(--red);color:#2a0006}
+.chartwrap{padding:14px}
+.chartwrap svg{width:100%;height:auto;display:block}
+.chip-legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 12px;font-size:11px;color:var(--mut)}
+.chip-legend span{display:flex;align-items:center;gap:6px}
+.chip-legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+/* CL groups */
+.groups{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px}
+@media(max-width:760px){.groups{grid-template-columns:repeat(2,1fr)}}
+.grp{background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.grp .gh{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);padding:7px 9px;border-bottom:1px solid var(--line)}
+.grp table td{padding:4px 6px;font-size:11.5px;text-align:center}
+.grp td.gt{text-align:left;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:96px}
+.grp tr.adv td{color:var(--green)}
+.grp tr.mgr td{color:#fff;font-weight:900}
+/* bracket */
+.bracket{display:flex;gap:18px;overflow-x:auto;padding:16px}
+.bround{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:160px}
+.bround .rh{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.14em;text-align:center;margin-bottom:2px}
+.btie{background:var(--bg2);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.btie.hasmgr{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,210,74,.4)}
+.bteam{display:flex;align-items:center;gap:7px;padding:6px 8px;font-size:12px;font-weight:700}
+.bteam:first-child{border-bottom:1px solid var(--line)}
+.bteam .bd{width:9px;height:9px;border-radius:2px;flex:none}
+.bteam .bn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bteam .bs{font-weight:900;font-variant-numeric:tabular-nums}
+.bteam.win .bn{color:var(--green)}.bteam.win .bs{color:var(--green)}
+.bteam.mgrt{background:rgba(255,210,74,.08)}
+.btie .pen{font-size:9px;color:var(--gold);text-align:center;padding:2px;text-transform:uppercase;letter-spacing:.08em}
+.champ-box{background:linear-gradient(145deg,rgba(255,210,74,.16),transparent);border:1px solid var(--gold);border-radius:10px;padding:12px;text-align:center;align-self:center}
+.champ-box .ct{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.2em}
+.champ-box .cn{font-size:16px;font-weight:900;margin-top:4px}
+/* history */
+.histwrap{padding:8px}
+.histwrap table th,.histwrap table td{text-align:center;padding:9px 8px}
+.histwrap td.yr{font-weight:900;color:var(--gold)}
+.histwrap td.r-win{color:var(--gold);font-weight:900}
+.histwrap td.r-good{color:var(--green);font-weight:700}
+.histwrap td.r-mid{color:var(--ink)}
+.histwrap td.r-bad{color:var(--red)}
+.res-actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+.note{color:var(--mut);font-size:12px;margin-top:14px;line-height:1.5}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;padding:10px 16px}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:2px}
+.qual{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.qualpill{display:inline-block;font-size:10px;font-weight:900;padding:2px 8px;border-radius:6px;letter-spacing:.05em}
+.q-CL{background:rgba(74,168,255,.18);color:#9fd0ff}
+.q-EL{background:rgba(255,140,66,.20);color:#ffc09a}
+.q-ECL{background:rgba(57,217,138,.16);color:#9fe9c4}
+.q-none{background:var(--panel2);color:var(--mut)}
+.comp-banner{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.16em;padding:12px 16px 0}
+.comp-banner b{color:var(--ink)}
+.cabinet{display:flex;gap:12px;flex-wrap:wrap;padding:14px}
+.cabcard{flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--line);border-left-width:4px;border-radius:11px;padding:12px 14px}
+.cabname{font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px}
+.cabitems{display:flex;flex-direction:column;gap:4px}
+.trophy{font-size:12px;color:var(--ink)}
+.trophy b{color:var(--gold);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="mark"><span>DL</span></div>
+      <div><h1>Dream League</h1><div class="sub">Europe Edition · Raid the Continent</div></div></div>
+    <div class="step-tag" id="stepTag">Step 1 — Set Up</div>
+  </header>
+
+  <!-- SETUP -->
+  <section class="screen active" id="setup">
+    <div class="setup-card">
+      <h2>Build your European super-club</h2>
+      <p class="lead">Draft one star from each of 20 top European clubs, take over any Premier League club you like, and choose your battleground. In a multi-manager draft you take turns and <b>no player can be picked twice</b>. Aim for <b>2 GK · 6 DEF · 6 MID · 6 FWD</b> (a tracker keeps count).</p>
+      <label class="fld">Competition</label>
+      <div class="modepick" id="modePick"></div>
+      <label class="fld">Number of managers</label>
+      <div class="mgrcount" id="mgrCount"></div>
+      <label class="fld">Managers — name, colour & the PL club you take over</label>
+      <div class="mgrcfg" id="mgrCfg"></div>
+      <button class="btn btn-go" id="startBtn" style="margin-top:26px">Start the draft →</button>
+      <div id="setupLoadRow" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
+    </div>
+  </section>
+
+  <!-- DRAFT -->
+  <section class="screen" id="draft">
+    <div class="turnbanner" id="turnBanner">
+      <div class="crest" id="turnCrest">P1</div>
+      <div class="who" id="turnWho">Manager 1</div>
+      <div class="rd" id="turnRound">Round 1 / 20</div>
+    </div>
+    <div class="mgrchips" id="mgrChips"></div>
+    <div class="bar-head" style="margin-bottom:12px">
+      <div class="tracker" id="trackerD"></div>
+      <button class="btn btn-gold btn-sm" id="undoBtn" style="margin-left:auto">↶ Undo last pick</button>
+    </div>
+    <div class="grid">
+      <div class="clublist" id="clubList"></div>
+      <div class="rpanel" id="rpanel"><div class="ph">Select a club on the left<br>to see who's still available</div></div>
+    </div>
+  </section>
+
+  <!-- LINE-UP -->
+  <section class="screen" id="lineup">
+    <div class="turnbanner" id="luBanner">
+      <div class="crest" id="luCrest">P1</div>
+      <div class="who" id="luWho">Manager 1 — Set Line-up</div>
+      <div class="rd" id="luProg">1 / 1</div>
+    </div>
+    <div class="bar-head" style="margin:14px 0">
+      <div class="minibar" style="flex:1;min-width:260px;max-width:520px">
+        <div class="str-pill"><div class="lab">Starting XI</div><div class="val" id="xiVal">—</div></div>
+        <div class="str-pill"><div class="lab">Bench depth</div><div class="val" id="depthVal" style="color:var(--blue)">—</div></div>
+        <div class="str-pill"><div class="lab">Selected</div><div class="val" id="xiCount" style="color:var(--gold)">0/11</div></div>
+      </div>
+      <button class="btn btn-gold" id="confirmLuBtn" disabled>Confirm line-up →</button>
+    </div>
+    <div class="lineup-grid">
+      <div class="pitchcard">
+        <div class="formrow"><span class="lbl">Formation</span><span id="formBtns"></span></div>
+        <div class="pitch" id="pitch"></div>
+        <div class="lu-actions">
+          <button class="btn btn-ghost btn-sm" id="autoBtn">⚡ Auto-pick best XI</button>
+          <button class="btn btn-ghost btn-sm" id="clearBtn">✕ Clear</button>
+          <span class="hint">Tap a squad player to drop him into the best open slot, or tap a slot then a player. Tap a pitch player to bench him. Gold ring = out of role. This XI is used in every competition.</span>
+        </div>
+      </div>
+      <div class="lu-side">
+        <div class="squadbox"><h4><span>Your Squad</span><span id="squadCount" style="color:var(--accent)">20</span></h4>
+          <div class="squadscroll" id="squadScroll"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="results">
+    <div class="season-banner"><div class="yr" id="seasonYr">Season <b>1</b></div></div>
+    <div class="mgrcards" id="mgrCards"></div>
+    <div class="tabs" id="resTabs"></div>
+    <div id="resPanes"></div>
+
+    <div class="res-actions">
+      <button class="btn btn-gold" id="nextSeasonBtn">▶ Play next season</button>
+      <button class="btn btn-ghost" id="resimBtn">↻ Re-sim this season</button>
+      <button class="btn btn-ghost" id="editLuBtn">← Edit line-ups</button>
+      <button class="btn btn-ghost" id="saveBtn">💾 Save game</button>
+      <button class="btn btn-ghost" id="loadBtn">📂 Load game</button>
+      <button class="btn btn-ghost" id="newBtn">New game</button>
+    </div>
+    <input type="file" id="loadFile" accept="application/json,.json" style="display:none">
+    <p class="note">Each season re-runs with fresh variance and a rotating European field. Where you finish decides which European competition you're in next year — top 5 the Champions League, 6th–7th the Europa League, 8th the Conference League — and winning a cup can promote you. Your full record builds up in the History tab.</p>
+  </section>
+</div>
+<script>
+/* ============================================================
+   EUROPEAN DRAFT POOL — 20 clubs, one star drafted from each.
+   Roles: GK | RB CB LB | CDM CM CAM | LW ST RW   (editable)
+   Best reconstruction of 2025–26 squads & FIFA-style overalls.
+   Players who moved to the Premier League pool are intentionally
+   absent here (e.g. Wirtz/Frimpong→LIV, Šeško→MUN, Donnarumma→MCI).
+   ============================================================ */
+const EURO = [
+ {id:"RMA",name:"Real Madrid",c1:"#FEBE10",c2:"#00529F",country:"ESP",squad:[
+  ["Thibaut Courtois","GK",89],["Andriy Lunin","GK",80],
+  ["Dani Carvajal","RB",84],["Éder Militão","CB",85],["Antonio Rüdiger","CB",85],["Dean Huijsen","CB",82],
+  ["David Alaba","CB",81],["Ferland Mendy","LB",82],["Fran García","LB",78],["Álvaro Carreras","LB",80],
+  ["Aurélien Tchouaméni","CDM",85],["Federico Valverde","CM",87],["Jude Bellingham","CAM",88],
+  ["Eduardo Camavinga","CM",84],["Arda Güler","CAM",82],["Dani Ceballos","CM",80],
+  ["Kylian Mbappé","ST",91],["Vinícius Júnior","LW",89],["Rodrygo","RW",85],["Brahim Díaz","RW",82],["Endrick","ST",79]
+ ]},
+ {id:"BAR",name:"Barcelona",c1:"#A50044",c2:"#004D98",country:"ESP",squad:[
+  ["Marc-André ter Stegen","GK",86],["Joan García","GK",82],
+  ["Jules Koundé","RB",84],["Pau Cubarsí","CB",83],["Ronald Araújo","CB",83],["Iñigo Martínez","CB",82],
+  ["Alejandro Balde","LB",82],["Eric García","CB",78],["Andreas Christensen","CB",78],
+  ["Pedri","CM",88],["Frenkie de Jong","CM",85],["Gavi","CM",82],["Marc Casadó","CDM",79],
+  ["Fermín López","CAM",79],["Dani Olmo","CAM",84],
+  ["Robert Lewandowski","ST",86],["Lamine Yamal","RW",89],["Raphinha","LW",87],["Ferran Torres","ST",80],["Marcus Rashford","LW",80]
+ ]},
+ {id:"BAY",name:"Bayern Munich",c1:"#DC052D",c2:"#ffffff",country:"GER",squad:[
+  ["Manuel Neuer","GK",86],["Jonas Urbig","GK",77],
+  ["Konrad Laimer","RB",80],["Dayot Upamecano","CB",85],["Kim Min-jae","CB",83],["Jonathan Tah","CB",83],
+  ["Alphonso Davies","LB",84],["Josip Stanišić","RB",79],["Hiroki Itō","CB",78],
+  ["Joshua Kimmich","CM",87],["Leon Goretzka","CM",82],["Aleksandar Pavlović","CDM",81],
+  ["Jamal Musiala","CAM",87],["Michael Olise","RW",85],["Serge Gnabry","RW",81],["Kingsley Coman","LW",82],
+  ["Harry Kane","ST",90],["Mathys Tel","ST",78],["Lennart Karl","CAM",74]
+ ]},
+ {id:"PSG",name:"Paris Saint-Germain",c1:"#004170",c2:"#DA291C",country:"FRA",squad:[
+  ["Lucas Chevalier","GK",83],["Matvey Safonov","GK",79],
+  ["Achraf Hakimi","RB",86],["Marquinhos","CB",85],["Willian Pacho","CB",84],["Illya Zabarnyi","CB",82],
+  ["Nuno Mendes","LB",85],["Lucas Hernández","CB",81],
+  ["Vitinha","CM",87],["João Neves","CM",85],["Fabián Ruiz","CM",84],["Warren Zaïre-Emery","CM",80],["Kang-in Lee","CAM",80],
+  ["Ousmane Dembélé","RW",88],["Khvicha Kvaratskhelia","LW",86],["Bradley Barcola","LW",83],
+  ["Désiré Doué","RW",83],["Gonçalo Ramos","ST",81]
+ ]},
+ {id:"INT",name:"Inter Milan",c1:"#0068A8",c2:"#000000",country:"ITA",squad:[
+  ["Yann Sommer","GK",84],["Josep Martínez","GK",77],
+  ["Benjamin Pavard","CB",82],["Alessandro Bastoni","CB",85],["Francesco Acerbi","CB",81],["Stefan de Vrij","CB",80],
+  ["Federico Dimarco","LB",84],["Denzel Dumfries","RB",83],["Carlos Augusto","LB",79],
+  ["Nicolò Barella","CM",86],["Hakan Çalhanoğlu","CDM",85],["Henrikh Mkhitaryan","CM",81],
+  ["Davide Frattesi","CM",80],["Petar Sučić","CM",78],["Piotr Zieliński","CAM",80],
+  ["Lautaro Martínez","ST",87],["Marcus Thuram","ST",85],["Francesco Pio Esposito","ST",76],["Ange-Yoan Bonny","ST",77]
+ ]},
+ {id:"ATM",name:"Atlético Madrid",c1:"#CB3524",c2:"#172E61",country:"ESP",squad:[
+  ["Jan Oblak","GK",87],["Juan Musso","GK",77],
+  ["Marcos Llorente","RB",83],["José María Giménez","CB",84],["Robin Le Normand","CB",82],["Clément Lenglet","CB",79],
+  ["David Hancko","LB",81],["Nahuel Molina","RB",80],["Javi Galán","LB",78],
+  ["Pablo Barrios","CDM",81],["Rodrigo De Paul","CM",83],["Koke","CM",80],["Conor Gallagher","CM",80],["Álex Baena","CAM",81],
+  ["Julián Álvarez","ST",87],["Antoine Griezmann","CAM",85],["Alexander Sørloth","ST",81],["Giuliano Simeone","RW",79]
+ ]},
+ {id:"LEV",name:"Bayer Leverkusen",c1:"#E32221",c2:"#000000",country:"GER",squad:[
+  ["Lukáš Hrádecký","GK",82],["Mark Flekken","GK",78],
+  ["Edmond Tapsoba","CB",83],["Piero Hincapié","CB",82],["Jarell Quansah","CB",78],["Loïc Badé","CB",80],
+  ["Alejandro Grimaldo","LB",84],["Arthur","RB",76],
+  ["Robert Andrich","CDM",80],["Exequiel Palacios","CM",81],["Aleix García","CM",80],["Claudio Echeverri","CAM",77],
+  ["Patrik Schick","ST",83],["Victor Boniface","ST",80],["Nathan Tella","RW",79],["Yağız Adlı","CAM",78],["Jonas Hofmann","RW",78]
+ ]},
+ {id:"NAP",name:"Napoli",c1:"#12A0D7",c2:"#ffffff",country:"ITA",squad:[
+  ["Alex Meret","GK",82],["Vanja Milinković-Savić","GK",80],
+  ["Giovanni Di Lorenzo","RB",83],["Amir Rrahmani","CB",82],["Alessandro Buongiorno","CB",83],["Sam Beukema","CB",80],
+  ["Mathías Olivera","LB",80],["Leonardo Spinazzola","LB",78],
+  ["Stanislav Lobotka","CDM",84],["Frank Anguissa","CM",83],["Kevin De Bruyne","CAM",87],["Scott McTominay","CM",83],["Billy Gilmour","CM",78],
+  ["Romelu Lukaku","ST",82],["Rasmus Højlund","ST",80],["Matteo Politano","RW",80],["David Neres","RW",81]
+ ]},
+ {id:"MIL",name:"AC Milan",c1:"#FB090B",c2:"#000000",country:"ITA",squad:[
+  ["Mike Maignan","GK",85],["Pietro Terracciano","GK",74],
+  ["Fikayo Tomori","CB",81],["Strahinja Pavlović","CB",80],["Matteo Gabbia","CB",79],["Emerson Royal","RB",78],["Davide Bartesaghi","LB",74],
+  ["Luka Modrić","CM",82],["Youssouf Fofana","CDM",81],["Ruben Loftus-Cheek","CM",79],["Samuele Ricci","CM",79],["Alexis Saelemaekers","RW",78],
+  ["Rafael Leão","LW",85],["Christian Pulisic","RW",84],["Christopher Nkunku","ST",82],["Santiago Giménez","ST",80],["Samuel Chukwueze","RW",78]
+ ]},
+ {id:"DOR",name:"Borussia Dortmund",c1:"#FDE100",c2:"#000000",country:"GER",squad:[
+  ["Gregor Kobel","GK",84],["Alexander Meyer","GK",74],
+  ["Nico Schlotterbeck","CB",83],["Waldemar Anton","CB",80],["Niklas Süle","CB",79],["Yan Couto","RB",79],
+  ["Ramy Bensebaini","LB",79],["Julian Ryerson","RB",77],
+  ["Marcel Sabitzer","CM",80],["Julian Brandt","CAM",82],["Pascal Groß","CM",78],["Salih Özcan","CDM",78],["Jobe Bellingham","CM",77],
+  ["Serhou Guirassy","ST",84],["Karim Adeyemi","LW",81],["Maximilian Beier","ST",78],["Carney Chukwuemeka","CM",76]
+ ]},
+ {id:"JUV",name:"Juventus",c1:"#000000",c2:"#ffffff",country:"ITA",squad:[
+  ["Michele Di Gregorio","GK",82],["Mattia Perin","GK",76],
+  ["Gleison Bremer","CB",84],["Federico Gatti","CB",80],["Pierre Kalulu","RB",80],["Lloyd Kelly","CB",78],
+  ["Andrea Cambiaso","LB",82],["Filip Kostić","LB",77],
+  ["Manuel Locatelli","CDM",81],["Khéphren Thuram","CM",81],["Teun Koopmeiners","CM",80],["Weston McKennie","CM",79],["Kenan Yıldız","CAM",82],
+  ["Dušan Vlahović","ST",83],["Jonathan David","ST",81],["Loïs Openda","ST",80],["Francisco Conceição","RW",80],["Nicolás González","RW",80]
+ ]},
+ {id:"RBL",name:"RB Leipzig",c1:"#DD0741",c2:"#001F47",country:"GER",squad:[
+  ["Péter Gulácsi","GK",82],["Maarten Vandevoordt","GK",76],
+  ["Willi Orbán","CB",81],["Castello Lukeba","CB",81],["David Raum","LB",81],["Lukas Klostermann","RB",77],["Benjamin Henrichs","RB",77],
+  ["Nicolas Seiwald","CDM",78],["Xaver Schlager","CM",79],["Christoph Baumgartner","CAM",79],["Amadou Haïdara","CM",78],["Kevin Kampl","CM",76],
+  ["Antonio Nusa","LW",79],["Conrad Harder","ST",77],["Romulo","ST",76],["Yussuf Poulsen","ST",75],["Ezechiel Banzuzi","CM",75]
+ ]},
+ {id:"ATH",name:"Athletic Bilbao",c1:"#EE2523",c2:"#ffffff",country:"ESP",squad:[
+  ["Unai Simón","GK",85],["Julen Agirrezabala","GK",77],
+  ["Dani Vivian","CB",81],["Aitor Paredes","CB",79],["Andoni Gorosabel","RB",78],["Yuri Berchiche","LB",78],["Iñigo Lekue","LB",75],["Jon de Marcos","RB",74],
+  ["Mikel Jauregizar","CDM",78],["Iñigo Ruiz de Galarreta","CM",77],["Oihan Sancet","CAM",81],["Mikel Vesga","CDM",76],
+  ["Nico Williams","LW",84],["Iñaki Williams","RW",81],["Gorka Guruzeta","ST",79],["Álex Berenguer","LW",78],["Maroan Sannadi","ST",75]
+ ]},
+ {id:"BEN",name:"Benfica",c1:"#E40521",c2:"#ffffff",country:"POR",squad:[
+  ["Anatoliy Trubin","GK",82],["Samuel Soares","GK",73],
+  ["António Silva","CB",80],["Nicolás Otamendi","CB",80],["Tomás Araújo","CB",78],["Samuel Dahl","LB",76],["Issa Kaboré","RB",76],
+  ["Florentino Luís","CDM",80],["Fredrik Aursnes","CM",79],["Orkun Kökçü","CM",81],["Richard Ríos","CM",79],["Enzo Barrenechea","CM",77],
+  ["Vangelis Pavlidis","ST",80],["Ángel Di María","RW",80],["Kerem Aktürkoğlu","LW",78],["Andreas Schjelderup","LW",77],["Franjo Ivanović","ST",76]
+ ]},
+ {id:"SPO",name:"Sporting CP",c1:"#008057",c2:"#ffffff",country:"POR",squad:[
+  ["Rui Silva","GK",80],["Vladan Kovačević","GK",76],
+  ["Gonçalo Inácio","CB",81],["Ousmane Diomande","CB",80],["Jeremiah St. Juste","CB",78],["Iván Fresneda","RB",76],["Maximiliano Araújo","LB",76],
+  ["Morten Hjulmand","CDM",82],["Hidemasa Morita","CM",79],["Pedro Gonçalves","CAM",82],["João Simões","CM",75],
+  ["Francisco Trincão","RW",81],["Luis Suárez","ST",80],["Fotis Ioannidis","ST",78],["Geny Catamo","RW",76],["Geovany Quenda","RW",77]
+ ]},
+ {id:"POR",name:"FC Porto",c1:"#00428C",c2:"#ffffff",country:"POR",squad:[
+  ["Diogo Costa","GK",84],["Cláudio Ramos","GK",73],
+  ["Nehuén Pérez","CB",78],["Jan Bednarek","CB",78],["Zaidu Sanusi","LB",76],["Martim Fernandes","RB",75],["Francisco Moura","LB",74],
+  ["Stephen Eustáquio","CDM",78],["Gabri Veiga","CM",80],["Alan Varela","CM",78],["Tomás Pérez","CM",75],
+  ["Samu Aghehowa","ST",80],["Pepê","RW",80],["Borja Sainz","LW",78],["Ângel Gomes","CAM",78],["William Gomes","RW",75]
+ ]},
+ {id:"PSV",name:"PSV Eindhoven",c1:"#EE2724",c2:"#ffffff",country:"NED",squad:[
+  ["Joël Drommel","GK",75],["Nick Olij","GK",73],
+  ["Ryan Flamingo","CB",78],["André Ramalho","CB",77],["Armel Bella-Kotchap","CB",77],["Sergiño Dest","RB",78],["Mauro Júnior","LB",75],
+  ["Jerdy Schouten","CDM",80],["Joey Veerman","CM",81],["Ismael Saibari","CAM",80],["Guus Til","CM",77],
+  ["Ricardo Pepi","ST",78],["Luuk de Jong","ST",78],["Johan Bakayoko","LW",79],["Ivan Perišić","LW",78],["Esmir Bajraktarević","RW",74]
+ ]},
+ {id:"GAL",name:"Galatasaray",c1:"#FDB912",c2:"#A90432",country:"TUR",squad:[
+  ["Uğurcan Çakır","GK",81],["Fernando Muslera","GK",76],
+  ["Davinson Sánchez","CB",79],["Abdülkerim Bardakcı","CB",77],["Kaan Ayhan","CB",76],["Wilfried Singo","RB",80],["Ismail Jakobs","LB",76],
+  ["Lucas Torreira","CDM",81],["Gabriel Sara","CM",80],["Berkan Kutlu","CM",74],["Mario Lemina","CDM",78],
+  ["Victor Osimhen","ST",86],["Leroy Sané","RW",84],["Mauro Icardi","ST",81],["Barış Alper Yılmaz","LW",78],["Wilfried Zaha","LW",78]
+ ]},
+ {id:"MON",name:"AS Monaco",c1:"#E63329",c2:"#ffffff",country:"FRA",squad:[
+  ["Philipp Köhn","GK",78],["Radosław Majecki","GK",73],
+  ["Mohammed Salisu","CB",79],["Thilo Kehrer","CB",77],["Vanderson","RB",79],["Caio Henrique","LB",78],["Jordan Teze","RB",77],["Christian Mawissa","CB",75],
+  ["Denis Zakaria","CDM",82],["Lamine Camara","CM",78],["Maghnes Akliouche","CAM",80],["Aleksandr Golovin","CAM",80],["Takumi Minamino","CM",78],
+  ["Folarin Balogun","ST",78],["Eliesse Ben Seghir","RW",78],["Ansu Fati","LW",77],["Mika Biereth","ST",77]
+ ]},
+ {id:"AJA",name:"Ajax",c1:"#D2122E",c2:"#ffffff",country:"NED",squad:[
+  ["Remko Pasveer","GK",76],["Matheus","GK",74],
+  ["Jorrel Hato","CB",79],["Josip Šutalo","CB",77],["Youri Baas","CB",75],["Devyne Rensch","RB",76],["Owen Wijndal","LB",74],["Anton Gaaei","RB",73],
+  ["Kenneth Taylor","CM",78],["Davy Klaassen","CM",76],["Steven Berghuis","CAM",78],["Jordan Henderson","CM",76],["Kian Fitz-Jim","CM",73],
+  ["Wout Weghorst","ST",77],["Mika Godts","LW",75],["Oscar Gloukh","CAM",76],["Bertrand Traoré","RW",74]
+ ]}
+];
+/* ============================================================
+   PLAYER DATA — edit names / roles / ratings freely.
+   Roles: GK | RB CB LB | CDM CM CAM | LW ST RW
+   Best reconstruction of 2025–26 squads & FIFA-style overalls.
+   ============================================================ */
+const PL = [
+ {id:"ARS",name:"Arsenal",c1:"#EF0107",c2:"#ffffff",country:"ENG",squad:[
+   ["David Raya","GK",89],["Kepa Arrizabalaga","GK",79],["Karl Hein","GK",68],
+   ["William Saliba","CB",87],["Gabriel Magalhães","CB",86],["Jurriën Timber","RB",83],
+   ["Ben White","RB",84],["Riccardo Calafiori","LB",82],["Cristhian Mosquera","CB",78],
+   ["Myles Lewis-Skelly","LB",78],["Jakub Kiwior","CB",78],["Oleksandr Zinchenko","LB",79],
+   ["Declan Rice","CM",88],["Martin Ødegaard","CAM",87],["Martín Zubimendi","CDM",85],
+   ["Mikel Merino","CM",83],["Christian Nørgaard","CDM",78],["Ethan Nwaneri","CAM",77],
+   ["Bukayo Saka","RW",88],["Viktor Gyökeres","ST",87],["Eberechi Eze","CAM",84],
+   ["Kai Havertz","ST",84],["Gabriel Martinelli","LW",83],["Leandro Trossard","LW",83],
+   ["Noni Madueke","RW",80],["Gabriel Jesus","ST",81]
+ ]},
+ {id:"AVL",name:"Aston Villa",c1:"#670E36",c2:"#95BFE5",country:"ENG",squad:[
+   ["Emiliano Martínez","GK",86],["Marco Bizot","GK",77],
+   ["Ezri Konsa","CB",82],["Pau Torres","CB",82],["Tyrone Mings","CB",80],
+   ["Matty Cash","RB",80],["Lucas Digne","LB",80],["Ian Maatsen","LB",78],["Andrés García","RB",73],
+   ["John McGinn","CM",82],["Boubacar Kamara","CDM",82],["Youri Tielemans","CM",83],
+   ["Amadou Onana","CDM",82],["Emiliano Buendía","CAM",80],["Ross Barkley","CM",78],
+   ["Ollie Watkins","ST",85],["Morgan Rogers","CAM",82],["Donyell Malen","LW",80],
+   ["Jadon Sancho","LW",80],["Evann Guessand","ST",77]
+ ]},
+ {id:"BOU",name:"Bournemouth",c1:"#DA291C",c2:"#000000",country:"ENG",squad:[
+   ["Đorđe Petrović","GK",80],["Will Dennis","GK",69],
+   ["Marcos Senesi","CB",81],["Bafodé Diakité","CB",80],["Adrien Truffert","LB",79],
+   ["James Hill","CB",75],["Julián Araujo","RB",77],["Álex Jiménez","RB",75],
+   ["Lewis Cook","CM",80],["Ryan Christie","CM",78],["Tyler Adams","CDM",80],
+   ["Alex Scott","CM",77],["Marcus Tavernier","LW",78],
+   ["Antoine Semenyo","RW",83],["Evanilson","ST",81],["Justin Kluivert","LW",80],
+   ["Eli Junior Kroupi","ST",75],["Ben Doak","RW",76],["David Brooks","CAM",76]
+ ]},
+ {id:"BRE",name:"Brentford",c1:"#E30613",c2:"#ffffff",country:"ENG",squad:[
+   ["Caoimhín Kelleher","GK",80],["Hákon Valdimarsson","GK",72],
+   ["Nathan Collins","CB",81],["Sepp van den Berg","CB",78],["Kristoffer Ajer","CB",78],
+   ["Michael Kayode","RB",76],["Rico Henry","LB",77],["Aaron Hickey","RB",76],
+   ["Mikkel Damsgaard","CAM",80],["Yegor Yarmolyuk","CM",76],["Vitaly Janelt","CM",77],
+   ["Jordan Henderson","CM",78],["Mathias Jensen","CM",77],
+   ["Kevin Schade","LW",78],["Igor Thiago","ST",76],["Fábio Carvalho","CAM",75],["Dango Ouattara","RW",78]
+ ]},
+ {id:"BHA",name:"Brighton",c1:"#0057B8",c2:"#FFCD00",country:"ENG",squad:[
+   ["Bart Verbruggen","GK",82],["Jason Steele","GK",74],
+   ["Lewis Dunk","CB",81],["Jan Paul van Hecke","CB",80],["Pervis Estupiñán","LB",80],
+   ["Joël Veltman","RB",78],["Tariq Lamptey","RB",76],["Ferdi Kadıoğlu","LB",78],["Igor Julio","CB",78],
+   ["Carlos Baleba","CDM",81],["James Milner","CM",74],["Mats Wieffer","CDM",78],
+   ["Jack Hinshelwood","CM",75],["Diego Gómez","CM",76],
+   ["Kaoru Mitoma","LW",84],["Danny Welbeck","ST",79],["Yankuba Minteh","RW",79],
+   ["Georginio Rutter","CAM",79],["Simon Adingra","RW",78]
+ ]},
+ {id:"BUR",name:"Burnley",c1:"#6C1D45",c2:"#99D6EA",country:"ENG",squad:[
+   ["Max Weiß","GK",73],["Václav Hladký","GK",72],
+   ["Maxime Estève","CB",76],["CJ Egan-Riley","CB",73],["Joe Worrall","CB",74],
+   ["Connor Roberts","RB",74],["Quilindschy Hartman","LB",73],["Bashir Humphreys","CB",72],
+   ["Josh Cullen","CDM",76],["Josh Brownhill","CM",76],["Hannibal Mejbri","CAM",74],
+   ["Florentino Luís","CDM",76],["Lesley Ugochukwu","CM",75],
+   ["Lyle Foster","ST",75],["Zian Flemming","CAM",74],["Jaidon Anthony","LW",74],
+   ["Jacob Bruun Larsen","LW",73],["Marcus Edwards","RW",75]
+ ]},
+ {id:"CHE",name:"Chelsea",c1:"#034694",c2:"#ffffff",country:"ENG",squad:[
+   ["Robert Sánchez","GK",80],["Filip Jörgensen","GK",76],
+   ["Levi Colwill","CB",82],["Wesley Fofana","CB",80],["Marc Cucurella","LB",82],
+   ["Reece James","RB",83],["Malo Gusto","RB",79],["Tosin Adarabioyo","CB",79],["Benoît Badiashile","CB",78],
+   ["Moisés Caicedo","CDM",85],["Enzo Fernández","CM",84],["Roméo Lavia","CDM",79],["Andrey Santos","CM",76],
+   ["Cole Palmer","CAM",87],["Pedro Neto","RW",81],["Jamie Gittens","LW",78],
+   ["João Pedro","ST",81],["Liam Delap","ST",78],["Estêvão","RW",80],["Alejandro Garnacho","LW",80],["Marc Guiu","ST",73]
+ ]},
+ {id:"CRY",name:"Crystal Palace",c1:"#1B458F",c2:"#C4122E",country:"ENG",squad:[
+   ["Dean Henderson","GK",81],["Walter Benítez","GK",75],
+   ["Marc Guéhi","CB",83],["Maxence Lacroix","CB",80],["Chris Richards","CB",78],
+   ["Daniel Muñoz","RB",80],["Tyrick Mitchell","LB",78],["Borna Sosa","LB",75],
+   ["Adam Wharton","CDM",80],["Will Hughes","CM",76],["Jefferson Lerma","CDM",78],
+   ["Daichi Kamada","CAM",78],["Cheick Doucouré","CM",78],
+   ["Ismaïla Sarr","RW",80],["Jean-Philippe Mateta","ST",81],["Yéremy Pino","RW",79],
+   ["Eddie Nketiah","ST",76],["Daniel Sturridge","ST",70]
+ ]},
+ {id:"EVE",name:"Everton",c1:"#003399",c2:"#ffffff",country:"ENG",squad:[
+   ["Jordan Pickford","GK",84],["Mark Travers","GK",73],
+   ["Jarrad Branthwaite","CB",82],["James Tarkowski","CB",80],["Michael Keane","CB",76],
+   ["Vitalii Mykolenko","LB",78],["Séamus Coleman","RB",73],["Jake O'Brien","CB",76],["Nathan Patterson","RB",74],
+   ["Idrissa Gueye","CDM",78],["James Garner","CM",77],["Tim Iroegbunam","CM",73],
+   ["Merlin Röhl","CM",74],["Kiernan Dewsbury-Hall","CAM",78],
+   ["Iliman Ndiaye","LW",80],["Jack Grealish","LW",81],["Dwight McNeil","CAM",79],
+   ["Beto","ST",76],["Thierno Barry","ST",75]
+ ]},
+ {id:"FUL",name:"Fulham",c1:"#e8e8e8",c2:"#000000",country:"ENG",squad:[
+   ["Bernd Leno","GK",81],["Benjamin Lecomte","GK",74],
+   ["Calvin Bassey","CB",80],["Joachim Andersen","CB",80],["Issa Diop","CB",77],
+   ["Antonee Robinson","LB",81],["Kenny Tete","RB",77],["Ryan Sessegnon","LB",75],
+   ["Sander Berge","CM",79],["Tom Cairney","CM",76],["Saša Lukić","CDM",77],
+   ["Harrison Reed","CDM",75],["Emile Smith Rowe","CAM",78],
+   ["Alex Iwobi","RW",80],["Andreas Pereira","CAM",78],["Raúl Jiménez","ST",77],
+   ["Rodrigo Muniz","ST",77],["Adama Traoré","RW",77],["Harry Wilson","RW",76]
+ ]},
+ {id:"LEE",name:"Leeds United",c1:"#FFCD00",c2:"#1D428A",country:"ENG",squad:[
+   ["Lucas Perri","GK",78],["Karl Darlow","GK",72],
+   ["Joe Rodon","CB",77],["Pascal Struijk","CB",77],["Jayden Bogle","RB",76],
+   ["Gabriel Gudmundsson","LB",75],["Sam Byram","RB",72],["Jaka Bijol","CB",77],
+   ["Ethan Ampadu","CDM",78],["Ao Tanaka","CM",77],["Anton Stach","CM",77],
+   ["Sean Longstaff","CM",75],["Brenden Aaronson","CAM",75],
+   ["Daniel James","RW",76],["Wilfried Gnonto","LW",77],["Lukas Nmecha","ST",75],
+   ["Joël Piroe","ST",76],["Dominic Calvert-Lewin","ST",76],["Noah Okafor","LW",76]
+ ]},
+ {id:"LIV",name:"Liverpool",c1:"#C8102E",c2:"#00B2A9",country:"ENG",squad:[
+   ["Alisson Becker","GK",88],["Giorgi Mamardashvili","GK",82],["Freddie Woodman","GK",70],
+   ["Virgil van Dijk","CB",88],["Ibrahima Konaté","CB",84],["Milos Kerkez","LB",80],
+   ["Conor Bradley","RB",79],["Andy Robertson","LB",82],["Joe Gomez","CB",79],["Jeremie Frimpong","RB",82],
+   ["Wataru Endo","CDM",79],["Ryan Gravenberch","CDM",84],["Alexis Mac Allister","CM",86],
+   ["Dominik Szoboszlai","CM",84],["Curtis Jones","CM",80],["Florian Wirtz","CAM",87],
+   ["Mohamed Salah","RW",89],["Cody Gakpo","LW",84],["Hugo Ekitiké","ST",83],
+   ["Federico Chiesa","RW",80],["Alexander Isak","ST",87]
+ ]},
+ {id:"MCI",name:"Manchester City",c1:"#6CABDD",c2:"#1C2C5B",country:"ENG",squad:[
+   ["Gianluigi Donnarumma","GK",88],["James Trafford","GK",78],["Stefan Ortega","GK",79],
+   ["Rúben Dias","CB",87],["Joško Gvardiol","CB",85],["Nathan Aké","LB",81],
+   ["John Stones","CB",83],["Manuel Akanji","CB",82],["Abdukodir Khusanov","CB",76],
+   ["Rayan Aït-Nouri","LB",80],["Matheus Nunes","RB",80],
+   ["Rodri","CDM",90],["Bernardo Silva","CM",86],["Mateo Kovačić","CM",84],
+   ["Tijjani Reijnders","CM",84],["Nico González","CDM",80],["Phil Foden","CAM",86],["Rayan Cherki","CAM",82],
+   ["Erling Haaland","ST",91],["Savinho","RW",82],["Jérémy Doku","LW",83],
+   ["Omar Marmoush","ST",83],["Oscar Bobb","RW",78]
+ ]},
+ {id:"MUN",name:"Manchester United",c1:"#DA291C",c2:"#FBE122",country:"ENG",squad:[
+   ["Senne Lammens","GK",78],["Altay Bayındır","GK",75],["Tom Heaton","GK",68],
+   ["Matthijs de Ligt","CB",83],["Leny Yoro","CB",80],["Lisandro Martínez","CB",83],
+   ["Luke Shaw","LB",80],["Noussair Mazraoui","RB",80],["Diogo Dalot","RB",80],
+   ["Harry Maguire","CB",78],["Ayden Heaven","CB",70],
+   ["Bruno Fernandes","CAM",87],["Casemiro","CDM",81],["Manuel Ugarte","CDM",79],["Kobbie Mainoo","CM",80],["Mason Mount","CAM",80],
+   ["Matheus Cunha","CAM",83],["Bryan Mbeumo","RW",84],["Amad Diallo","RW",80],
+   ["Benjamin Šeško","ST",81],["Joshua Zirkzee","ST",78]
+ ]},
+ {id:"NEW",name:"Newcastle United",c1:"#ffffff",c2:"#241F20",country:"ENG",squad:[
+   ["Nick Pope","GK",81],["Aaron Ramsdale","GK",79],["Martin Dúbravka","GK",76],
+   ["Sven Botman","CB",82],["Fabian Schär","CB",81],["Dan Burn","CB",79],
+   ["Kieran Trippier","RB",80],["Tino Livramento","RB",80],["Lewis Hall","LB",79],["Malick Thiaw","CB",79],
+   ["Bruno Guimarães","CM",86],["Sandro Tonali","CM",84],["Joelinton","CM",83],
+   ["Joe Willock","CM",78],["Jacob Ramsey","CAM",78],["Lewis Miley","CM",74],
+   ["Anthony Gordon","LW",83],["Harvey Barnes","LW",80],["Jacob Murphy","RW",79],
+   ["Nick Woltemade","ST",80],["Yoane Wissa","ST",82],["William Osula","ST",73]
+ ]},
+ {id:"NFO",name:"Nottingham Forest",c1:"#DD0000",c2:"#ffffff",country:"ENG",squad:[
+   ["Matz Sels","GK",80],["Carlos Miguel","GK",74],
+   ["Murillo","CB",82],["Nikola Milenković","CB",81],["Morato","CB",76],
+   ["Neco Williams","RB",78],["Ola Aina","RB",79],["Nicolò Savona","RB",75],["Willy Boly","CB",75],
+   ["Elliot Anderson","CM",81],["Morgan Gibbs-White","CAM",82],["Ibrahim Sangaré","CDM",78],
+   ["Douglas Luiz","CM",80],["Ryan Yates","CDM",75],["James McAtee","CAM",78],
+   ["Chris Wood","ST",80],["Callum Hudson-Odoi","LW",78],["Igor Jesus","ST",77],
+   ["Dan Ndoye","LW",80],["Omari Hutchinson","RW",77],["Dilane Bakwa","RW",76]
+ ]},
+ {id:"SUN",name:"Sunderland",c1:"#EB172B",c2:"#ffffff",country:"ENG",squad:[
+   ["Robin Roefs","GK",75],["Anthony Patterson","GK",74],
+   ["Dan Ballard","CB",76],["Omar Alderete","CB",76],["Nordi Mukiele","RB",77],
+   ["Reinildo Mandava","LB",76],["Trai Hume","RB",75],["Lutsharel Geertruida","CB",77],
+   ["Granit Xhaka","CM",81],["Noah Sadiki","CDM",75],["Habib Diarra","CM",78],
+   ["Enzo Le Fée","CAM",77],["Chemsdine Talbi","RW",73],
+   ["Simon Adingra","RW",78],["Wilson Isidor","ST",75],["Brian Brobbey","ST",76],
+   ["Romaine Mundle","LW",73],["Bertrand Traoré","LW",75]
+ ]},
+ {id:"TOT",name:"Tottenham",c1:"#132257",c2:"#ffffff",country:"ENG",squad:[
+   ["Guglielmo Vicario","GK",83],["Antonín Kinský","GK",74],
+   ["Cristian Romero","CB",85],["Micky van de Ven","CB",83],["Destiny Udogie","LB",80],
+   ["Pedro Porro","RB",81],["Kevin Danso","CB",78],["Djed Spence","RB",77],["Radu Drăgușin","CB",77],
+   ["James Maddison","CAM",83],["Rodrigo Bentancur","CM",80],["Pape Matar Sarr","CM",79],
+   ["Lucas Bergvall","CM",78],["João Palhinha","CDM",82],["Archie Gray","CM",75],
+   ["Xavi Simons","CAM",83],["Dejan Kulusevski","RW",83],["Brennan Johnson","RW",80],
+   ["Mohammed Kudus","LW",82],["Richarlison","ST",79],["Randal Kolo Muani","ST",81],["Wilson Odobert","LW",76]
+ ]},
+ {id:"WHU",name:"West Ham United",c1:"#7A263A",c2:"#1BB1E7",country:"ENG",squad:[
+   ["Alphonse Areola","GK",80],["Mads Hermansen","GK",78],
+   ["Max Kilman","CB",79],["Jean-Clair Todibo","CB",80],["Konstantinos Mavropanos","CB",78],
+   ["Aaron Wan-Bissaka","RB",79],["Emerson Palmieri","LB",77],["El Hadji Malick Diouf","LB",75],
+   ["Edson Álvarez","CDM",80],["Tomáš Souček","CM",79],["Guido Rodríguez","CDM",77],
+   ["Lucas Paquetá","CAM",82],["James Ward-Prowse","CM",79],["Mateus Fernandes","CM",76],
+   ["Jarrod Bowen","RW",82],["Niclas Füllkrug","ST",78],["Crysencio Summerville","LW",78],
+   ["Callum Wilson","ST",76],["Luis Guilherme","RW",73]
+ ]},
+ {id:"WOL",name:"Wolverhampton",c1:"#FDB913",c2:"#231F20",country:"ENG",squad:[
+   ["José Sá","GK",80],["Sam Johnstone","GK",77],
+   ["Toti Gomes","CB",77],["Yerson Mosquera","CB",74],["Santiago Bueno","CB",75],
+   ["Matt Doherty","RB",74],["Emmanuel Agbadou","CB",76],["Ladislav Krejčí","CB",77],
+   ["João Gomes","CM",80],["André","CDM",79],["Mario Lemina","CM",78],
+   ["Marshall Munetsi","CM",76],["Tommy Doyle","CM",73],
+   ["Jørgen Strand Larsen","ST",79],["Hwang Hee-chan","ST",77],["Jhon Arias","RW",78],
+   ["Rodrigo Gomes","RW",74],["Fer López","CAM",73]
+ ]}
+];
+/* ============================================================
+   EUROPEAN COMPETITION UNIVERSE
+   Three competitions can run in one season (CL / Europa / Conference),
+   so we need a deep pool of distinct clubs. Real clubs that aren't in
+   the draftable EURO list or PL are rating-only opponents (editable).
+   ============================================================ */
+const CL_CORE = ["RMA","BAR","BAY","PSG","INT","ARS","LIV","MCI"]; // giants — always in the Champions League
+const PL_CL  = ["CHE","NEW","TOT","AVL"];                          // PL sides that rotate into the CL
+const PL_EL  = ["BHA","CRY","WHU","NFO","BOU","BRE","EVE","FUL"];   // mid PL sides that rotate into Europa/Conference
+
+const EXTRA = [
+ {id:"ATA",name:"Atalanta",c1:"#1D1D1B",c2:"#1E71B8",country:"ITA",rating:81},
+ {id:"OM", name:"Marseille",c1:"#2FAEE0",c2:"#ffffff",country:"FRA",rating:79},
+ {id:"ROM",name:"Roma",c1:"#8E1F2F",c2:"#F0BC42",country:"ITA",rating:79},
+ {id:"VIL",name:"Villarreal",c1:"#FFE667",c2:"#005187",country:"ESP",rating:79},
+ {id:"STU",name:"Stuttgart",c1:"#E32219",c2:"#ffffff",country:"GER",rating:79},
+ {id:"SGE",name:"Eintracht Frankfurt",c1:"#000000",c2:"#E1000F",country:"GER",rating:79},
+ {id:"FEN",name:"Fenerbahce",c1:"#103F6D",c2:"#FFED00",country:"TUR",rating:79},
+ {id:"LAZ",name:"Lazio",c1:"#87D8F7",c2:"#ffffff",country:"ITA",rating:78},
+ {id:"RSO",name:"Real Sociedad",c1:"#0067B1",c2:"#ffffff",country:"ESP",rating:78},
+ {id:"LIL",name:"Lille",c1:"#E01E13",c2:"#ffffff",country:"FRA",rating:78},
+ {id:"FEY",name:"Feyenoord",c1:"#E20613",c2:"#ffffff",country:"NED",rating:78},
+ {id:"BOL",name:"Bologna",c1:"#A21B27",c2:"#1A2F48",country:"ITA",rating:78},
+ {id:"BET",name:"Real Betis",c1:"#00954C",c2:"#ffffff",country:"ESP",rating:77},
+ {id:"OL", name:"Lyon",c1:"#ffffff",c2:"#DA001A",country:"FRA",rating:77},
+ {id:"CLB",name:"Club Brugge",c1:"#005CA9",c2:"#000000",country:"BEL",rating:77},
+ {id:"FIO",name:"Fiorentina",c1:"#592C82",c2:"#ffffff",country:"ITA",rating:77},
+ {id:"SEV",name:"Sevilla",c1:"#D4011A",c2:"#ffffff",country:"ESP",rating:77},
+ {id:"NIC",name:"Nice",c1:"#C8102E",c2:"#000000",country:"FRA",rating:76},
+ {id:"BRA",name:"Sporting Braga",c1:"#E30613",c2:"#ffffff",country:"POR",rating:76},
+ {id:"BJK",name:"Besiktas",c1:"#000000",c2:"#ffffff",country:"TUR",rating:76},
+ {id:"WOB",name:"Wolfsburg",c1:"#65B32E",c2:"#ffffff",country:"GER",rating:76},
+ {id:"SCF",name:"Freiburg",c1:"#000000",c2:"#E1001A",country:"GER",rating:76},
+ {id:"REN",name:"Rennes",c1:"#E23717",c2:"#000000",country:"FRA",rating:76},
+ {id:"RCL",name:"Lens",c1:"#FFE000",c2:"#E2231A",country:"FRA",rating:76},
+ {id:"GIR",name:"Girona",c1:"#D7141A",c2:"#ffffff",country:"ESP",rating:76},
+ {id:"CEL",name:"Celtic",c1:"#018749",c2:"#ffffff",country:"SCO",rating:76},
+ {id:"SHK",name:"Shakhtar Donetsk",c1:"#F47B20",c2:"#000000",country:"UKR",rating:75},
+ {id:"RBS",name:"RB Salzburg",c1:"#D60029",c2:"#ffffff",country:"AUT",rating:75},
+ {id:"VAL",name:"Valencia",c1:"#F18E00",c2:"#000000",country:"ESP",rating:75},
+ {id:"BMG",name:"M'gladbach",c1:"#000000",c2:"#00984A",country:"GER",rating:75},
+ {id:"M05",name:"Mainz",c1:"#C3141E",c2:"#ffffff",country:"GER",rating:75},
+ {id:"STR",name:"Strasbourg",c1:"#009CDA",c2:"#ffffff",country:"FRA",rating:75},
+ {id:"TRA",name:"Trabzonspor",c1:"#7B1A2E",c2:"#5BC2E7",country:"TUR",rating:75},
+ {id:"USG",name:"Union SG",c1:"#FFE000",c2:"#0033A0",country:"BEL",rating:75},
+ {id:"AZ", name:"AZ Alkmaar",c1:"#E2001A",c2:"#ffffff",country:"NED",rating:75},
+ {id:"FCK",name:"Copenhagen",c1:"#ffffff",c2:"#152C5B",country:"DEN",rating:74},
+ {id:"OLY",name:"Olympiacos",c1:"#C8102E",c2:"#ffffff",country:"GRE",rating:74},
+ {id:"TOR",name:"Torino",c1:"#7A0E16",c2:"#ffffff",country:"ITA",rating:74},
+ {id:"COM",name:"Como",c1:"#005BAC",c2:"#ffffff",country:"ITA",rating:74},
+ {id:"CTA",name:"Celta Vigo",c1:"#8AC3EE",c2:"#ffffff",country:"ESP",rating:74},
+ {id:"SVW",name:"Werder Bremen",c1:"#1D9053",c2:"#ffffff",country:"GER",rating:74},
+ {id:"GNK",name:"Genk",c1:"#005BAC",c2:"#ffffff",country:"BEL",rating:74},
+ {id:"AND",name:"Anderlecht",c1:"#52297A",c2:"#ffffff",country:"BEL",rating:74},
+ {id:"RAN",name:"Rangers",c1:"#1B458F",c2:"#ffffff",country:"SCO",rating:74},
+ {id:"PAO",name:"PAOK",c1:"#000000",c2:"#ffffff",country:"GRE",rating:74},
+ {id:"DZG",name:"Dinamo Zagreb",c1:"#00529F",c2:"#ffffff",country:"CRO",rating:74},
+ {id:"CZV",name:"Red Star Belgrade",c1:"#E2231A",c2:"#ffffff",country:"SRB",rating:74},
+ {id:"BOD",name:"Bodo/Glimt",c1:"#FFE000",c2:"#000000",country:"NOR",rating:74},
+ {id:"SB29",name:"Brest",c1:"#E2231A",c2:"#ffffff",country:"FRA",rating:73},
+ {id:"UDI",name:"Udinese",c1:"#000000",c2:"#ffffff",country:"ITA",rating:73},
+ {id:"TFC",name:"Toulouse",c1:"#5F259F",c2:"#ffffff",country:"FRA",rating:73},
+ {id:"TSG",name:"Hoffenheim",c1:"#1C63B7",c2:"#ffffff",country:"GER",rating:73},
+ {id:"GNT",name:"Gent",c1:"#005BAC",c2:"#ffffff",country:"BEL",rating:73},
+ {id:"AEK",name:"AEK Athens",c1:"#F8C300",c2:"#000000",country:"GRE",rating:73},
+ {id:"PAN",name:"Panathinaikos",c1:"#0F8A3C",c2:"#ffffff",country:"GRE",rating:73},
+ {id:"TWE",name:"Twente",c1:"#E2231A",c2:"#ffffff",country:"NED",rating:73},
+ {id:"UTR",name:"Utrecht",c1:"#E2231A",c2:"#ffffff",country:"NED",rating:73},
+ {id:"STG",name:"Sturm Graz",c1:"#000000",c2:"#ffffff",country:"AUT",rating:73},
+ {id:"YB", name:"Young Boys",c1:"#FFE000",c2:"#000000",country:"SUI",rating:73},
+ {id:"SPP",name:"Sparta Prague",c1:"#7A1B2E",c2:"#FFE000",country:"CZE",rating:73},
+ {id:"FCM",name:"Midtjylland",c1:"#000000",c2:"#E2231A",country:"DEN",rating:73},
+ {id:"OSA",name:"Osasuna",c1:"#0A2240",c2:"#E2231A",country:"ESP",rating:73},
+ {id:"RAY",name:"Rayo Vallecano",c1:"#ffffff",c2:"#E2231A",country:"ESP",rating:73},
+ {id:"VSC",name:"Vitoria SC",c1:"#ffffff",c2:"#000000",country:"POR",rating:73},
+ {id:"DYK",name:"Dynamo Kyiv",c1:"#005BAC",c2:"#ffffff",country:"UKR",rating:73},
+ {id:"SLP",name:"Slavia Prague",c1:"#D7141A",c2:"#ffffff",country:"CZE",rating:73},
+ {id:"GEN",name:"Genoa",c1:"#7A0E16",c2:"#0A2240",country:"ITA",rating:72},
+ {id:"PAR",name:"Parma",c1:"#FCD116",c2:"#0A2240",country:"ITA",rating:72},
+ {id:"FCA",name:"Augsburg",c1:"#BA3733",c2:"#005BAC",country:"GER",rating:72},
+ {id:"MLL",name:"Mallorca",c1:"#E2231A",c2:"#000000",country:"ESP",rating:72},
+ {id:"GET",name:"Getafe",c1:"#005BAC",c2:"#ffffff",country:"ESP",rating:72},
+ {id:"FAM",name:"Famalicao",c1:"#005BAC",c2:"#ffffff",country:"POR",rating:72},
+ {id:"BAS",name:"Basel",c1:"#E2231A",c2:"#005BAC",country:"SUI",rating:72},
+ {id:"PLZ",name:"Viktoria Plzen",c1:"#005BAC",c2:"#E2231A",country:"CZE",rating:72},
+ {id:"LEG",name:"Legia Warsaw",c1:"#005BAC",c2:"#E2231A",country:"POL",rating:72},
+ {id:"AUX",name:"Auxerre",c1:"#ffffff",c2:"#005BAC",country:"FRA",rating:71},
+ {id:"CAG",name:"Cagliari",c1:"#A50021",c2:"#0A2240",country:"ITA",rating:71},
+ {id:"ABE",name:"Aberdeen",c1:"#E2231A",c2:"#ffffff",country:"SCO",rating:70}
+];
+
+/* Lower-league English clubs — FA Cup fillers / giant-killers (rating-only). */
+const EFL = [
+ {id:"LEI",name:"Leicester City",c1:"#0053A0",c2:"#ffffff",country:"ENG",rating:70},
+ {id:"SOU",name:"Southampton",c1:"#D71920",c2:"#ffffff",country:"ENG",rating:69},
+ {id:"IPS",name:"Ipswich Town",c1:"#3A64A3",c2:"#ffffff",country:"ENG",rating:68},
+ {id:"WBA",name:"West Brom",c1:"#122F67",c2:"#ffffff",country:"ENG",rating:67},
+ {id:"SHU",name:"Sheffield United",c1:"#EE2737",c2:"#ffffff",country:"ENG",rating:67},
+ {id:"NCY",name:"Norwich City",c1:"#00A650",c2:"#FFF200",country:"ENG",rating:66},
+ {id:"COV",name:"Coventry City",c1:"#6CADDF",c2:"#ffffff",country:"ENG",rating:66},
+ {id:"MID",name:"Middlesbrough",c1:"#E2231A",c2:"#ffffff",country:"ENG",rating:66},
+ {id:"WAT",name:"Watford",c1:"#FBEE23",c2:"#ED2127",country:"ENG",rating:65},
+ {id:"STK",name:"Stoke City",c1:"#E03A3E",c2:"#ffffff",country:"ENG",rating:65},
+ {id:"SWA",name:"Swansea City",c1:"#ffffff",c2:"#000000",country:"ENG",rating:65},
+ {id:"BRC",name:"Bristol City",c1:"#E2231A",c2:"#ffffff",country:"ENG",rating:64},
+ {id:"PNE",name:"Preston N.E.",c1:"#ffffff",c2:"#005BAC",country:"ENG",rating:64},
+ {id:"CAR",name:"Cardiff City",c1:"#005BAC",c2:"#ffffff",country:"ENG",rating:63},
+ {id:"QPR",name:"QPR",c1:"#005BAC",c2:"#ffffff",country:"ENG",rating:63},
+ {id:"MLW",name:"Millwall",c1:"#001E62",c2:"#ffffff",country:"ENG",rating:62}
+];
+
+/* Club World Cup — continental champions (old format). Rating-only; rotate by season. */
+const CONT = {
+ CONMEBOL:[
+  {id:"FLA",name:"Flamengo",c1:"#E2231A",c2:"#000000",country:"BRA",rating:78},
+  {id:"PAL",name:"Palmeiras",c1:"#006437",c2:"#ffffff",country:"BRA",rating:78},
+  {id:"RIV",name:"River Plate",c1:"#ffffff",c2:"#E2231A",country:"ARG",rating:77},
+  {id:"BOT",name:"Botafogo",c1:"#000000",c2:"#ffffff",country:"BRA",rating:76},
+  {id:"BOC",name:"Boca Juniors",c1:"#0A2240",c2:"#FCD116",country:"ARG",rating:76},
+  {id:"FLU",name:"Fluminense",c1:"#7A1B2E",c2:"#0A5C36",country:"BRA",rating:75},
+  {id:"CAM",name:"Atlético Mineiro",c1:"#000000",c2:"#ffffff",country:"BRA",rating:75}
+ ],
+ CONCACAF:[
+  {id:"MTY",name:"Monterrey",c1:"#0A2240",c2:"#ffffff",country:"MEX",rating:75},
+  {id:"TIG",name:"Tigres UANL",c1:"#FFB81C",c2:"#0A2240",country:"MEX",rating:74},
+  {id:"AME",name:"Club América",c1:"#FFE000",c2:"#0A2240",country:"MEX",rating:74},
+  {id:"PAC",name:"Pachuca",c1:"#0A2240",c2:"#ffffff",country:"MEX",rating:73},
+  {id:"LAFC",name:"LAFC",c1:"#000000",c2:"#C39E6D",country:"USA",rating:73},
+  {id:"MIA",name:"Inter Miami",c1:"#F7B5CD",c2:"#000000",country:"USA",rating:73},
+  {id:"SEA",name:"Seattle Sounders",c1:"#5D9741",c2:"#0A2240",country:"USA",rating:72}
+ ],
+ AFC:[
+  {id:"HIL",name:"Al Hilal",c1:"#0A53A8",c2:"#ffffff",country:"KSA",rating:78},
+  {id:"NAS",name:"Al Nassr",c1:"#FFE000",c2:"#0A2240",country:"KSA",rating:77},
+  {id:"AHL",name:"Al Ahli SFC",c1:"#0A7A3B",c2:"#ffffff",country:"KSA",rating:76},
+  {id:"AIN",name:"Al Ain",c1:"#5B2A86",c2:"#ffffff",country:"UAE",rating:73},
+  {id:"URA",name:"Urawa Red Diamonds",c1:"#E2231A",c2:"#000000",country:"JPN",rating:72},
+  {id:"ULS",name:"Ulsan HD",c1:"#0A2240",c2:"#FFE000",country:"KOR",rating:72},
+  {id:"YFM",name:"Yokohama F. Marinos",c1:"#0A2240",c2:"#E2231A",country:"JPN",rating:71}
+ ],
+ CAF:[
+  {id:"AHLY",name:"Al Ahly",c1:"#E2231A",c2:"#ffffff",country:"EGY",rating:74},
+  {id:"SUNS",name:"Mamelodi Sundowns",c1:"#FFE000",c2:"#0A7A3B",country:"RSA",rating:73},
+  {id:"WYD",name:"Wydad AC",c1:"#E2231A",c2:"#ffffff",country:"MAR",rating:72},
+  {id:"EST",name:"Espérance Tunis",c1:"#E2231A",c2:"#FFE000",country:"TUN",rating:72},
+  {id:"PYR",name:"Pyramids FC",c1:"#0A53A8",c2:"#ffffff",country:"EGY",rating:71}
+ ],
+ OFC:[
+  {id:"AKF",name:"Auckland FC",c1:"#0A2240",c2:"#5BC2E7",country:"NZL",rating:67},
+  {id:"AKL",name:"Auckland City",c1:"#0A53A8",c2:"#ffffff",country:"NZL",rating:64}
+ ]
+};
+const CWC_POOL = [].concat(CONT.CONMEBOL,CONT.CONCACAF,CONT.AFC,CONT.CAF,CONT.OFC);
+/* ============================================================
+   ROLES, FORMATIONS, TUNING
+   ============================================================ */
+const ROLE={GK:{l:0,x:0,t:0,line:"GK"},RB:{l:1,x:1,t:0,line:"DEF"},CB:{l:1,x:0,t:0,line:"DEF"},LB:{l:1,x:-1,t:0,line:"DEF"},CDM:{l:2,x:0,t:-1,line:"MID"},CM:{l:2,x:0,t:0,line:"MID"},CAM:{l:2,x:0,t:1,line:"MID"},LW:{l:3,x:-1,t:0,line:"FWD"},ST:{l:3,x:0,t:0,line:"FWD"},RW:{l:3,x:1,t:0,line:"FWD"}};
+const lineOf=r=>ROLE[r].line;
+function rolePen(s,p){if(s===p)return 0;const A=ROLE[s],B=ROLE[p];if(A.l===0||B.l===0)return 16;return Math.abs(A.l-B.l)*5+Math.abs(A.x-B.x)*3+Math.abs(A.t-B.t)*2;}
+const FORMATIONS={
+ "4-4-2":[["GK",50,90],["RB",83,70],["CB",61,70],["CB",39,70],["LB",17,70],["RW",85,46],["CM",61,46],["CM",39,46],["LW",15,46],["ST",61,18],["ST",39,18]],
+ "4-4-2 ◆":[["GK",50,90],["RB",83,70],["CB",61,70],["CB",39,70],["LB",17,70],["CDM",50,58],["CM",79,44],["CM",21,44],["CAM",50,31],["ST",62,16],["ST",38,16]],
+ "4-3-3":[["GK",50,90],["RB",83,70],["CB",61,70],["CB",39,70],["LB",17,70],["CDM",50,51],["CM",73,46],["CM",27,46],["LW",17,20],["ST",50,15],["RW",83,20]],
+ "4-2-3-1":[["GK",50,90],["RB",83,70],["CB",61,70],["CB",39,70],["LB",17,70],["CDM",65,57],["CDM",35,57],["LW",17,34],["CAM",50,33],["RW",83,34],["ST",50,15]],
+ "4-5-1":[["GK",50,90],["RB",83,70],["CB",61,70],["CB",39,70],["LB",17,70],["LW",13,46],["CM",37,49],["CM",63,49],["RW",87,46],["CAM",50,37],["ST",50,17]],
+ "3-5-2":[["GK",50,90],["CB",72,72],["CB",50,72],["CB",28,72],["RB",91,49],["CDM",50,55],["CM",71,46],["CM",29,46],["LB",9,49],["ST",62,18],["ST",38,18]],
+ "3-4-3":[["GK",50,90],["CB",72,72],["CB",50,72],["CB",28,72],["RB",86,48],["CM",61,49],["CM",39,49],["LB",14,48],["LW",19,20],["ST",50,15],["RW",81,20]],
+ "5-3-2":[["GK",50,90],["RB",89,68],["CB",69,73],["CB",50,73],["CB",31,73],["LB",11,68],["CDM",50,51],["CM",73,46],["CM",27,46],["ST",62,18],["ST",38,18]],
+ "3-4-1-2":[["GK",50,90],["CB",72,72],["CB",50,72],["CB",28,72],["RB",86,50],["CM",61,50],["CM",39,50],["LB",14,50],["CAM",50,31],["ST",62,16],["ST",38,16]]
+};
+const COLORS=["#39d98a","#4aa8ff","#ffd24a","#ff5a6e","#b07bff","#ff8c42","#23c4c4","#f25fb0"];
+const TARGET={GK:2,DEF:6,MID:6,FWD:6};
+const SIM={base:1.30,home:1.12,pivot:57,exponent:1.18,clampLo:0.14,clampHi:5.5,pOut:0.09,emptySlot:58};
+const MODES=[{id:"full",mt:"Full Season",md:"League · FA Cup · the European competition you earn"},{id:"clonly",mt:"Champions League only",md:"Quick tournament — no league or qualification"}];
+const COMPS={CL:{label:"Champions League",short:"UCL",tier:3},EL:{label:"Europa League",short:"UEL",tier:2},ECL:{label:"Conference League",short:"UECL",tier:1}};
+const COMP_ORDER=["CL","EL","ECL"];
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $=s=>document.querySelector(s);
+const screens={setup:$("#setup"),draft:$("#draft"),lineup:$("#lineup"),results:$("#results")};
+function show(id){for(const k in screens)screens[k].classList.toggle("active",k===id);}
+const clamp=v=>Math.max(SIM.clampLo,Math.min(SIM.clampHi,v));
+const euroById=id=>EURO.find(c=>c.id===id);
+const isEuro=id=>EURO.some(c=>c.id===id);
+const DRAFT_POOL=[...EURO.map(c=>c.id).filter(id=>!["MON","AJA","PSV"].includes(id)),"LIV","MCI","ARS"];
+const isDraftable=id=>DRAFT_POOL.includes(id);
+function getClub(id){return EURO.find(c=>c.id===id)||PL.find(c=>c.id===id)||EXTRA.find(c=>c.id===id)||EFL.find(c=>c.id===id)||CWC_POOL.find(c=>c.id===id);}
+const surname=n=>n.replace(/[*]/g,"").trim().split(/\s+/).slice(-1)[0];
+function initials(n){const w=n.replace(/[^a-zA-Z ]/g,"").trim().split(/\s+/);return ((w[0]?.[0]||"")+(w[1]?.[0]||w[0]?.[1]||"")).toUpperCase();}
+function ovrTier(o){return o>=85?"t1":o>=80?"t2":o>=75?"t3":"t4";}
+const keyOf=(clubId,name)=>clubId+"|"+name;
+function bestXIavg(squad){return squad.map(p=>p[2]).sort((a,b)=>b-a).slice(0,11).reduce((a,b)=>a+b,0)/11;}
+function baseRating(id){const c=getClub(id);return c.squad?Math.round(bestXIavg(c.squad)):c.rating;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(arr,rnd){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function ord(n){const s=["th","st","nd","rd"],v=n%100;return s[(v-20)%10]||s[v]||s[0];}
+function hexA(hex,a){const h=hex.replace("#","");const n=h.length===3?h.split("").map(x=>x+x).join(""):h;const r=parseInt(n.slice(0,2),16),g=parseInt(n.slice(2,4),16),b=parseInt(n.slice(4,6),16);return`rgba(${r},${g},${b},${a})`;}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state={n:1,mode:"full",managers:[],seq:[],idx:0,taken:new Set(),history:[],selClub:null,selSlot:null,luIdx:0,year:1,pl:null,euros:{},faCup:null,carabao:null,cwc:null,euroComp:{},nextEuroComp:{},nextCWC:null,cwcThisYear:null,seed:(Math.random()*4294967296)>>>0,resimNonce:0};
+const PLREPL_DEFAULT=["LIV","MCI","ARS","CHE"];
+function defaultManager(i){return{name:"",color:COLORS[i],replacePL:PLREPL_DEFAULT[i]||PL[19-i].id,formation:"4-3-3",picks:{},slots:[],lineup:{}};}
+
+/* ============================================================
+   SETUP
+   ============================================================ */
+function renderModes(){
+  $("#modePick").innerHTML=MODES.map(m=>`<div class="modebtn ${m.id===state.mode?'on':''}" data-m="${m.id}"><div class="mt">${m.mt}</div><div class="md">${m.md}</div></div>`).join("");
+  $("#modePick").querySelectorAll(".modebtn").forEach(b=>b.onclick=()=>{state.mode=b.dataset.m;renderModes();});
+}
+function setN(n){
+  state.n=n;const arr=state.managers;
+  while(arr.length<n)arr.push(defaultManager(arr.length));
+  arr.length=n;
+  const used=new Set();arr.forEach(m=>{if(used.has(m.replacePL))m.replacePL=PL.find(c=>!used.has(c.id)).id;used.add(m.replacePL);});
+  renderCount();renderCfg();
+}
+function renderCount(){
+  $("#mgrCount").innerHTML="";
+  [1,2,3,4].forEach(k=>{const b=document.createElement("button");b.className="cbtn"+(k===state.n?" on":"");b.textContent=k+(k===1?" (solo)":" players");b.onclick=()=>setN(k);$("#mgrCount").appendChild(b);});
+}
+function renderCfg(){
+  const el=$("#mgrCfg");el.innerHTML="";
+  state.managers.forEach((m,i)=>{
+    const row=document.createElement("div");row.className="mgrrow";
+    const opts=PL.map(c=>`<option value="${c.id}" ${c.id===m.replacePL?"selected":""}>${c.name}</option>`).join("");
+    row.innerHTML=`<div class="num" style="background:${m.color}">${i+1}</div>
+      <input class="name" maxlength="20" placeholder="Manager ${i+1}" value="${m.name.replace(/"/g,'&quot;')}">
+      <div class="swl">${COLORS.map(c=>`<div class="sw ${c===m.color?'on':''}" style="background:${c}" data-c="${c}"></div>`).join("")}</div>
+      <div style="display:flex;flex-direction:column;gap:3px"><span class="repl-lbl">Takes over</span><select data-i="${i}">${opts}</select></div>`;
+    row.querySelector("input").addEventListener("input",e=>m.name=e.target.value);
+    row.querySelectorAll(".sw").forEach(s=>s.onclick=()=>{m.color=s.dataset.c;renderCfg();});
+    row.querySelector("select").addEventListener("change",e=>{m.replacePL=e.target.value;fixReplaces(i);renderCfg();});
+    el.appendChild(row);
+  });
+  el.querySelectorAll("select").forEach(sel=>{const mine=+sel.dataset.i;[...sel.options].forEach(o=>o.disabled=state.managers.some((m,j)=>j!==mine&&m.replacePL===o.value));});
+}
+function fixReplaces(changed){const used=new Set([state.managers[changed].replacePL]);state.managers.forEach((m,i)=>{if(i===changed)return;if(used.has(m.replacePL))m.replacePL=PL.find(c=>!used.has(c.id)).id;used.add(m.replacePL);});}
+$("#startBtn").onclick=()=>{
+  state.managers.forEach((m,i)=>{if(!m.name.trim())m.name="Manager "+(i+1);});
+  buildSeq();state.idx=0;state.taken=new Set();state.history=[];state.year=1;enterDraft();
+};
+function buildSeq(){const s=[];for(let r=0;r<20;r++){const order=r%2===0?[...Array(state.n).keys()]:[...Array(state.n).keys()].reverse();order.forEach(m=>s.push(m));}state.seq=s;}
+
+/* ============================================================
+   DRAFT (snake over EURO)
+   ============================================================ */
+const curMgr=()=>state.managers[state.seq[state.idx]];
+function enterDraft(){$("#stepTag").textContent="Step 2 — Snake Draft";const m=curMgr();state.selClub=DRAFT_POOL.find(id=>!m.picks[id])||DRAFT_POOL[0];renderDraft();show("draft");window.scrollTo(0,0);}
+function lineCounts(m){const c={GK:0,DEF:0,MID:0,FWD:0};Object.values(m.picks).forEach(p=>c[lineOf(p.role)]++);return c;}
+function renderTrackerInto(m,el){const c=lineCounts(m);el.innerHTML=["GK","DEF","MID","FWD"].map(L=>{const v=c[L],t=TARGET[L];const cls=v===t?"met":v>t?"over":"";return`<div class="trk ${cls}"><div class="l">${L}</div><div class="v">${v}/${t}</div></div>`;}).join("");}
+function renderDraft(){
+  const m=curMgr();
+  $("#turnBanner").style.borderLeftColor=m.color;
+  const cr=$("#turnCrest");cr.textContent=initials(m.name);cr.style.background=m.color;cr.style.color="#04210f";
+  $("#turnWho").textContent=m.name+"'s pick";
+  $("#turnRound").textContent="Round "+(Math.floor(state.idx/state.n)+1)+" / 20";
+  $("#mgrChips").innerHTML=state.managers.map((mm,i)=>{const cnt=Object.keys(mm.picks).length;const act=i===state.seq[state.idx];return`<div class="chip ${act?'active':''}"><span class="cdot" style="background:${mm.color}"></span><span class="cn">${mm.name}</span><span class="cc">${cnt}/20</span></div>`;}).join("");
+  renderTrackerInto(m,$("#trackerD"));
+  $("#undoBtn").disabled=!history0().length;
+  const list=$("#clubList");list.innerHTML="";
+  DRAFT_POOL.forEach(id=>{const c=getClub(id);const mine=m.picks[c.id];const row=document.createElement("div");row.className="clubrow"+(mine?" done":"")+(state.selClub===c.id?" sel":"");
+    row.innerHTML=`<span class="crest" style="background:${c.c1};color:${c.c2}">${c.id}</span><span class="nm">${c.name}</span><span class="pick">${mine?mine.name:"—"}</span><span class="tick">${mine?"✓":""}</span>`;
+    row.onclick=()=>{state.selClub=c.id;renderDraft();};list.appendChild(row);});
+  renderClubPanel();
+}
+let _hist=[];function history0(){return _hist;}
+function renderClubPanel(){
+  const m=curMgr();const c=getClub(state.selClub);const already=!!m.picks[c.id];
+  const sorted=[...c.squad].sort((a,b)=>b[2]-a[2]);
+  $("#rpanel").innerHTML=`<div class="sp-head"><span class="crest" style="background:${c.c1};color:${c.c2}">${c.id}</span><div><div class="nm">${c.name}</div><div class="meta">${already?"✓ you drafted "+m.picks[c.id].name:"Pick one — claimed players are locked"}</div></div></div>
+   <div class="players">${sorted.map(pl=>{const tk=keyOf(c.id,pl[0]);const owner=ownerOf(tk);const gone=!!owner;
+     return`<div class="pl ${gone||already?'gone':''}" data-n="${pl[0].replace(/"/g,'&quot;')}" data-r="${pl[1]}" data-o="${pl[2]}"><span class="role ${lineOf(pl[1])}">${pl[1]}</span><span class="pn">${pl[0]}</span>${owner?`<span class="takenby" style="background:${owner.color}">${initials(owner.name)}</span>`:`<span class="ovr ${ovrTier(pl[2])}">${pl[2]}</span>`}</div>`;}).join("")}</div>`;
+  if(!already)$("#rpanel").querySelectorAll(".pl:not(.gone)").forEach(el=>el.onclick=()=>doPick(c.id,el.dataset.n,el.dataset.r,+el.dataset.o));
+}
+function ownerOf(tk){for(const m of state.managers)for(const id in m.picks)if(keyOf(id,m.picks[id].name)===tk)return m;return null;}
+function doPick(clubId,name,role,ovr){
+  const m=curMgr();m.picks[clubId]={name,role,ovr,clubId};state.taken.add(keyOf(clubId,name));
+  _hist.push({mi:state.seq[state.idx],clubId,name});state.idx++;
+  if(state.idx>=state.seq.length){startLineups();return;}
+  const nm=curMgr();state.selClub=DRAFT_POOL.find(id=>!nm.picks[id])||DRAFT_POOL[0];renderDraft();
+}
+$("#undoBtn").onclick=()=>{if(!_hist.length)return;const last=_hist.pop();state.idx--;const m=state.managers[last.mi];delete m.picks[last.clubId];state.taken.delete(keyOf(last.clubId,last.name));state.selClub=last.clubId;renderDraft();};
+/* ============================================================ LINE-UP PHASE ============================================================ */
+const A=()=>state.managers[state.luIdx];
+const squadOf=m=>Object.values(m.picks);
+const buildSlots=f=>FORMATIONS[f].map(([role,x,y])=>({role,x,y,player:null}));
+const effOvr=(p,role)=>p.ovr-rolePen(role,p.role);
+const inXI=(m,p)=>m.slots.some(s=>s.player===p);
+function pitchName(full){
+  const parts=full.replace(/\./g,"").split(/\s+/).filter(Boolean);
+  if(parts.length===1)return parts[0];
+  const suffix=/^(jr|júnior|junior|filho|neto)$/i;
+  let end=parts.length-1,name=parts[end];
+  if(suffix.test(name)&&end>0){end--;name=parts[end]+" "+name;}
+  const part=/^(de|del|della|di|da|dos|das|van|von|der|den|ter|ten|la|le|el|al|bin|mac|mc|st|du|do)$/i;
+  let i=end-1;while(i>=0&&part.test(parts[i])){name=parts[i]+" "+name;i--;}
+  return name;
+}
+function autoPick(m){
+  m.slots.forEach(s=>s.player=null);
+  const players=squadOf(m).slice().sort((a,b)=>b.ovr-a.ovr);const used=new Set();
+  players.forEach(p=>{let best=-1,bs=null;m.slots.forEach(s=>{if(s.player||lineOf(s.role)!==lineOf(p.role))return;const e=effOvr(p,s.role);if(e>best){best=e;bs=s;}});if(bs){bs.player=p;used.add(p);}});
+  m.slots.forEach(s=>{if(s.player)return;let best=-1,bp=null;players.forEach(p=>{if(used.has(p))return;const e=effOvr(p,s.role);if(e>best){best=e;bp=p;}});if(bp){s.player=bp;used.add(bp);}});
+}
+function startLineups(){$("#stepTag").textContent="Step 3 — Line-ups";state.luIdx=0;enterLineupFor(0);}
+function enterLineupFor(i){state.luIdx=i;const m=A();if(!m.slots.length){m.slots=buildSlots(m.formation);autoPick(m);}state.selSlot=null;renderLineup();show("lineup");window.scrollTo(0,0);}
+function renderLineup(){
+  const m=A();
+  $("#luBanner").style.borderLeftColor=m.color;
+  const cr=$("#luCrest");cr.textContent=initials(m.name);cr.style.background=m.color;cr.style.color="#04210f";
+  $("#luWho").textContent=m.name+" — Set Line-up";
+  $("#luProg").textContent=(state.luIdx+1)+" / "+state.n;
+  $("#formBtns").innerHTML=Object.keys(FORMATIONS).map(f=>`<button class="fbtn ${f===m.formation?'on':''}" data-f="${f}">${f}</button>`).join("");
+  $("#formBtns").querySelectorAll(".fbtn").forEach(b=>b.onclick=()=>setFormation(b.dataset.f));
+  renderPitch();renderSquadList();updateReadouts();
+}
+function setFormation(f){const m=A();m.formation=f;m.slots=buildSlots(f);autoPick(m);state.selSlot=null;renderLineup();}
+function renderPitch(){
+  const m=A();const pit=$("#pitch");
+  pit.innerHTML='<div class="mark halfway"></div><div class="mark circle"></div><div class="mark box top"></div><div class="mark box bot"></div>';
+  m.slots.forEach((s,i)=>{
+    const d=document.createElement("div");const oop=s.player&&s.player.role!==s.role;
+    d.className="slot"+(s.player?" filled":"")+(state.selSlot===i?" sel":"")+(oop?" oop":"");
+    d.style.left=s.x+"%";d.style.top=s.y+"%";
+    const col=s.player?m.color:"rgba(10,14,26,.55)";
+    d.innerHTML='<div class="shirt" style="'+(s.player?'background:'+col+';color:#04210f;border-color:'+col:'')+'">'+(s.player?effOvr(s.player,s.role):s.role)+'</div>'+(s.player?'<div class="badge">'+s.player.role+'</div>':'')+(oop?'<div class="oopwarn">⚠</div>':'')+'<div class="nm">'+(s.player?pitchName(s.player.name):'')+'</div><div class="rl">'+s.role+'</div>';
+    d.onclick=()=>onSlotClick(i);pit.appendChild(d);
+  });
+}
+function onSlotClick(i){const m=A();const s=m.slots[i];if(s.player){s.player=null;state.selSlot=null;}else{state.selSlot=state.selSlot===i?null:i;}renderLineup();}
+function renderSquadList(){
+  const m=A();const el=$("#squadScroll");
+  const players=squadOf(m).slice().sort((a,b)=>b.ovr-a.ovr);
+  $("#squadCount").textContent=players.length;el.innerHTML="";
+  players.forEach(p=>{
+    const on=inXI(m,p);const club=getClub(p.clubId);
+    const row=document.createElement("div");row.className="srow"+(on?" inxi":"");
+    row.innerHTML='<span class="mini role '+lineOf(p.role)+'">'+p.role+'</span><span class="pn">'+p.name+'</span><span class="cc" style="font-size:10px;color:var(--mut)">'+(club?club.id:"")+'</span><span class="ovr '+ovrTier(p.ovr)+'" style="font-size:13px;width:26px">'+p.ovr+'</span><span class="tag '+(on?'xi':'bn')+'">'+(on?'XI':'Bench')+'</span>';
+    row.onclick=()=>onPlayerClick(p);el.appendChild(row);
+  });
+}
+function onPlayerClick(p){
+  const m=A();const cur=m.slots.find(s=>s.player===p);
+  if(cur){cur.player=null;state.selSlot=null;renderLineup();return;}
+  let slot=null;
+  if(state.selSlot!=null&&!m.slots[state.selSlot].player)slot=m.slots[state.selSlot];
+  if(!slot){let best=-1;m.slots.forEach(s=>{if(s.player)return;const e=effOvr(p,s.role);if(e>best){best=e;slot=s;}});}
+  if(slot){slot.player=p;state.selSlot=null;renderLineup();}
+}
+function baseXIRating(m){let s=0;m.slots.forEach(sl=>s+=sl.player?effOvr(sl.player,sl.role):SIM.emptySlot);return s/11;}
+function benchRating(m){const xi=new Set(m.slots.filter(s=>s.player).map(s=>s.player));const b=squadOf(m).filter(p=>!xi.has(p)).map(p=>p.ovr).sort((a,b)=>b-a).slice(0,7);return b.length?b.reduce((a,c)=>a+c,0)/b.length:60;}
+function updateReadouts(){const m=A();const filled=m.slots.filter(s=>s.player).length;$("#xiVal").textContent=filled?Math.round(baseXIRating(m)):"—";$("#depthVal").textContent=Math.round(benchRating(m));$("#xiCount").textContent=filled+"/11";$("#confirmLuBtn").disabled=filled!==11;}
+$("#autoBtn").onclick=()=>{autoPick(A());state.selSlot=null;renderLineup();};
+$("#clearBtn").onclick=()=>{A().slots.forEach(s=>s.player=null);state.selSlot=null;renderLineup();};
+$("#confirmLuBtn").onclick=()=>{
+  if(state.luIdx<state.n-1){enterLineupFor(state.luIdx+1);return;}
+  if(!Object.keys(state.euroComp).length)state.managers.forEach((m,i)=>state.euroComp[i]="CL");
+  const isFirst=state.history.length===0;simulateSeason();pushHistory(isFirst);enterResults();
+};
+/* ============================================================ SIM CORE ============================================================ */
+let RNG=Math.random;
+function rnd(){return RNG();}
+function seasonRNG(){return mulberry32(((state.seed>>>0)^Math.imul(state.year,2654435761)^Math.imul(state.resimNonce+1,40503))>>>0);}
+function poisson(l){l=clamp(l);const L=Math.exp(-l);let k=0,p=1;do{k++;p*=rnd();}while(p>L);return k-1;}
+function aiMatchStrength(sq){let avail=sq.filter(()=>rnd()>SIM.pOut);if(avail.length<11)avail=sq;const pool=avail.slice().sort((a,b)=>b[2]-a[2]).slice(0,11);return pool.reduce((s,p)=>s+p[2],0)/pool.length+(rnd()*4-2);}
+function mgrMatchStrength(m){const xi=baseXIRating(m),bn=benchRating(m);return xi+(bn-xi)*0.05+(rnd()*4-2);}
+function strengthOf(t){if(t.kind==="mgr")return mgrMatchStrength(t.mgr);if(t.kind==="squad")return aiMatchStrength(t._avail);return t.rating-1+rnd()*2;}
+function seedStrength(t){if(t.kind==="mgr")return baseXIRating(t.mgr);if(t.kind==="squad")return bestXIavg(t._avail);return t.rating;}
+const K=0.052;
+function playMatch(H,Aw,neutral){const sH=strengthOf(H),sA=strengthOf(Aw);let lh=SIM.base*Math.exp(K*(sH-sA)),la=SIM.base*Math.exp(K*(sA-sH));if(!neutral){lh*=SIM.home;la/=SIM.home;}return [poisson(lh),poisson(la)];}
+function blankRow(){return{P:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0};}
+function upd(r,gf,ga){r.P++;r.GF+=gf;r.GA+=ga;if(gf>ga){r.W++;r.Pts+=3;}else if(gf<ga){r.L++;}else{r.D++;r.Pts++;}}
+function cmp(ta,tb){return tb.Pts-ta.Pts||(tb.GF-tb.GA)-(ta.GF-ta.GA)||tb.GF-ta.GF||(ta._n<tb._n?-1:1);}
+function scheduleRR(ids){const arr=ids.slice();if(arr.length%2)arr.push(null);const m=arr.length,rounds=[];for(let r=0;r<m-1;r++){const round=[];for(let i=0;i<m/2;i++){const a=arr[i],b=arr[m-1-i];if(a!=null&&b!=null)round.push((r+i)%2===0?[a,b]:[b,a]);}rounds.push(round);arr.splice(1,0,arr.pop());}return rounds;}
+function availSquad(id){const c=getClub(id);if(!c||!c.squad)return null;return isDraftable(id)?c.squad.filter(p=>!state.taken.has(keyOf(id,p[0]))):c.squad;}
+function plTeams(){const removed=new Set(state.managers.map(m=>m.replacePL));const teams=[];PL.forEach(c=>{if(!removed.has(c.id))teams.push({id:c.id,name:c.name,c1:c.c1,c2:c.c2,kind:"squad",_avail:availSquad(c.id)});});state.managers.forEach((m,i)=>teams.push({id:"M"+i,name:m.name,c1:m.color,c2:"#04210f",kind:"mgr",mgr:m,mgrIndex:i}));return teams;}
+function runPLSeason(){
+  const teams=plTeams();const tmap={};teams.forEach((t,i)=>{t._n=i;tmap[t.id]=t;});
+  const ids=teams.map(t=>t.id);const half=scheduleRR(ids);const rounds=half.concat(half.map(rd=>rd.map(([h,a])=>[a,h])));
+  const tbl={};ids.forEach(id=>tbl[id]=blankRow());const logs={},allPos={};state.managers.forEach((m,i)=>logs[i]=[]);ids.forEach(id=>allPos[id]=[]);
+  rounds.forEach(round=>{
+    round.forEach(([h,a])=>{const r=playMatch(tmap[h],tmap[a],false),hg=r[0],ag=r[1];upd(tbl[h],hg,ag);upd(tbl[a],ag,hg);
+      if(tmap[h].kind==="mgr")logs[tmap[h].mgrIndex].push({home:true,opp:tmap[a],gf:hg,ga:ag});
+      if(tmap[a].kind==="mgr")logs[tmap[a].mgrIndex].push({home:false,opp:tmap[h],gf:ag,ga:hg});});
+    const order=ids.map(id=>({id,...tbl[id],_n:tmap[id]._n})).sort(cmp);order.forEach((row,idx)=>allPos[row.id].push(idx+1));
+  });
+  const finalOrder=ids.map(id=>({id,ref:tmap[id],...tbl[id],_n:tmap[id]._n})).sort(cmp).map((r,i)=>({...r,pos:i+1}));
+  const champId=finalOrder[0].id;const posSeries={},mgrPos={};
+  state.managers.forEach((m,i)=>{posSeries[i]=allPos["M"+i];mgrPos[i]=finalOrder.find(r=>r.id==="M"+i).pos;});
+  return{rows:finalOrder,logs,posSeries,mgrPos,champSeries:allPos[champId],champRef:tmap[champId]};
+}
+/* ---------- TIES ---------- */
+function aggFor(t,a,aggA,aggB){return"agg "+(t===a?aggA+"–"+aggB:aggB+"–"+aggA);}
+function playTie(a,b,opts,roundName,mgrLogs){
+  const legs=[];let aggA=0,aggB=0,winner,pen=false;const neutral=!!opts.neutral;
+  if(opts.legs===2){const l1=playMatch(a,b,false),l2=playMatch(b,a,false);legs.push(l1,l2);aggA=l1[0]+l2[1];aggB=l1[1]+l2[0];}
+  else{const s=playMatch(a,b,neutral);legs.push(s);aggA=s[0];aggB=s[1];}
+  if(aggA>aggB)winner=a;else if(aggB>aggA)winner=b;else{pen=true;winner=(seedStrength(a)+rnd()*7>seedStrength(b)+rnd()*7)?a:b;}
+  if(a.kind==="mgr"||b.kind==="mgr"){
+    legs.forEach((sc,li)=>{
+      const homeTeam=opts.legs===2?(li===0?a:b):a, awayTeam=opts.legs===2?(li===0?b:a):b;
+      const hg=sc[0],ag=sc[1],last=li===legs.length-1;const hf=neutral?"N":true, af=neutral?"N":false;
+      if(homeTeam.kind==="mgr")mgrLogs[homeTeam.mgrIndex].push({section:roundName,home:hf,opp:awayTeam,gf:hg,ga:ag,agg:(last&&opts.legs===2)?aggFor(homeTeam,a,aggA,aggB):null,pen:last&&pen});
+      if(awayTeam.kind==="mgr")mgrLogs[awayTeam.mgrIndex].push({section:roundName,home:af,opp:homeTeam,gf:ag,ga:hg,agg:(last&&opts.legs===2)?aggFor(awayTeam,a,aggA,aggB):null,pen:last&&pen});
+    });
+  }
+  return{a,b,legs,agg:[aggA,aggB],winner,pen,neutral,single:opts.legs===1};
+}
+/* ---------- EUROPEAN FIELDS + TOURNAMENT ---------- */
+function europoolIds(){return [...EURO.map(c=>c.id),...PL_CL,...PL_EL,...EXTRA.map(c=>c.id)];}
+const replacedSet=()=>new Set(state.managers.map(m=>m.replacePL));
+function compEligible(comp,id,repl){if(repl.has(id))return false;if(comp==="CL")return true;if(CL_CORE.includes(id))return false;const r=baseRating(id);if(comp==="EL")return r<=84;return r<=78;}
+function compWeight(comp,id){const r=baseRating(id);if(comp==="CL")return Math.pow(Math.max(1,r-70),3);if(comp==="EL")return Math.pow(Math.max(1,r-66),2);return Math.pow(Math.max(1,r-60),1.4);}
+function buildCompField(comp,year,used,mgrIdxs){
+  const repl=replacedSet();const field=[];
+  if(comp==="CL")CL_CORE.forEach(id=>{if(!used.has(id)&&!repl.has(id)){field.push(id);used.add(id);}});
+  const salt=comp==="CL"?1:comp==="EL"?2:3;const rnd=mulberry32(((state.seed>>>0)^Math.imul(year,2654435761)^Math.imul(salt,99991))>>>0);
+  const pool=europoolIds().filter(id=>!used.has(id)&&compEligible(comp,id,repl)).map(id=>({id,w:compWeight(comp,id)}));
+  const target=32-mgrIdxs.length;
+  while(field.length<target&&pool.length){let tot=pool.reduce((s,p)=>s+p.w,0),r=rnd()*tot,k=0;while(k<pool.length-1&&r>pool[k].w){r-=pool[k].w;k++;}field.push(pool[k].id);used.add(pool[k].id);pool.splice(k,1);}
+  const teams=field.map(id=>{const c=getClub(id);return{id,name:c.name,c1:c.c1,c2:c.c2,country:c.country,kind:c.squad?"squad":"rating",rating:c.rating,_avail:availSquad(id)};});
+  mgrIdxs.forEach(i=>{const m=state.managers[i];teams.push({id:"M"+i,name:m.name,c1:m.color,c2:"#04210f",country:"ENG",kind:"mgr",mgr:m,mgrIndex:i});});
+  return teams;
+}
+function drawGroups(teams,year,salt){
+  const rnd=mulberry32(((state.seed>>>0)^Math.imul(year,40503)^Math.imul(salt+1,7919))>>>0);
+  const sorted=teams.slice().sort((a,b)=>seedStrength(b)-seedStrength(a));
+  const pots=[sorted.slice(0,8),sorted.slice(8,16),sorted.slice(16,24),sorted.slice(24,32)];
+  const groups=[[],[],[],[],[],[],[],[]];
+  pots.forEach((pot,p)=>{shuffle(pot,rnd).forEach(t=>{const cands=[];for(let g=0;g<8;g++)if(groups[g].length===p)cands.push(g);const pref=cands.filter(g=>!groups[g].some(x=>x.country===t.country));groups[(pref.length?pref:cands)[0]].push(t);});});
+  return groups;
+}
+function runTournament(teams,year,salt){
+  const groups=drawGroups(teams,year,salt);
+  const parts=teams.filter(t=>t.kind==="mgr").map(t=>t.mgrIndex);
+  const mgrLogs={};parts.forEach(i=>mgrLogs[i]=[]);
+  const res={};teams.forEach(t=>res[t.id]="Group stage");
+  const groupResults=[],winners=[],runners=[];
+  groups.forEach((grp,gi)=>{
+    const tbl={};grp.forEach((t,i)=>{t._n=i;tbl[t.id]=blankRow();});
+    for(let i=0;i<grp.length;i++)for(let j=0;j<grp.length;j++){if(i===j)continue;const r=playMatch(grp[i],grp[j],false),hg=r[0],ag=r[1];upd(tbl[grp[i].id],hg,ag);upd(tbl[grp[j].id],ag,hg);
+      if(grp[i].kind==="mgr")mgrLogs[grp[i].mgrIndex].push({section:"Group "+"ABCDEFGH"[gi],home:true,opp:grp[j],gf:hg,ga:ag});
+      if(grp[j].kind==="mgr")mgrLogs[grp[j].mgrIndex].push({section:"Group "+"ABCDEFGH"[gi],home:false,opp:grp[i],gf:ag,ga:hg});}
+    const rows=grp.map(t=>({team:t,...tbl[t.id],_n:t._n})).sort(cmp);
+    groupResults.push({letter:"ABCDEFGH"[gi],rows});winners.push(rows[0].team);runners.push(rows[1].team);
+  });
+  [...winners,...runners].forEach(t=>res[t.id]="Round of 16");
+  const rounds=[];const r16map=[[0,1],[3,2],[4,5],[7,6],[1,0],[2,3],[5,4],[6,7]];
+  let r16=r16map.map(p=>playTie(winners[p[0]],runners[p[1]],{legs:2},"Round of 16",mgrLogs));
+  r16.forEach(t=>res[t.winner.id]="Quarter-final");rounds.push({name:"Round of 16",ties:r16});
+  let qf=[];for(let i=0;i<8;i+=2)qf.push(playTie(r16[i].winner,r16[i+1].winner,{legs:2},"Quarter-final",mgrLogs));
+  qf.forEach(t=>res[t.winner.id]="Semi-final");rounds.push({name:"Quarter-finals",ties:qf});
+  let sf=[];for(let i=0;i<4;i+=2)sf.push(playTie(qf[i].winner,qf[i+1].winner,{legs:2},"Semi-final",mgrLogs));
+  sf.forEach(t=>res[t.winner.id]="Final");rounds.push({name:"Semi-finals",ties:sf});
+  const fin=playTie(sf[0].winner,sf[1].winner,{legs:1,neutral:true},"Final",mgrLogs);
+  res[fin.a.id]=fin.a===fin.winner?"Winner":"Runner-up";res[fin.b.id]=fin.b===fin.winner?"Winner":"Runner-up";
+  rounds.push({name:"Final",ties:[fin]});
+  const mgrRes={};parts.forEach(i=>mgrRes[i]=res["M"+i]);
+  return{groupResults,rounds,mgrLogs,mgrRes,champion:fin.winner,participants:parts};
+}
+/* ============================================================ FA CUP ============================================================ */
+function reachedLabel(ri){return ["Round of 32","Round of 16","Quarter-final","Semi-final","Runner-up"][ri];}
+function domesticField(year,saltOffset){
+  const removed=new Set(state.managers.map(m=>m.replacePL));const base=[];
+  PL.forEach(c=>{if(!removed.has(c.id))base.push({id:c.id,name:c.name,c1:c.c1,c2:c.c2,kind:"squad",_avail:availSquad(c.id)});});
+  state.managers.forEach((m,i)=>base.push({id:"M"+i,name:m.name,c1:m.color,c2:"#04210f",kind:"mgr",mgr:m,mgrIndex:i}));
+  const rnd=mulberry32(((state.seed>>>0)^Math.imul(year,1013904223)^Math.imul(saltOffset,2246822519))>>>0);
+  const efl=shuffle(EFL,rnd).slice(0,12).map(c=>({id:c.id,name:c.name,c1:c.c1,c2:c.c2,kind:"rating",rating:c.rating}));
+  return shuffle(base.concat(efl),rnd);
+}
+function runKnockout(teams,roundDefs){
+  const mgrLogs={};state.managers.forEach((m,i)=>mgrLogs[i]=[]);
+  const res={};teams.forEach(t=>{if(t.kind==="mgr")res[t.mgrIndex]=roundDefs[0].loss;});
+  const rounds=[];let cur=teams;
+  roundDefs.forEach(rd=>{
+    const ties=[],next=[];
+    for(let i=0;i<cur.length;i+=2){const a=cur[i],b=cur[i+1];const tie=playTie(a,b,{legs:rd.legs,neutral:rd.neutral},rd.name,mgrLogs);ties.push(tie);next.push(tie.winner);const loser=tie.winner===a?b:a;if(loser.kind==="mgr")res[loser.mgrIndex]=rd.loss;}
+    rounds.push({name:rd.name,ties});cur=next;
+  });
+  const champion=cur[0];if(champion.kind==="mgr")res[champion.mgrIndex]="Winner";
+  return{rounds,mgrLogs,mgrRes:res,champion,winnerMgr:champion.kind==="mgr"?champion.mgrIndex:null,participants:teams.filter(t=>t.kind==="mgr").map(t=>t.mgrIndex)};
+}
+const FA_ROUNDS=[{name:"Round of 32",legs:1,neutral:false,loss:"Round of 32"},{name:"Round of 16",legs:1,neutral:false,loss:"Round of 16"},{name:"Quarter-finals",legs:1,neutral:false,loss:"Quarter-final"},{name:"Semi-finals",legs:1,neutral:false,loss:"Semi-final"},{name:"Final",legs:1,neutral:true,loss:"Runner-up"}];
+const CC_ROUNDS=[{name:"Round of 32",legs:1,neutral:false,loss:"Round of 32"},{name:"Round of 16",legs:1,neutral:false,loss:"Round of 16"},{name:"Quarter-finals",legs:1,neutral:false,loss:"Quarter-final"},{name:"Semi-finals (2 legs)",legs:2,neutral:false,loss:"Semi-final"},{name:"Final",legs:1,neutral:true,loss:"Runner-up"}];
+function runFACup(year){const t=runKnockout(domesticField(year,1),FA_ROUNDS);t.cupLabel="FA CUP";return t;}
+function runCarabao(year){const t=runKnockout(domesticField(year,2),CC_ROUNDS);t.cupLabel="CARABAO";return t;}
+/* Old-style Club World Cup: continental champions only; the CL winner (you) gets a semi-final bye. */
+function contTeam(c){return{id:c.id,name:c.name,c1:c.c1,c2:c.c2,country:c.country,kind:"rating",rating:c.rating};}
+function runCWC(year,mgrIdx){
+  const rnd=mulberry32(((state.seed>>>0)^Math.imul(year,374761393)^99991)>>>0);
+  const pick=conf=>{const a=CONT[conf];return contTeam(a[Math.floor(rnd()*a.length)]);};
+  const m=state.managers[mgrIdx];
+  const uefa={id:"M"+mgrIdx,name:m.name,c1:m.color,c2:"#04210f",kind:"mgr",mgr:m,mgrIndex:mgrIdx};
+  const conmebol=pick("CONMEBOL"),concacaf=pick("CONCACAF"),afc=pick("AFC"),caf=pick("CAF"),ofc=pick("OFC");
+  const mgrLogs={};mgrLogs[mgrIdx]=[];
+  const qf1=playTie(afc,ofc,{legs:1,neutral:true},"Quarter-finals",mgrLogs);
+  const qf2=playTie(concacaf,caf,{legs:1,neutral:true},"Quarter-finals",mgrLogs);
+  const sf1=playTie(uefa,qf1.winner,{legs:1,neutral:true},"Semi-finals",mgrLogs);
+  const sf2=playTie(conmebol,qf2.winner,{legs:1,neutral:true},"Semi-finals",mgrLogs);
+  const fin=playTie(sf1.winner,sf2.winner,{legs:1,neutral:true},"Final",mgrLogs);
+  let res="Semi-final";
+  if(sf1.winner.mgrIndex===mgrIdx)res=(fin.winner.mgrIndex===mgrIdx)?"Winner":"Runner-up";
+  const rounds=[{name:"Quarter-finals",ties:[qf1,qf2]},{name:"Semi-finals",ties:[sf1,sf2]},{name:"Final",ties:[fin]}];
+  return{rounds,mgrLogs,mgrRes:{[mgrIdx]:res},champion:fin.winner,participants:[mgrIdx],entrant:mgrIdx,cupLabel:"CWC"};
+}
+/* ============================================================ QUALIFICATION ============================================================ */
+function leagueTier(pos){return pos<=5?3:pos<=7?2:pos===8?1:0;}
+function tierComp(t){return t>=3?"CL":t===2?"EL":t===1?"ECL":null;}
+function computeNextEuro(){
+  const map={};
+  state.managers.forEach((m,i)=>{
+    let t=leagueTier(state.pl.mgrPos[i]);
+    if(state.faCup&&state.faCup.winnerMgr===i)t=Math.max(t,2);
+    if(state.carabao&&state.carabao.winnerMgr===i)t=Math.max(t,2);
+    const comp=state.euroComp[i];
+    if(comp&&state.euros[comp]){const r=state.euros[comp].mgrRes[i];
+      if(r==="Winner"){if(comp==="CL"||comp==="EL")t=Math.max(t,3);else t=Math.max(t,2);}}
+    map[i]=tierComp(t);
+  });
+  return map;
+}
+function computeNextCWC(){if(!state.euros.CL)return null;const r=state.euros.CL.mgrRes;for(const i in r)if(r[i]==="Winner")return +i;return null;}
+/* ============================================================ SEASON ORCHESTRATION ============================================================ */
+function simulateSeason(){
+  RNG=seasonRNG();
+  state.euros={};state.cwc=null;
+  if(state.mode==="clonly"){
+    const all=state.managers.map((m,i)=>i);const used=new Set();
+    const teams=buildCompField("CL",state.year,used,all);
+    state.euros.CL=runTournament(teams,state.year,1);state.euros.CL.comp="CL";
+    state.pl=null;state.faCup=null;state.carabao=null;state.nextEuroComp={};state.nextCWC=null;
+    RNG=Math.random;return;
+  }
+  state.pl=runPLSeason();
+  state.faCup=runFACup(state.year);
+  state.carabao=runCarabao(state.year);
+  const byComp={CL:[],EL:[],ECL:[]};
+  state.managers.forEach((m,i)=>{const c=state.euroComp[i];if(c)byComp[c].push(i);});
+  const used=new Set();
+  COMP_ORDER.forEach((comp,ci)=>{if(byComp[comp].length){const teams=buildCompField(comp,state.year,used,byComp[comp]);state.euros[comp]=runTournament(teams,state.year,ci+1);state.euros[comp].comp=comp;}});
+  if(state.cwcThisYear!=null)state.cwc=runCWC(state.year,state.cwcThisYear);
+  state.nextEuroComp=computeNextEuro();
+  state.nextCWC=computeNextCWC();
+  RNG=Math.random;
+}
+function seasonSummary(){
+  return state.managers.map((m,i)=>{
+    if(state.mode==="clonly")return{plPos:null,fa:null,cc:null,comp:"CL",compRes:state.euros.CL.mgrRes[i],cwc:null,next:null};
+    const comp=state.euroComp[i];
+    return{plPos:state.pl.mgrPos[i],fa:state.faCup.mgrRes[i],cc:state.carabao.mgrRes[i],comp:comp,compRes:comp?state.euros[comp].mgrRes[i]:null,cwc:(state.cwc&&state.cwc.entrant===i)?state.cwc.mgrRes[i]:null,next:state.nextEuroComp[i]};
+  });
+}
+function pushHistory(isNew){const e={year:state.year,per:seasonSummary()};if(isNew||!state.history.length)state.history.push(e);else state.history[state.history.length-1]=e;}
+/* ============================================================ RENDERING ============================================================ */
+function clResClass(r){return r==="Winner"?"r-win":(r==="Runner-up"||r==="Semi-final")?"r-good":(r==="Quarter-final"||r==="Round of 16")?"r-mid":"r-bad";}
+function teamDot(ref){return'<span class="barbadge" style="background:'+ref.c1+';border:1px solid '+(ref.c2==="#ffffff"?"#ffffff55":ref.c2)+'"></span>';}
+function logRowHTML(e){
+  const res=e.gf>e.ga?"W":e.gf<e.ga?"L":"D";const ha=e.home==="N"?"N":e.home?"H":"A";
+  const extra=e.agg?(e.pen?e.agg+" ✶":e.agg):(e.pen?"pens ✶":"");
+  return '<div class="logrow"><span class="ha">'+ha+'</span><span class="rs '+res+'">'+res+'</span><span class="opp">'+e.opp.name+'</span><span class="sc">'+e.gf+"–"+e.ga+'</span><span class="agg">'+extra+'</span></div>';
+}
+function renderLogBlock(host,logsByMgr,parts,sectioned){
+  const tabs=document.createElement("div");tabs.className="logtabs";
+  const log=document.createElement("div");log.className="log";
+  let sel=parts[0];
+  function draw(){
+    tabs.innerHTML=parts.map(i=>'<button class="ltab '+(i===sel?"on":"")+'" style="'+(i===sel?"background:"+state.managers[i].color+";border-color:"+state.managers[i].color:"")+'" data-i="'+i+'">'+state.managers[i].name+'</button>').join("");
+    tabs.querySelectorAll(".ltab").forEach(b=>b.onclick=()=>{sel=+b.dataset.i;draw();});
+    const arr=logsByMgr[sel]||[];let html="",sec=null;
+    arr.forEach(e=>{if(sectioned&&e.section!==sec){sec=e.section;html+='<div class="logsec">'+sec+'</div>';}html+=logRowHTML(e);});
+    if(!arr.length)html='<div class="logrow" style="color:var(--mut)">No matches.</div>';
+    log.innerHTML=html;
+  }
+  draw();host.appendChild(tabs);host.appendChild(log);
+}
+function mgrCard(m,i,lines,qual){return'<div class="mgrcard" style="border-left-color:'+m.color+'"><div class="mn">'+m.name+'</div><div class="meta" style="color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-top:2px">as '+getClub(m.replacePL).name+'</div>'+lines+qual+'</div>';}
+const TROPHY_DEFS=[["League","League"],["FA","FA Cup"],["CC","Carabao"],["CL","Champions Lg"],["EL","Europa Lg"],["ECL","Conference"],["CWC","Club World Cup"]];
+function cabinet(i){const c={League:0,FA:0,CC:0,CL:0,EL:0,ECL:0,CWC:0};state.history.forEach(e=>{const p=e.per[i];if(!p)return;if(p.plPos===1)c.League++;if(p.fa==="Winner")c.FA++;if(p.cc==="Winner")c.CC++;if(p.compRes==="Winner"&&p.comp)c[p.comp]++;if(p.cwc==="Winner")c.CWC++;});return c;}
+function trophyTotal(i){const c=cabinet(i);return Object.values(c).reduce((a,b)=>a+b,0);}
+function cardLine(k,val,cls,gold){return '<div class="line"><span class="k">'+k+'</span><span class="pos '+(cls||"")+'" style="'+(gold?"color:var(--gold)":"")+'">'+val+'</span></div>';}
+function renderMgrCards(){
+  $("#mgrCards").innerHTML=state.managers.map((m,i)=>{
+    let lines="";
+    if(state.mode==="clonly"){
+      const r=state.euros.CL.mgrRes[i];
+      lines+=cardLine("UCL",r,clResClass(r),r==="Winner");
+      lines+=cardLine("Trophies","🏆 "+trophyTotal(i),"",true);
+      return mgrCard(m,i,lines,"");
+    }
+    const p=state.pl.mgrPos[i];
+    lines+='<div class="line"><span class="k">League</span><span class="pos">'+p+ord(p)+'</span><span style="color:var(--mut)">of 20</span></div>';
+    lines+=cardLine("FA Cup",state.faCup.mgrRes[i],clResClass(state.faCup.mgrRes[i]),state.faCup.mgrRes[i]==="Winner");
+    lines+=cardLine("Carabao",state.carabao.mgrRes[i],clResClass(state.carabao.mgrRes[i]),state.carabao.mgrRes[i]==="Winner");
+    const comp=state.euroComp[i];
+    if(comp){const r=state.euros[comp].mgrRes[i];lines+=cardLine(COMPS[comp].short,r,clResClass(r),r==="Winner");}
+    else lines+='<div class="line"><span class="k">Europe</span><span style="color:var(--mut)">none</span></div>';
+    if(state.cwc&&state.cwc.entrant===i){const r=state.cwc.mgrRes[i];lines+=cardLine("Club World Cup",r,clResClass(r),r==="Winner");}
+    lines+=cardLine("Trophies","🏆 "+trophyTotal(i),"",true);
+    const nx=state.nextEuroComp[i];
+    let qhtml='Next season: <span class="qualpill q-'+(nx||"none")+'">'+(nx?COMPS[nx].label:"No European football")+'</span>';
+    if(state.nextCWC===i)qhtml+=' <span class="qualpill q-CL">+ Club World Cup</span>';
+    return mgrCard(m,i,lines,'<div class="qual">'+qhtml+'</div>');
+  }).join("");
+}
+function enterResults(){
+  $("#stepTag").textContent="Step 4 — Results";
+  $("#seasonYr").innerHTML="Season <b>"+state.year+"</b>";
+  renderMgrCards();
+  const panes=$("#resPanes");panes.innerHTML="";const tabsEl=$("#resTabs");
+  const defs=[];
+  if(state.mode==="clonly"){defs.push({id:"CL",label:"Champions League",render:el=>renderTournamentPane(el,state.euros.CL)});}
+  else{
+    defs.push({id:"pl",label:"League",render:renderLeaguePane});
+    COMP_ORDER.forEach(c=>{if(state.euros[c])defs.push({id:c,label:COMPS[c].label,render:el=>renderTournamentPane(el,state.euros[c],COMPS[c].label)});});
+    defs.push({id:"fa",label:"FA Cup",render:el=>renderCupPane(el,state.faCup,"FA Cup")});
+    defs.push({id:"cc",label:"Carabao Cup",render:el=>renderCupPane(el,state.carabao,"Carabao Cup")});
+    if(state.cwc)defs.push({id:"cwc",label:"Club World Cup",render:renderCWCPane});
+  }
+  defs.push({id:"hist",label:"History",render:renderHistPane});
+  defs.forEach((d,i)=>{const pane=document.createElement("div");pane.className="tabpane"+(i===0?" on":"");pane.id="pane-"+d.id;panes.appendChild(pane);d.render(pane);});
+  tabsEl.innerHTML=defs.map((d,i)=>'<button class="tab '+(i===0?"on":"")+'" data-t="'+d.id+'">'+d.label+'</button>').join("");
+  tabsEl.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{tabsEl.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x===b));defs.forEach(d=>$("#pane-"+d.id).classList.toggle("on",d.id===b.dataset.t));});
+  show("results");window.scrollTo(0,0);
+}
+function renderLeaguePane(el){
+  el.innerHTML='<div class="res-grid"><div class="card"><h4>Final Table</h4><div class="legend"><span><i class="dot" style="background:var(--gold)"></i>Champions</span><span><i class="dot" style="background:var(--blue)"></i>Top 5 → UCL</span><span><i class="dot" style="background:var(--red)"></i>Relegated</span></div><table id="plTable"></table></div><div class="card"><h4>League Position by Matchday</h4><div class="chartwrap"><div id="plChart"></div></div><div class="chip-legend" id="plChartLegend"></div></div></div><div class="card" style="margin-top:16px"><h4>Match Logs — all 38 games</h4><div id="plLogHost"></div></div>';
+  const rows=state.pl.rows;
+  let h='<tr><th>#</th><th style="text-align:left">Club</th><th>Pl</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>';
+  h+=rows.map(r=>{const zone=r.pos===1?"zone-champ":r.pos<=5?"zone-ucl":r.pos>=18?"zone-rel":"";const mgr=r.ref.kind==="mgr"?"mgr":"";return'<tr class="'+zone+' '+mgr+'"><td class="pos">'+r.pos+'</td><td class="team">'+teamDot(r.ref)+r.ref.name+'</td><td>'+r.P+'</td><td>'+r.W+'</td><td>'+r.D+'</td><td>'+r.L+'</td><td>'+((r.GF-r.GA>0?"+":"")+(r.GF-r.GA))+'</td><td><b>'+r.Pts+'</b></td></tr>';}).join("");
+  el.querySelector("#plTable").innerHTML=h;
+  renderPLChart(el.querySelector("#plChart"),el.querySelector("#plChartLegend"));
+  renderLogBlock(el.querySelector("#plLogHost"),state.pl.logs,state.managers.map((m,i)=>i),false);
+}
+function renderPLChart(host,legend){
+  const pl=state.pl;const W=680,H=380,ml=30,mr=14,mt=14,mb=24;
+  const px=md=>ml+md/37*(W-ml-mr);const py=pos=>mt+(pos-1)/19*(H-mt-mb);
+  let g="";[1,5,10,15,20].forEach(p=>{g+='<line x1="'+ml+'" y1="'+py(p)+'" x2="'+(W-mr)+'" y2="'+py(p)+'" stroke="#26344f" stroke-width="1"/><text x="'+(ml-5)+'" y="'+(py(p)+3)+'" fill="#8294b8" font-size="9" text-anchor="end">'+p+'</text>';});
+  [1,7,14,21,28,38].forEach(md=>{g+='<text x="'+px(md-1)+'" y="'+(H-8)+'" fill="#8294b8" font-size="9" text-anchor="middle">'+md+'</text>';});
+  const line=(series,color,dash)=>{const pts=series.map((p,i)=>px(i).toFixed(1)+","+py(p).toFixed(1)).join(" ");return'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="'+(dash?1.6:2.6)+'" stroke-dasharray="'+(dash?"4 4":"0")+'" stroke-linejoin="round" opacity="'+(dash?.7:1)+'"/>';};
+  let body=line(pl.champSeries,"#8294b8",true);state.managers.forEach((m,i)=>body+=line(pl.posSeries[i],m.color,false));
+  host.innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+g+body+'</svg>';
+  let lg='<span><i style="background:#8294b8"></i>Champion ('+pl.champRef.name+')</span>';state.managers.forEach(m=>lg+='<span><i style="background:'+m.color+'"></i>'+m.name+'</span>');legend.innerHTML=lg;
+}
+function renderGroupsInto(host,tour){host.innerHTML=tour.groupResults.map(g=>'<div class="grp"><div class="gh">Group '+g.letter+'</div><table><tr><th style="text-align:left">Club</th><th>Pl</th><th>GD</th><th>Pts</th></tr>'+g.rows.map((r,i)=>'<tr class="'+(i<2?"adv":"")+' '+(r.team.kind==="mgr"?"mgr":"")+'"><td class="gt">'+r.team.name+'</td><td>'+r.P+'</td><td>'+((r.GF-r.GA>0?"+":"")+(r.GF-r.GA))+'</td><td><b>'+r.Pts+'</b></td></tr>').join("")+'</table></div>').join("");}
+function bteamHTML(t,score,win,isMgr){return'<div class="bteam '+(win?"win":"")+' '+(isMgr?"mgrt":"")+'"><span class="bd" style="background:'+t.c1+';border:1px solid '+(t.c2==="#ffffff"?"#fff5":t.c2)+'"></span><span class="bn">'+t.name+'</span><span class="bs">'+score+'</span></div>';}
+function renderBracketInto(host,tour,champLabel){
+  let cols=tour.rounds.map(rd=>'<div class="bround"><div class="rh">'+rd.name+'</div>'+rd.ties.map(t=>{const hasMgr=t.a.kind==="mgr"||t.b.kind==="mgr";return'<div class="btie '+(hasMgr?"hasmgr":"")+'">'+bteamHTML(t.a,t.agg[0],t.winner===t.a,t.a.kind==="mgr")+bteamHTML(t.b,t.agg[1],t.winner===t.b,t.b.kind==="mgr")+(t.pen?'<div class="pen">on penalties</div>':"")+'</div>';}).join("")+'</div>').join("");
+  const lab=champLabel||(tour.comp&&COMPS[tour.comp]?COMPS[tour.comp].short:"CUP");
+  cols+='<div class="bround"><div class="rh">Winner</div><div class="champ-box"><div class="ct">★ '+lab+' ★</div><div class="cn">'+tour.champion.name+'</div></div></div>';
+  host.innerHTML=cols;
+}
+function mkCard(title,childCls){const c=document.createElement("div");c.className="card";const h=document.createElement("h4");h.textContent=title;c.appendChild(h);const body=document.createElement("div");if(childCls)body.className=childCls;c.appendChild(body);return[c,body];}
+function renderTournamentPane(el,tour,label){
+  el.innerHTML="";
+  if(label){const b=document.createElement("div");b.className="comp-banner";b.innerHTML="You qualified for the <b>"+label+"</b> this season";el.appendChild(b);}
+  const [c1,groups]=mkCard("Group Stage","groups");el.appendChild(c1);
+  const [c2,brk]=mkCard("Knockout Bracket","bracket");c2.style.marginTop="16px";el.appendChild(c2);
+  const [c3,logh]=mkCard("Match Logs — every game, both legs","");c3.style.marginTop="16px";el.appendChild(c3);
+  renderGroupsInto(groups,tour);renderBracketInto(brk,tour);
+  if(tour.participants.length)renderLogBlock(logh,tour.mgrLogs,tour.participants,true);
+  else logh.innerHTML='<div class="logrow" style="color:var(--mut)">No managers in this competition.</div>';
+}
+function renderCupPane(el,cup,nameLabel){
+  el.innerHTML="";
+  const b=document.createElement("div");b.className="comp-banner";b.innerHTML=nameLabel+" winner this season: <b>"+cup.champion.name+"</b>";el.appendChild(b);
+  const [c1,brk]=mkCard("Knockout Bracket","bracket");el.appendChild(c1);
+  const [c2,logh]=mkCard("Match Logs","");c2.style.marginTop="16px";el.appendChild(c2);
+  renderBracketInto(brk,cup,cup.cupLabel||"CUP");
+  renderLogBlock(logh,cup.mgrLogs,state.managers.map((m,i)=>i),true);
+}
+function renderCWCPane(el){
+  const cwc=state.cwc;el.innerHTML="";
+  const b=document.createElement("div");b.className="comp-banner";b.innerHTML="As Champions League winners, <b>"+state.managers[cwc.entrant].name+"</b> enter at the semi-final. Winner: <b>"+cwc.champion.name+"</b>";el.appendChild(b);
+  const [c1,brk]=mkCard("Bracket","bracket");el.appendChild(c1);
+  const [c2,logh]=mkCard("Match Log","");c2.style.marginTop="16px";el.appendChild(c2);
+  renderBracketInto(brk,cwc,"CWC");
+  renderLogBlock(logh,cwc.mgrLogs,[cwc.entrant],true);
+}
+function renderHistPane(el){
+  el.innerHTML="";
+  const cab=document.createElement("div");cab.className="card";cab.innerHTML='<h4>Trophy Cabinet</h4>';
+  const cw=document.createElement("div");cw.className="cabinet";
+  cw.innerHTML=state.managers.map((m,i)=>{const c=cabinet(i);const items=TROPHY_DEFS.filter(d=>c[d[0]]>0).map(d=>'<span class="trophy"><b>'+c[d[0]]+'</b>&nbsp;'+d[1]+'</span>').join("");return '<div class="cabcard" style="border-left-color:'+m.color+'"><div class="cabname">'+m.name+' <span style="color:var(--gold)">🏆 '+trophyTotal(i)+'</span></div><div class="cabitems">'+(items||'<span style="color:var(--mut)">No trophies yet</span>')+'</div></div>';}).join("");
+  cab.appendChild(cw);el.appendChild(cab);
+  const tcard=document.createElement("div");tcard.className="card";tcard.style.marginTop="16px";tcard.innerHTML='<h4>Season by season</h4><div class="histwrap"><table id="histTable"></table></div>';el.appendChild(tcard);
+  let head='<tr><th>Season</th>'+state.managers.map(m=>'<th style="color:'+m.color+'">'+m.name+'</th>').join("")+'</tr>';
+  let body=state.history.slice().reverse().map(e=>{
+    const cells=e.per.map(p=>{let s="";
+      if(p.plPos!=null)s+='<div>'+p.plPos+ord(p.plPos)+(p.plPos===1?' 🏆':'')+' <span style="color:var(--mut);font-size:10px">League</span></div>';
+      if(p.comp)s+='<div class="'+clResClass(p.compRes)+'" style="font-size:11px">'+COMPS[p.comp].short+': '+p.compRes+'</div>';
+      else if(state.mode!=="clonly")s+='<div style="font-size:11px;color:var(--mut)">No Europe</div>';
+      if(p.cwc)s+='<div class="'+clResClass(p.cwc)+'" style="font-size:11px">CWC: '+p.cwc+'</div>';
+      const won=[];if(p.fa==="Winner")won.push("FA Cup");if(p.cc==="Winner")won.push("Carabao");
+      if(won.length)s+='<div class="r-win" style="font-size:11px">🏆 '+won.join(", ")+'</div>';
+      else{const run=[];const good=r=>r&&r!=="Round of 32"&&r!=="Round of 16";if(good(p.fa))run.push("FA "+p.fa);if(good(p.cc))run.push("EFL "+p.cc);if(run.length)s+='<div style="font-size:10px;color:var(--mut)">'+run.join(" · ")+'</div>';}
+      return '<td>'+(s||"—")+'</td>';
+    }).join("");
+    return '<tr><td class="yr">'+e.year+'</td>'+cells+'</tr>';
+  }).join("");
+  el.querySelector("#histTable").innerHTML=head+body;
+}
+/* ============================================================ CONTROLS + INIT ============================================================ */
+$("#nextSeasonBtn").onclick=()=>{state.year++;state.resimNonce=0;if(state.mode!=="clonly"){state.euroComp=Object.assign({},state.nextEuroComp);state.cwcThisYear=state.nextCWC;}state.selSlot=null;simulateSeason();pushHistory(true);autosave();enterResults();};
+$("#resimBtn").onclick=()=>{state.resimNonce++;simulateSeason();pushHistory(false);autosave();enterResults();};
+$("#editLuBtn").onclick=()=>{$("#stepTag").textContent="Step 3 — Line-ups";state.luIdx=0;enterLineupFor(0);};
+function resetGame(){_hist=[];state.history=[];state.year=1;state.idx=0;state.pl=null;state.euros={};state.faCup=null;state.carabao=null;state.cwc=null;state.euroComp={};state.nextEuroComp={};state.nextCWC=null;state.cwcThisYear=null;state.resimNonce=0;state.seed=(Math.random()*4294967296)>>>0;state.managers.forEach(m=>{m.picks={};m.slots=[];});}
+$("#newBtn").onclick=()=>{resetGame();$("#stepTag").textContent="Step 1 — Set Up";renderModes();renderCount();renderCfg();renderResume();show("setup");window.scrollTo(0,0);};
+/* ---------- SAVE / LOAD ---------- */
+function serialize(){return JSON.stringify({v:2,mode:state.mode,n:state.n,year:state.year,seed:state.seed,resimNonce:state.resimNonce,euroComp:state.euroComp,nextEuroComp:state.nextEuroComp,nextCWC:state.nextCWC,cwcThisYear:state.cwcThisYear,history:state.history,managers:state.managers.map(m=>({name:m.name,color:m.color,replacePL:m.replacePL,formation:m.formation,picks:m.picks,slots:m.slots.map(s=>({role:s.role,x:s.x,y:s.y,key:s.player?keyOf(s.player.clubId,s.player.name):null}))}))});}
+function deserialize(str){
+  const d=JSON.parse(str);
+  state.mode=d.mode;state.n=d.n;state.year=d.year;state.seed=d.seed>>>0;state.resimNonce=d.resimNonce||0;
+  state.euroComp=d.euroComp||{};state.nextEuroComp=d.nextEuroComp||{};state.nextCWC=(d.nextCWC==null?null:d.nextCWC);state.cwcThisYear=(d.cwcThisYear==null?null:d.cwcThisYear);
+  state.history=d.history||[];state.taken=new Set();
+  state.managers=d.managers.map(md=>{
+    const picks={};Object.values(md.picks).forEach(p=>{picks[p.clubId]={name:p.name,role:p.role,ovr:p.ovr,clubId:p.clubId};state.taken.add(keyOf(p.clubId,p.name));});
+    const slots=md.slots.map(s=>{let player=null;if(s.key)player=Object.values(picks).find(pp=>keyOf(pp.clubId,pp.name)===s.key)||null;return{role:s.role,x:s.x,y:s.y,player};});
+    return{name:md.name,color:md.color,replacePL:md.replacePL,formation:md.formation,picks,slots,lineup:{}};
+  });
+  simulateSeason();
+  if(state.history.length)state.history[state.history.length-1]={year:state.year,per:seasonSummary()};else pushHistory(true);
+  enterResults();
+}
+function downloadSave(){try{const blob=new Blob([serialize()],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="dream-league-save.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){alert("Could not create the save file in this environment.");}}
+function loadFromText(str){try{deserialize(str);}catch(e){alert("That save file could not be read.");}}
+function autosave(){try{localStorage.setItem("dreamleague_v2",serialize());}catch(e){}}
+function hasAutosave(){try{return !!localStorage.getItem("dreamleague_v2");}catch(e){return false;}}
+function renderResume(){const row=$("#setupLoadRow");if(!row)return;let h="";if(hasAutosave())h+='<button class="btn btn-gold btn-sm" id="resumeBtn">▶ Resume last game</button>';h+='<button class="btn btn-ghost btn-sm" id="setupLoadBtn">📂 Load save file</button>';row.innerHTML=h;const rb=$("#resumeBtn");if(rb)rb.onclick=()=>{try{loadFromText(localStorage.getItem("dreamleague_v2"));}catch(e){}};$("#setupLoadBtn").onclick=()=>$("#loadFile").click();}
+if($("#saveBtn"))$("#saveBtn").onclick=downloadSave;
+if($("#loadBtn"))$("#loadBtn").onclick=()=>$("#loadFile").click();
+if($("#loadFile"))$("#loadFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>loadFromText(r.result);r.readAsText(f);e.target.value="";};
+renderModes();setN(1);renderResume();show("setup");
+
+</script>
+</body>
+</html>
