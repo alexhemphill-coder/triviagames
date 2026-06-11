@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Back of the Class</title>
+<style>
+  :root{
+    --paper:#fffdf5; --ink:#2b2b33; --rule:#bcd6ef; --margin:#f08a8a;
+    --brain:#4f86ff; --dopa:#ff8a3d; --susp:#ff4757; --safe:#2ecc71; --warn:#f1c40f; --danger:#ff4757;
+    --sticky:#fff3a3;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#1a1d24;
+    font-family:"Comic Sans MS","Chalkboard SE","Segoe Print","Comic Neue",cursive;}
+  canvas{display:block;}
+  #game{position:fixed;inset:0;}
+  #game.zoned{filter:grayscale(0.85) brightness(0.85);}
+  .hidden{display:none !important;}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;user-select:none;}
+  .panel{
+    background:
+      repeating-linear-gradient(transparent 0 22px, var(--rule) 22px 23px),
+      var(--paper);
+    border:2px solid #d8d2bd;border-radius:8px;
+    box-shadow:2px 3px 0 rgba(0,0,0,.25);
+    color:var(--ink);
+  }
+  #stats{position:absolute;top:10px;left:10px;padding:8px 10px 8px 18px;width:215px;
+    background:
+      linear-gradient(var(--margin),var(--margin)) 10px 0/2px 100% no-repeat,
+      repeating-linear-gradient(transparent 0 22px, var(--rule) 22px 23px),
+      var(--paper);
+    border:2px solid #d8d2bd;border-radius:8px;box-shadow:2px 3px 0 rgba(0,0,0,.25);color:var(--ink);}
+  .statrow{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:13px;font-weight:bold;}
+  .statrow .lbl{width:78px;}
+  .bar{flex:1;height:13px;background:#eee8d8;border-radius:7px;border:1.5px solid #b9b29a;overflow:hidden;}
+  .fill{height:100%;border-radius:5px;transition:width .15s;}
+  #brainFill{background:var(--brain);} #dopaFill{background:var(--dopa);} #suspFill{background:var(--susp);}
+
+  #scoreboard{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    text-align:center;padding:6px 22px;}
+  #fun{font-size:30px;font-weight:bold;color:#7a3df0;line-height:1;}
+  #fun small{font-size:12px;color:var(--ink);display:block;letter-spacing:2px;}
+  #clock{font-size:16px;font-weight:bold;color:#333;background:#222;color:#7CFC9A;
+    font-family:"Courier New",monospace;border-radius:4px;padding:0 8px;display:inline-block;margin-top:2px;}
+  #strikes{font-size:16px;letter-spacing:3px;margin-top:1px;}
+  #mult{display:none;font-size:16px;font-weight:bold;color:#ff6a00;
+    animation:pulseFire .5s infinite alternate;}
+  @keyframes pulseFire{from{transform:scale(1)}to{transform:scale(1.12)}}
+
+  #teacherStatus{position:absolute;top:10px;right:10px;padding:8px 12px;max-width:235px;
+    font-size:14px;font-weight:bold;text-align:center;}
+  #tstate{display:block;}
+  #eyes{display:none;margin-top:4px;color:#fff;background:var(--danger);border-radius:6px;
+    padding:2px 8px;animation:blinkRed .35s infinite alternate;font-size:15px;}
+  @keyframes blinkRed{from{opacity:1}to{opacity:.45}}
+
+  /* ---------- actions ---------- */
+  #actions{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
+    display:flex;gap:8px;pointer-events:auto;z-index:5;}
+  .abtn{
+    width:84px;padding:7px 4px 6px;background:var(--sticky);border:2px solid #cdbf57;
+    border-radius:4px;box-shadow:2px 3px 0 rgba(0,0,0,.3);cursor:pointer;
+    font-family:inherit;font-size:11.5px;font-weight:bold;color:var(--ink);
+    text-align:center;line-height:1.25;transform:rotate(-1deg);transition:transform .08s;
+  }
+  .abtn:nth-child(2n){transform:rotate(1.2deg);background:#ffe2a8;border-color:#d8ab53;}
+  .abtn .ico{font-size:21px;display:block;}
+  .abtn .key{display:block;font-size:9px;color:#777;}
+  .abtn:hover{transform:scale(1.07);}
+  .abtn.active{outline:3px solid #7a3df0;transform:scale(1.07);background:#e6d6ff;}
+  .abtn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+
+  /* ---------- captions & popups ---------- */
+  #caption{position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
+    max-width:80%;padding:7px 18px;font-size:16px;font-weight:bold;text-align:center;
+    background:rgba(255,253,245,.95);color:var(--ink);border:2px solid #d8d2bd;border-radius:10px;
+    box-shadow:2px 3px 0 rgba(0,0,0,.3);opacity:0;transition:opacity .25s;pointer-events:none;z-index:6;}
+  .popup{position:fixed;font-size:22px;font-weight:bold;pointer-events:none;z-index:7;
+    text-shadow:1px 1px 0 #fff,2px 2px 3px rgba(0,0,0,.4);animation:floatUp 1.3s forwards;}
+  @keyframes floatUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-70px)}}
+
+  #vignette{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:4;
+    box-shadow:inset 0 0 130px 50px rgba(255,30,30,.8);transition:opacity .1s;}
+  .lid{position:fixed;left:0;width:100%;height:0;background:#0a0a0f;z-index:4;
+    pointer-events:none;transition:height .6s ease;}
+  #lidTop{top:0;} #lidBottom{bottom:0;}
+
+  /* ---------- screens ---------- */
+  .screen{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 30%, #3d4a63, #1a1d24 75%);}
+  .card{width:min(560px,92vw);max-height:92vh;overflow:auto;padding:26px 30px 24px 40px;text-align:center;
+    background:
+      linear-gradient(var(--margin),var(--margin)) 24px 0/2px 100% no-repeat,
+      repeating-linear-gradient(transparent 0 26px, var(--rule) 26px 27px),
+      var(--paper);
+    border:3px solid #d8d2bd;border-radius:10px;box-shadow:6px 8px 0 rgba(0,0,0,.45);color:var(--ink);}
+  .card h1{font-size:34px;color:#7a3df0;transform:rotate(-1.5deg);margin-bottom:2px;}
+  .card h2{font-size:18px;margin-bottom:12px;color:#555;}
+  .card p{font-size:14px;margin:7px 0;text-align:left;line-height:1.45;}
+  .card ul{text-align:left;font-size:13.5px;margin:6px 0 10px 18px;line-height:1.55;}
+  .bigbtn{font-family:inherit;font-size:20px;font-weight:bold;padding:10px 34px;margin-top:12px;
+    background:#7a3df0;color:#fff;border:none;border-radius:8px;cursor:pointer;
+    box-shadow:3px 4px 0 rgba(0,0,0,.35);}
+  .bigbtn:hover{transform:scale(1.05);}
+  #rank{font-size:26px;color:#7a3df0;margin:6px 0;transform:rotate(-1deg);}
+  #finalFun{font-size:44px;color:#ff8a3d;font-weight:bold;}
+  .recap{display:flex;justify-content:space-around;margin:10px 0;font-size:14px;font-weight:bold;}
+  .recap div span{display:block;font-size:22px;}
+
+  #muteBtn,#pauseBtn{position:fixed;bottom:12px;width:38px;height:38px;border-radius:50%;
+    border:2px solid #d8d2bd;background:var(--paper);font-size:17px;cursor:pointer;z-index:6;
+    box-shadow:2px 2px 0 rgba(0,0,0,.3);}
+  #muteBtn{right:12px;} #pauseBtn{right:58px;}
+
+  #hint{position:fixed;top:88px;left:50%;transform:translateX(-50%);font-size:12.5px;color:#fffdf5;
+    text-shadow:1px 1px 2px #000;opacity:.85;pointer-events:none;z-index:3;}
+
+  @media (max-width:700px){
+    .abtn{width:62px;font-size:9.5px;padding:5px 2px;} .abtn .ico{font-size:17px;}
+    #stats{width:172px;transform:scale(.9);transform-origin:top left;}
+    #teacherStatus{max-width:170px;font-size:12px;}
+    #fun{font-size:24px;}
+  }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="vignette"></div>
+<div id="lidTop" class="lid"></div>
+<div id="lidBottom" class="lid"></div>
+
+<div id="hud">
+  <div id="stats" class="panel">
+    <div class="statrow"><span class="lbl">🧠 Brain</span><div class="bar"><div class="fill" id="brainFill"></div></div></div>
+    <div class="statrow"><span class="lbl">⚡ Dopamine</span><div class="bar"><div class="fill" id="dopaFill"></div></div></div>
+    <div class="statrow"><span class="lbl">🕵️ Suspicion</span><div class="bar"><div class="fill" id="suspFill"></div></div></div>
+  </div>
+  <div id="scoreboard" class="panel">
+    <div id="fun">0<small>FUN POINTS</small></div>
+    <div id="mult">🔥 ×2</div>
+    <div id="clock">3:00</div>
+    <div id="strikes">⬜⬜⬜</div>
+  </div>
+  <div id="teacherStatus" class="panel">
+    <span id="tstate">✏️ Writing on board</span>
+    <span id="eyes">🚨 EYES ON YOU!</span>
+  </div>
+</div>
+
+<div id="hint">🖱️ Drag to look around • Keys 1-6 or tap the sticky notes</div>
+<div id="caption"></div>
+
+<div id="actions">
+  <button class="abtn active" id="b_attend"><span class="ico">📖</span>Pay attention<span class="key">[1]</span></button>
+  <button class="abtn" id="b_doodle"><span class="ico">✏️</span>Doodle<span class="key">[2]</span></button>
+  <button class="abtn" id="b_talk"><span class="ico">🗣️</span>Whisper<span class="key">[3]</span></button>
+  <button class="abtn" id="b_phone"><span class="ico">📱</span>Check phone<span class="key">[4]</span></button>
+  <button class="abtn" id="b_nap"><span class="ico">😴</span>Nap<span class="key">[5]</span></button>
+  <button class="abtn" id="b_throw"><span class="ico">🧻</span>Throw paper<span class="key">[6]</span></button>
+</div>
+<button id="pauseBtn" title="Pause">⏸️</button>
+<button id="muteBtn" title="Sound">🔊</button>
+
+<div id="startScreen" class="screen">
+  <div class="card">
+    <h1>BACK OF THE CLASS</h1>
+    <h2>How much fun can you get away with?</h2>
+    <p>You're in the back row. The clock says there's <b>3 minutes</b> left of class. Your mission:
+       rack up as many <b style="color:#7a3df0">FUN POINTS</b> as possible without getting busted by Mr.&nbsp;Grimsby.</p>
+    <ul>
+      <li><b>🖱️ Drag</b> to look around the room. Watch the <b>yellow cone</b> — that's where the teacher is looking!</li>
+      <li>📱 Phone & 🗣️ whispering = big fun, big risk. ✏️ Doodling is sneaky but slow.</li>
+      <li>📖 Paying attention is boring (⚡ dopamine drops) but keeps your 🧠 brain up — there <b>will</b> be pop quizzes.</li>
+      <li>😴 Napping recharges dopamine… but your eyes are closed. Good luck.</li>
+      <li>🧻 Aim with your view (watch the dotted arc — <b style="color:#2ecc71">green ring</b> = bin shot!) for <b>+60</b>. Miss = noise = trouble.</li>
+      <li>🔥 <b>Streak bonus:</b> stay sneaky without being seen — 10s = ×1.5, 20s = ×2, 30s = ×3 fun. Get spotted and it's gone.</li>
+      <li>👀 When a <b>classmate</b> gets busted, the teacher marches over to deal with them. That's your window. <b>GO.</b></li>
+      <li>Get caught <b>3 times</b> and you're off to the office. Game over.</li>
+    </ul>
+    <button class="bigbtn" id="startBtn">START CLASS ▶</button>
+  </div>
+</div>
+
+<div id="endScreen" class="screen hidden">
+  <div class="card">
+    <h2 id="endReason">The bell rings!</h2>
+    <h1 id="rank">Back Row Legend</h1>
+    <div id="finalFun">0</div>
+    <div style="font-size:12px;letter-spacing:2px;">FUN POINTS</div>
+    <div class="recap">
+      <div>🧠 Grade<span id="endGrade">B</span></div>
+      <div>🔥 Streak<span id="endStreak">×1</span></div>
+      <div>🚫 Busts<span id="endBusts">0</span></div>
+      <div>📝 Quizzes aced<span id="endQuiz">0</span></div>
+    </div>
+    <p id="endFlavor" style="text-align:center;"></p>
+    <button class="bigbtn" id="againBtn">PLAY AGAIN ↻</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+/* ============ BACK OF THE CLASS — a back-row survival game ============ */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd = (a,b)=>a+Math.random()*(b-a);
+const angDiff = (a,b)=>{let d=(a-b)%(Math.PI*2); if(d>Math.PI)d-=Math.PI*2; if(d<-Math.PI)d+=Math.PI*2; return d;};
+
+/* ---------------- audio (tiny WebAudio blips) ---------------- */
+let actx=null, muted=false;
+function beep(freq, dur, type, vol, slide){
+  if(muted) return;
+  try{
+    if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type=type||"square"; o.frequency.value=freq;
+    if(slide) o.frequency.linearRampToValueAtTime(slide, actx.currentTime+dur);
+    g.gain.value=vol||0.06; g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+dur);
+    o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+const snd={
+  ding:()=>{beep(880,.12,"sine",.08);setTimeout(()=>beep(1320,.18,"sine",.08),90);},
+  buzz:()=>{beep(160,.4,"sawtooth",.09,90);},
+  tick:()=>beep(520,.05,"square",.03),
+  quiz:()=>{beep(660,.1,"triangle",.07);setTimeout(()=>beep(660,.1,"triangle",.07),140);},
+  swish:()=>beep(300,.15,"sine",.05,600),
+  clang:()=>beep(220,.25,"square",.06,110)
+};
+
+/* ---------------- three.js scene ---------------- */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xbfd9e8);
+scene.fog = new THREE.Fog(0xbfd9e8, 18, 34);
+const camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.05, 60);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+$("game").appendChild(renderer.domElement);
+addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+
+scene.add(new THREE.HemisphereLight(0xfff8e8, 0x8a9bb0, 0.85));
+const sun = new THREE.DirectionalLight(0xfff2d0, 0.75);
+sun.position.set(-8, 9, 2);
+scene.add(sun);
+
+const mat = (c,extra)=>new THREE.MeshLambertMaterial(Object.assign({color:c},extra||{}));
+function box(w,h,d,c,x,y,z,parent){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(c));
+  m.position.set(x,y,z); (parent||scene).add(m); return m;
+}
+function blob(r,x,z,parent){ // fake contact shadow
+  const m=new THREE.Mesh(new THREE.CircleGeometry(r,14),
+    new THREE.MeshBasicMaterial({color:0x33414f,transparent:true,opacity:0.22}));
+  m.rotation.x=-Math.PI/2; m.position.set(x,0.012,z); (parent||scene).add(m); return m;
+}
+
+/* ---------------- the room ----------------
+   Board/front at z=-6 ... back wall z=+6. Windows on x=-6.5 wall. */
+const ROOM_W=13, ROOM_D=12.6, WALL_H=3.6;
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W,ROOM_D), mat(0xc9a36f));
+floor.rotation.x=-Math.PI/2; scene.add(floor);
+// floor tiles lines
+const grid = new THREE.GridHelper(ROOM_W, 13, 0xb08c5b, 0xb08c5b);
+grid.position.y=0.01; grid.material.opacity=0.35; grid.material.transparent=true; scene.add(grid);
+const ceil = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_W,ROOM_D), mat(0xf2efe6));
+ceil.rotation.x=Math.PI/2; ceil.position.y=WALL_H; scene.add(ceil);
+box(ROOM_W,WALL_H,0.2,0xf5ead2, 0,WALL_H/2,-ROOM_D/2);           // front wall
+box(ROOM_W,WALL_H,0.2,0xeadfc6, 0,WALL_H/2, ROOM_D/2);           // back wall
+box(0.2,WALL_H,ROOM_D,0xefe4cb, -ROOM_W/2,WALL_H/2,0);           // window wall
+box(0.2,WALL_H,ROOM_D,0xefe4cb,  ROOM_W/2,WALL_H/2,0);           // door wall
+// windows (left wall)
+for(let i=0;i<3;i++){
+  const wz=-3.4+i*3.4;
+  box(0.06,1.7,2.3,0x9bd2f0, -ROOM_W/2+0.12, 1.9, wz).material =
+    new THREE.MeshBasicMaterial({color:0xbfe6fb});
+  box(0.1,1.8,2.42,0xffffff, -ROOM_W/2+0.1, 1.9, wz);
+  box(0.06,1.72,2.32,0xa8dcf6, -ROOM_W/2+0.13, 1.9, wz);
+}
+// door (right wall, near front)
+box(0.12,2.3,1.1,0x8a5a33, ROOM_W/2-0.12, 1.15, -3.8);
+box(0.05,0.05,0.18,0xd9c067, ROOM_W/2-0.2, 1.15, -3.35);
+
+/* whiteboard with French lesson (canvas texture) */
+function canvasTex(w,h,draw){
+  const c=document.createElement("canvas"); c.width=w; c.height=h;
+  draw(c.getContext("2d"));
+  const t=new THREE.CanvasTexture(c); return t;
+}
+const boardTex = canvasTex(1024,400,ctx=>{
+  ctx.fillStyle="#f7fbf7"; ctx.fillRect(0,0,1024,400);
+  ctx.fillStyle="#1c3f8f"; ctx.font="bold 56px Comic Sans MS, sans-serif";
+  ctx.fillText("Le passé composé", 40, 80);
+  ctx.font="40px Comic Sans MS, sans-serif"; ctx.fillStyle="#333";
+  ctx.fillText("avoir / être  +  participe passé", 40, 150);
+  ctx.fillText("J'ai mangé...   Tu as fini...", 40, 215);
+  ctx.fillStyle="#b22"; ctx.fillText("Quiz vendredi!!", 40, 290);
+  ctx.strokeStyle="#b22"; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.ellipse(210,278,185,38,0,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle="#666"; ctx.font="34px Comic Sans MS, sans-serif";
+  ctx.fillText("Devoirs: p. 112 #1-8", 620, 360);
+});
+const board = new THREE.Mesh(new THREE.PlaneGeometry(5.6,2.2),
+  new THREE.MeshBasicMaterial({map:boardTex}));
+board.position.set(0,1.85,-ROOM_D/2+0.13); scene.add(board);
+box(5.8,2.4,0.06,0x9aa3ad, 0,1.85,-ROOM_D/2+0.09);
+box(5.6,0.08,0.14,0xb8c0c8, 0,0.7,-ROOM_D/2+0.16); // marker tray
+// clock
+const clockTex = canvasTex(128,128,ctx=>{
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(64,64,60,0,7);ctx.fill();
+  ctx.strokeStyle="#333";ctx.lineWidth=6;ctx.stroke();
+  ctx.strokeStyle="#222";ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(64,64);ctx.lineTo(64,26);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(64,64);ctx.lineTo(92,72);ctx.stroke();
+});
+const clock3d=new THREE.Mesh(new THREE.CircleGeometry(0.32,24),new THREE.MeshBasicMaterial({map:clockTex}));
+clock3d.position.set(0,3.05,-ROOM_D/2+0.12); scene.add(clock3d);
+// posters
+const posterTex = canvasTex(256,340,ctx=>{
+  ctx.fillStyle="#ffd34d";ctx.fillRect(0,0,256,340);
+  ctx.fillStyle="#7a3df0";ctx.font="bold 44px Comic Sans MS, sans-serif";
+  ctx.fillText("SOYEZ",55,120);ctx.fillText("GÉNIAL",45,180);
+  ctx.font="60px serif";ctx.fillText("⭐",100,265);
+});
+const poster=new THREE.Mesh(new THREE.PlaneGeometry(1.05,1.4),new THREE.MeshBasicMaterial({map:posterTex}));
+poster.position.set(-3.9,2.1,-ROOM_D/2+0.12); poster.rotation.z=0.03; scene.add(poster);
+const poster2Tex = canvasTex(256,340,ctx=>{
+  ctx.fillStyle="#9be0b0";ctx.fillRect(0,0,256,340);
+  ctx.fillStyle="#143d22";ctx.font="bold 38px Comic Sans MS, sans-serif";
+  ctx.fillText("MATH IS",45,130);ctx.fillText("POWER",55,185);
+  ctx.font="56px serif";ctx.fillText("📐",95,270);
+});
+const poster2=new THREE.Mesh(new THREE.PlaneGeometry(1.05,1.4),new THREE.MeshBasicMaterial({map:poster2Tex}));
+poster2.position.set(3.9,2.1,-ROOM_D/2+0.12); poster2.rotation.z=-0.04; scene.add(poster2);
+// teacher's desk (front corner) + bin
+box(1.7,0.08,0.9,0x8a5a33, -3.6,0.78,-4.4); box(1.6,0.7,0.8,0x73492a, -3.6,0.4,-4.4);
+blob(1.0,-3.6,-4.4);
+const BIN_POS = new THREE.Vector3(4.6,0,-4.6);
+const bin = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.22,0.6,12,1,true),
+  mat(0x5b7d9e,{side:THREE.DoubleSide}));
+bin.position.set(BIN_POS.x,0.3,BIN_POS.z); scene.add(bin);
+blob(0.4,BIN_POS.x,BIN_POS.z);
+// shelf at back
+box(3.4,1.1,0.4,0x9b6b3c, 3.0,0.55,ROOM_D/2-0.4);
+for(let i=0;i<7;i++) box(0.16,rnd(0.18,0.3),0.3,[0xd05050,0x5080d0,0x50b070,0xe0a040,0x9050c0][i%5], 1.8+i*0.34, 1.1+0.12, ROOM_D/2-0.4);
+
+/* ---------------- desks & students ---------------- */
+const COLS=[-3.75,-1.25,1.25,3.75], ROWS=[-1.6,0.4,2.4,4.4];
+function makeDesk(x,z){
+  const g=new THREE.Group();
+  box(0.78,0.05,0.55,0xd9b98a, 0,0.72,0,g);
+  box(0.06,0.7,0.06,0x777e86, -0.33,0.36,-0.2,g);
+  box(0.06,0.7,0.06,0x777e86,  0.33,0.36,-0.2,g);
+  box(0.06,0.7,0.06,0x777e86, -0.33,0.36, 0.2,g);
+  box(0.06,0.7,0.06,0x777e86,  0.33,0.36, 0.2,g);
+  box(0.42,0.05,0.42,0xb46b3e, 0,0.45,0.52,g); // chair
+  box(0.42,0.5,0.05,0xb46b3e, 0,0.7,0.72,g);
+  g.position.set(x,0,z); scene.add(g); blob(0.55,x,z+0.1);
+  return g;
+}
+const SHIRTS=[0xe5604f,0x4f86e5,0x53b06a,0xe5a44f,0x9a5fd0,0x4fc3cf,0xd95fa5,0x8a8f4a];
+const SKINS=[0xf2c79e,0xc98e63,0x8d5b3a,0xf7d7b5,0x6e4428];
+const NAMES=["Maya","Liam","Zoé","Noah","Ava","Théo","Ruby","Sam","Émile","Lily"];
+const npcs=[];
+function makeStudent(x,z,name,isFriend){
+  const g=new THREE.Group();
+  const shirt=SHIRTS[(npcs.length)%SHIRTS.length], skin=SKINS[(npcs.length*3+1)%SKINS.length];
+  box(0.36,0.5,0.24, shirt, 0,0.95,0,g);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.165,12,10), mat(skin));
+  head.position.set(0,1.34,0); g.add(head);
+  const HAIRS=[0x2c2118,0x4a3320,0x6b4a23,0x1a1a1a,0x8a3c1d,0xd9b14b];
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(0.175,12,8,0,Math.PI*2,0,1.5),
+    mat(HAIRS[npcs.length%HAIRS.length]));
+  hair.position.set(0,1.36,0); g.add(hair);
+  const ph=box(0.1,0.012,0.18,0x16181c, 0.16,1.02,0.2,g); ph.visible=false;
+  g.position.set(x,0,z); scene.add(g);
+  const npc={g,head,phone:ph,name,isFriend:!!isFriend,baseY:0,phase:Math.random()*6,x,z};
+  npcs.push(npc); return npc;
+}
+
+/* place desks; player sits at col 1.25, row 4.4 */
+const PLAYER_POS = new THREE.Vector3(1.25, 1.12, 4.4);
+let friendNPC=null, nameIdx=0;
+for(const z of ROWS){
+  for(const x of COLS){
+    makeDesk(x,z);
+    if(x===PLAYER_POS.x && z===PLAYER_POS.z) continue;          // that's you
+    if(Math.random()<0.92 || (x===-1.25&&z===4.4)){
+      const isFriend = (x===-1.25 && z===4.4);
+      const n = makeStudent(x, z+0.5, isFriend?"Jayden":NAMES[nameIdx++%NAMES.length], isFriend);
+      if(isFriend) friendNPC=n;
+    }
+  }
+}
+
+/* ---------------- teacher ---------------- */
+const teacher = {
+  g:new THREE.Group(), pos:new THREE.Vector3(0,0,-4.3), home:new THREE.Vector3(0,0,-4.3),
+  gaze:Math.PI, gazeTarget:Math.PI, state:"WRITE", timer:5, half:0.65,
+  path:null, pathI:0, stareYou:false, sweepT:0, patrolCooldown:0
+};
+(function buildTeacher(){
+  const g=teacher.g;
+  box(0.46,0.74,0.3,0x556b5e, 0,1.17,0,g);                       // cardigan
+  box(0.4,0.55,0.26,0x33424f, 0,0.52,0,g);                       // pants
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.19,14,12), mat(0xeec39a));
+  head.position.set(0,1.72,0); g.add(head); teacher.head=head;
+  const hair=new THREE.Mesh(new THREE.SphereGeometry(0.2,12,8,0,Math.PI*2,0,1.1), mat(0x777a7d));
+  hair.position.set(0,1.76,0); g.add(hair);
+  // glasses on +Z face side
+  box(0.2,0.05,0.02,0x222222, 0,1.74,0.185,g);
+  box(0.07,0.02,0.02,0x222222, 0,1.7,0.19,g);
+  // arms
+  box(0.1,0.55,0.1,0x556b5e, -0.29,1.18,0,g);
+  box(0.1,0.55,0.1,0x556b5e,  0.29,1.18,0,g);
+  // coffee mug in hand!
+  box(0.09,0.12,0.09,0xc94f4f, 0.31,0.92,0.1,g);
+  g.position.copy(teacher.pos); scene.add(g);
+  teacher.shadow = blob(0.45, teacher.pos.x, teacher.pos.z);
+})();
+
+/* vision cone projected on the floor */
+const VIEW_DIST=9.5;
+function sectorGeo(radius, halfAng){
+  const s=new THREE.Shape();
+  s.moveTo(0,0);
+  s.absarc(0,0,radius, Math.PI/2-halfAng, Math.PI/2+halfAng, false);
+  s.lineTo(0,0);
+  const geo=new THREE.ShapeGeometry(s,24);
+  geo.rotateX(-Math.PI/2);
+  return geo;
+}
+const cone = new THREE.Mesh(sectorGeo(VIEW_DIST,0.65),
+  new THREE.MeshBasicMaterial({color:0xffd54a,transparent:true,opacity:0.16,depthWrite:false}));
+cone.position.y=0.02; scene.add(cone);
+
+/* ---------------- player camera + desk props ---------------- */
+camera.position.copy(PLAYER_POS);
+camera.rotation.order="YXZ";
+let lookYaw=0, lookPitch=-0.06;
+// your own desk surface just in front of camera (world objects so naps/looks feel right)
+const myDesk = new THREE.Group();
+box(0.8,0.04,0.56,0xd9b98a, 0,0.74,0,myDesk);
+const notebook=new THREE.Mesh(new THREE.PlaneGeometry(0.3,0.4),
+  new THREE.MeshBasicMaterial({map:canvasTex(128,170,ctx=>{
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,128,170);
+    ctx.strokeStyle="#bcd6ef";for(let y=18;y<170;y+=14){ctx.beginPath();ctx.moveTo(6,y);ctx.lineTo(122,y);ctx.stroke();}
+    ctx.strokeStyle="#f08a8a";ctx.beginPath();ctx.moveTo(16,0);ctx.lineTo(16,170);ctx.stroke();
+  })}));
+notebook.rotation.x=-Math.PI/2; notebook.rotation.z=0.12; notebook.position.set(-0.08,0.765,0.05);
+myDesk.add(notebook);
+const pencil=box(0.02,0.015,0.18,0xe2b13c, 0.18,0.77,0.06,myDesk);
+myDesk.position.set(PLAYER_POS.x, 0, PLAYER_POS.z-0.55);
+scene.add(myDesk);
+// phone held below desk — only visible during phone action
+const phone=new THREE.Group();
+box(0.13,0.01,0.24,0x16181c, 0,0,0,phone);
+const phoneScreen=new THREE.Mesh(new THREE.PlaneGeometry(0.115,0.21),
+  new THREE.MeshBasicMaterial({color:0x9fd9ff}));
+phoneScreen.rotation.x=-Math.PI/2; phoneScreen.position.y=0.007; phone.add(phoneScreen);
+phone.position.set(PLAYER_POS.x+0.12, 0.55, PLAYER_POS.z-0.42);
+phone.rotation.x=0.5; phone.visible=false; scene.add(phone);
+
+/* throw arc preview */
+const arcLine=new THREE.Line(new THREE.BufferGeometry(),
+  new THREE.LineDashedMaterial({color:0xffffff,transparent:true,opacity:0.55,dashSize:0.12,gapSize:0.1}));
+arcLine.frustumCulled=false; arcLine.visible=false; scene.add(arcLine);
+const landRing=new THREE.Mesh(new THREE.RingGeometry(0.13,0.2,18),
+  new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.65,side:THREE.DoubleSide}));
+landRing.rotation.x=-Math.PI/2; landRing.visible=false; scene.add(landRing);
+function updateArc(){
+  const ready=S.running&&!S.paused&&S.throwCd<=0&&S.freeze<=0&&S.action!=="nap";
+  arcLine.visible=landRing.visible=ready;
+  if(!ready) return;
+  const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+  const p=camera.position.clone().addScaledVector(dir,0.45);
+  const v=dir.clone().multiplyScalar(9.6).add(new THREE.Vector3(0,3.0,0));
+  const pts=[]; const step=0.045;
+  for(let i=0;i<48;i++){ pts.push(p.clone()); v.y-=9.8*step; p.addScaledVector(v,step); if(p.y<0.05)break; }
+  arcLine.geometry.setFromPoints(pts); arcLine.computeLineDistances();
+  const land=pts[pts.length-1];
+  landRing.position.set(land.x,0.035,land.z);
+  const inBin=Math.hypot(land.x-BIN_POS.x,land.z-BIN_POS.z)<0.42;
+  landRing.material.color.setHex(inBin?0x2ecc71:0xffffff);
+  arcLine.material.color.setHex(inBin?0x2ecc71:0xffffff);
+}
+
+/* ---------------- look controls (drag / touch) ---------------- */
+let dragging=false,lastX=0,lastY=0;
+const cnv=renderer.domElement;
+cnv.addEventListener("pointerdown",e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;cnv.setPointerCapture(e.pointerId);});
+cnv.addEventListener("pointermove",e=>{
+  if(!dragging) return;
+  lookYaw   -= (e.clientX-lastX)*0.0042;
+  lookPitch -= (e.clientY-lastY)*0.0036;
+  lookYaw=clamp(lookYaw,-2.55,2.55); lookPitch=clamp(lookPitch,-0.85,0.7);
+  lastX=e.clientX; lastY=e.clientY;
+});
+addEventListener("pointerup",()=>dragging=false);
+
+/* ---------------- game state ---------------- */
+const ACT = {
+  attend:{fun:0,   brain: 3.2, dopa:-4.6, vis:0   },
+  doodle:{fun:4,   brain:-0.6, dopa: 3.0, vis:0.15},
+  talk:  {fun:8,   brain:-1.0, dopa: 6.0, vis:0.8 },
+  phone: {fun:12,  brain:-1.5, dopa: 9.0, vis:0.65},
+  nap:   {fun:2,   brain:-0.8, dopa:13.0, vis:0.9 }
+};
+const S = {
+  running:false, paused:false, t:180,
+  fun:0, brain:70, dopa:60, susp:0.12,
+  strikes:0, phoneGone:false, action:"attend",
+  caught:0, zoned:false, freeze:0,
+  throwCd:0, throwVis:0, quizzesAced:0, nearMissArmed:false,
+  streak:0, mult:1, bestMult:1, nextDrama:22
+};
+let quizTimes=[];
+const balls=[];
+
+/* ---------------- UI helpers ---------------- */
+let capTimer=null;
+function caption(txt, ms){
+  const c=$("caption"); c.innerHTML=txt; c.style.opacity=1;
+  clearTimeout(capTimer); capTimer=setTimeout(()=>c.style.opacity=0, ms||2600);
+}
+function popup(txt,color,x,y){
+  const d=document.createElement("div"); d.className="popup"; d.textContent=txt;
+  d.style.color=color||"#7a3df0";
+  d.style.left=(x!==undefined?x:innerWidth/2-40+rnd(-30,30))+"px";
+  d.style.top=(y!==undefined?y:innerHeight*0.42)+"px";
+  document.body.appendChild(d); setTimeout(()=>d.remove(),1300);
+}
+function setAction(a){
+  if(!S.running||S.paused||S.freeze>0) return;
+  if(a==="phone"&&S.phoneGone){caption("📵 Your phone lives on Mr. Grimsby's desk now.");return;}
+  if(a===S.action) return;
+  S.action=a; snd.tick();
+  document.querySelectorAll(".abtn").forEach(b=>b.classList.remove("active"));
+  $("b_"+a).classList.add("active");
+  phone.visible=(a==="phone");
+  const lids=a==="nap"?"34%":"0";
+  $("lidTop").style.height=lids; $("lidBottom").style.height=lids;
+  if(a==="talk"&&friendNPC) caption("🗣️ You whisper to Jayden: « T'as vu le match hier? »",1800);
+}
+["attend","doodle","talk","phone","nap"].forEach(a=>$("b_"+a).addEventListener("click",()=>setAction(a)));
+$("b_throw").addEventListener("click",()=>throwPaper());
+addEventListener("keydown",e=>{
+  const k=e.key;
+  if(k==="1")setAction("attend"); else if(k==="2")setAction("doodle");
+  else if(k==="3")setAction("talk"); else if(k==="4")setAction("phone");
+  else if(k==="5")setAction("nap"); else if(k==="6"||k===" ")throwPaper();
+  else if(k==="p"||k==="P")togglePause();
+});
+$("muteBtn").addEventListener("click",()=>{muted=!muted;$("muteBtn").textContent=muted?"🔇":"🔊";});
+$("pauseBtn").addEventListener("click",togglePause);
+function togglePause(){
+  if(!S.running) return;
+  S.paused=!S.paused; $("pauseBtn").textContent=S.paused?"▶️":"⏸️";
+  if(S.paused) caption("⏸️ Paused — even slackers need a break.",60000); else caption("",1);
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&S.running&&!S.paused)togglePause();});
+
+/* ---------------- paper throwing ---------------- */
+function throwPaper(){
+  if(!S.running||S.paused||S.freeze>0) return;
+  if(S.throwCd>0){caption("🧻 No paper ready! ("+Math.ceil(S.throwCd)+"s)",1000);return;}
+  if(S.action==="nap"){caption("😴 Hard to throw with your eyes closed.",1500);return;}
+  S.throwCd=6; S.throwVis=1.0; snd.swish();
+  const ball=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,6), mat(0xf5f2e8));
+  const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+  ball.position.copy(camera.position).addScaledVector(dir,0.45);
+  scene.add(ball);
+  balls.push({m:ball, v:dir.multiplyScalar(9.6).add(new THREE.Vector3(0,3.0,0)), life:4});
+}
+function makeNoise(pos, big){
+  if(teacher.state==="DISCIPLINE"||teacher.state==="DRAMA_WAIT"){
+    caption("🍀 Too busy scolding to notice!",1500); return;
+  }
+  // teacher whips around toward the sound
+  teacher.state="INVEST"; teacher.timer=big?2.2:1.6;
+  teacher.gazeTarget=Math.atan2(pos.x-teacher.pos.x, pos.z-teacher.pos.z);
+  teacher.half=0.8;
+}
+function startDrama(){
+  const n=npcs[Math.floor(Math.random()*npcs.length)];
+  teacher.drama=n; n.phone.visible=true;
+  teacher.state="DRAMA_WAIT"; teacher.timer=1.4;
+  caption("👀 Psst... <b>"+n.name+"</b> just pulled out a phone. Grimsby's eye is twitching...",2200);
+  S.nextDrama=rnd(30,48);
+}
+function updateBalls(dt){
+  for(let i=balls.length-1;i>=0;i--){
+    const b=balls[i];
+    b.v.y-=9.8*dt;
+    b.m.position.addScaledVector(b.v,dt);
+    b.life-=dt;
+    const p=b.m.position;
+    // hit the teacher?!
+    if(p.distanceTo(new THREE.Vector3(teacher.pos.x,1.5,teacher.pos.z))<0.45){
+      scene.remove(b.m); balls.splice(i,1);
+      caption("🎯💀 You hit <b>Mr. Grimsby</b>. Bold strategy.",2600);
+      S.caught=1; checkBust(true); continue;
+    }
+    // hit a classmate?
+    let hit=false;
+    for(const n of npcs){
+      if(p.distanceTo(new THREE.Vector3(n.g.position.x,1.3,n.g.position.z))<0.4){
+        scene.remove(b.m); balls.splice(i,1);
+        const hp=Math.round(25*S.mult);
+        caption("« Aïe! Hé! » — "+n.name+" glares at you. (+"+hp+")",2200);
+        S.fun+=hp; popup("+"+hp,"#ff8a3d"); snd.clang();
+        makeNoise(n.g.position,true); hit=true; break;
+      }
+    }
+    if(hit) continue;
+    if(p.y<0.15 || b.life<=0){
+      // landed — in the bin?
+      const flat=Math.hypot(p.x-BIN_POS.x, p.z-BIN_POS.z);
+      scene.remove(b.m); balls.splice(i,1);
+      if(flat<0.42){
+        const pts=Math.round(60*S.mult);
+        S.fun+=pts; popup("+"+pts+" SWISH!","#2ecc71"); snd.ding();
+        caption("🏀 <b>Nothing but bin!</b> The back row goes wild (quietly). (+"+pts+")",2400);
+        if(Math.random()<0.3) makeNoise(BIN_POS,false);
+      } else {
+        caption("🧻 It bounces across the floor...",1600);
+        snd.clang(); makeNoise(p,false);
+      }
+    }
+  }
+}
+
+/* ---------------- teacher AI ---------------- */
+const LECTURE_LINES=[
+  "« Donc, avoir ou être? Quelqu'un? »",
+  "« Eyes up here, please. »",
+  "« This WILL be on the quiz. »",
+  "« J'ai mangé, tu as mangé, il a mangé... »",
+  "« If I hear one more phone buzz... »",
+  "« Page 112, everyone. PAGE. ONE. TWELVE. »"
+];
+let lectureLineT=8;
+function pickTeacherState(){
+  teacher.patrolCooldown=Math.max(0,teacher.patrolCooldown-1);
+  const r=Math.random();
+  if(r<0.30){ teacher.state="WRITE"; teacher.timer=rnd(4.5,8.5); teacher.gazeTarget=Math.PI; teacher.half=0.65; }
+  else if(r<0.72){ teacher.state="LECTURE"; teacher.timer=rnd(5,10); teacher.half=0.65; teacher.sweepT=rnd(0,6); }
+  else if(r<0.90 || teacher.patrolCooldown>0){
+    teacher.state="STARE"; teacher.timer=rnd(2.2,3.4); teacher.half=0.5;
+    teacher.stareYou = Math.random() < (0.2 + S.susp*0.65);
+    if(teacher.stareYou){ teacher.gazeTarget=Math.atan2(PLAYER_POS.x-teacher.pos.x, PLAYER_POS.z-teacher.pos.z); }
+    else { const n=npcs[Math.floor(Math.random()*npcs.length)];
+           teacher.gazeTarget=Math.atan2(n.g.position.x-teacher.pos.x, n.g.position.z-teacher.pos.z); }
+  }
+  else {
+    teacher.state="PATROL"; teacher.half=0.8; teacher.patrolCooldown=3; teacher.stareYou=false;
+    const aisle=[ -2.5, 0, 2.5 ][Math.floor(Math.random()*3)];
+    teacher.path=[ new THREE.Vector3(aisle,0,-2.6), new THREE.Vector3(aisle,0,3.9),
+                   new THREE.Vector3(aisle,0,-2.6), teacher.home.clone() ];
+    teacher.pathI=0; teacher.timer=99;
+  }
+}
+function updateTeacher(dt){
+  teacher.timer-=dt;
+  if(teacher.state==="LECTURE"){
+    teacher.sweepT+=dt;
+    teacher.gazeTarget=Math.sin(teacher.sweepT*0.55)*0.95;       // sweep across class
+    lectureLineT-=dt;
+    if(lectureLineT<=0){ lectureLineT=rnd(10,17);
+      caption("👨‍🏫 "+LECTURE_LINES[Math.floor(Math.random()*LECTURE_LINES.length)],2300); }
+  }
+  const walking=(teacher.state==="PATROL"||teacher.state==="DISCIPLINE")&&teacher.path;
+  if(walking){
+    const target=teacher.path[teacher.pathI];
+    const d=new THREE.Vector3().subVectors(target,teacher.pos); d.y=0;
+    const dist=d.length();
+    if(dist<0.12){
+      teacher.pathI++;
+      if(teacher.pathI>=teacher.path.length){
+        teacher.path=null;
+        teacher.timer=(teacher.state==="DISCIPLINE")?4.5:0;
+      }
+    }
+    else{
+      d.normalize(); teacher.pos.addScaledVector(d,(teacher.state==="DISCIPLINE"?1.5:1.15)*dt);
+      teacher.gazeTarget=Math.atan2(d.x,d.z)+(teacher.state==="PATROL"?Math.sin(performance.now()*0.0016)*0.55:0);
+    }
+  } else if(teacher.state!=="DISCIPLINE"){
+    // drift back home if displaced
+    const dh=new THREE.Vector3().subVectors(teacher.home,teacher.pos); dh.y=0;
+    if(dh.length()>0.1){ teacher.pos.addScaledVector(dh.normalize(),1.0*dt); }
+  }
+  if(teacher.state==="DISCIPLINE"&&!teacher.path&&teacher.drama){
+    // standing at the kid's desk, locked on
+    teacher.gazeTarget=Math.atan2(teacher.drama.g.position.x-teacher.pos.x, teacher.drama.g.position.z-teacher.pos.z);
+  }
+  // state transitions
+  if(teacher.state==="DRAMA_WAIT"){
+    if(teacher.timer<=0){
+      const n=teacher.drama;
+      caption("👨‍🏫 « <b>"+n.name+"!</b> Apporte-moi ça TOUT DE SUITE! » He marches over — <b>GO GO GO!</b>",2800);
+      snd.quiz();
+      teacher.state="DISCIPLINE"; teacher.half=0.35;
+      teacher.path=[new THREE.Vector3(n.g.position.x*0.95, 0, n.g.position.z-1.05)];
+      teacher.pathI=0; teacher.timer=99;
+    }
+  } else if(teacher.state==="DISCIPLINE"){
+    if(!teacher.path&&teacher.timer<=0){
+      if(teacher.drama){ teacher.drama.phone.visible=false;
+        caption("👨‍🏫 "+teacher.drama.name+"'s phone goes in the drawer of doom.",2000); }
+      teacher.drama=null; pickTeacherState();
+    }
+  } else if(teacher.state==="PATROL"){
+    if(!teacher.path) pickTeacherState();
+  } else if(teacher.timer<=0) pickTeacherState();
+  // turn the head/body toward gaze target at human speed (your reaction window!)
+  const turn=clamp(angDiff(teacher.gazeTarget,teacher.gaze), -2.3*dt, 2.3*dt);
+  teacher.gaze+=turn;
+  teacher.g.position.copy(teacher.pos);
+  teacher.g.rotation.y=teacher.gaze;
+  teacher.shadow.position.set(teacher.pos.x,0.012,teacher.pos.z);
+  cone.position.set(teacher.pos.x,0.02,teacher.pos.z);
+  cone.rotation.y=Math.PI+teacher.gaze;
+  cone.scale.x = teacher.half/0.65;
+}
+
+/* ---------------- detection ---------------- */
+function teacherCanSee(){ // is the teacher's vision active (not facing the board)?
+  return Math.abs(angDiff(teacher.gaze, Math.PI)) > 1.15;
+}
+function playerInCone(){
+  const toP=Math.atan2(PLAYER_POS.x-teacher.pos.x, PLAYER_POS.z-teacher.pos.z);
+  return Math.abs(angDiff(teacher.gaze,toP)) < teacher.half;
+}
+function updateDetection(dt){
+  let vis=ACT[S.action].vis;
+  if(S.throwVis>0){ vis=Math.max(vis,1.0); S.throwVis-=dt; }
+  if(S.action==="phone"){
+    const near=teacher.pos.distanceTo(PLAYER_POS)<3.4;
+    if(teacher.state==="PATROL"&&near) vis=1.35;                 // he can see under the desk!
+  }
+  const seen = teacherCanSee() && playerInCone();
+  if(seen && vis>0){
+    if(S.streak>0) resetStreak();
+    S.caught += vis*dt*1.15;
+    if(S.caught>0.45) S.nearMissArmed=true;
+  } else {
+    if(S.nearMissArmed && S.caught>0){ /* escaping */ }
+    S.caught -= 1.7*dt;
+    if(S.caught<=0 && S.nearMissArmed){
+      S.nearMissArmed=false; S.susp=clamp(S.susp+0.08,0,1);
+      caption("😅 <i>That was close...</i> (+suspicion)",1700);
+    }
+  }
+  S.caught=clamp(S.caught,0,1);
+  $("vignette").style.opacity=S.caught*0.9;
+  $("eyes").style.display=(seen&&vis>0)?"inline-block":"none";
+  cone.material.color.setHex(seen&&vis>0?0xff4040:0xffd54a);
+  cone.material.opacity=seen&&vis>0?0.25:0.16;
+  if(S.caught>=1) checkBust(false);
+}
+function checkBust(direct){
+  S.caught=0; S.nearMissArmed=false;
+  S.strikes++; S.freeze=2.2; S.susp=clamp(S.susp+0.35,0,1);
+  snd.buzz();
+  const onPhone=S.action==="phone";
+  if(teacher.drama){ teacher.drama.phone.visible=false; teacher.drama=null; }
+  teacher.state="STARE"; teacher.stareYou=true; teacher.timer=2.4; teacher.half=0.5;
+  teacher.gazeTarget=Math.atan2(PLAYER_POS.x-teacher.pos.x, PLAYER_POS.z-teacher.pos.z);
+  if(S.strikes===1){
+    S.fun=Math.max(0,S.fun-50); popup("-50","#ff4757");
+    caption("⚠️ <b>BUSTED!</b> « I see you back there! » Your name goes on the board. (-50)",3200);
+  } else if(S.strikes===2){
+    S.fun=Math.max(0,S.fun-100); popup("-100","#ff4757");
+    if(onPhone&&!S.phoneGone){ S.phoneGone=true; phone.visible=false;
+      $("b_phone").innerHTML='<span class="ico">📵</span>Confiscated<span class="key">[4]</span>';
+      $("b_phone").disabled=true;
+      caption("📵 <b>BUSTED AGAIN!</b> Mr. Grimsby confiscates your phone. « You can have it back in June. » (-100)",3600);
+    } else {
+      caption("🚨 <b>STRIKE TWO!</b> « One more and you're going to the office. » He means it. (-100)",3400);
+    }
+  } else {
+    S.fun=Math.max(0,S.fun-200);
+    caption("🏢 <b>« OFFICE. NOW. »</b> (-200)",3000);
+    setTimeout(()=>endGame("🏢 Sent to the office before the bell..."),1400);
+  }
+  setAction("attend"); S.action="attend";
+  document.querySelectorAll(".abtn").forEach(b=>b.classList.remove("active"));
+  $("b_attend").classList.add("active");
+  phone.visible=false; $("lidTop").style.height="0"; $("lidBottom").style.height="0";
+}
+
+/* ---------------- stats, quizzes, end ---------------- */
+function multFor(s){return s>=30?3:s>=20?2:s>=10?1.5:1;}
+function resetStreak(){
+  if(S.mult>1) caption("💔 <b>Spotted!</b> Streak broken.",1500);
+  S.streak=0; S.mult=1;
+}
+function updateStats(dt){
+  const a=ACT[S.action];
+  let funMult=S.zoned?0.4:1;
+  if(S.action!=="attend") S.streak+=dt;
+  const m=multFor(S.streak);
+  if(m>S.mult){ popup("🔥 STREAK ×"+m,"#ff6a00"); snd.ding(); S.bestMult=Math.max(S.bestMult,m); }
+  S.mult=m;
+  S.fun += a.fun*funMult*S.mult*dt;
+  S.brain = clamp(S.brain + a.brain*(S.zoned?0.4:1)*dt, 0, 100);
+  S.dopa  = clamp(S.dopa  + a.dopa*dt, 0, 100);
+  if(S.action==="attend") S.susp=clamp(S.susp-0.016*dt,0,1);
+  else S.susp=clamp(S.susp-0.004*dt,0,1);
+  if(!S.zoned && S.dopa<=0){
+    S.zoned=true; $("game").classList.add("zoned");
+    caption("😶‍🌫️ <b>You zoned out.</b> Too much boredom! Fun gains halved until your ⚡ dopamine recovers.",3200);
+  }
+  if(S.zoned && S.dopa>25){
+    S.zoned=false; $("game").classList.remove("zoned");
+    caption("✨ You snap back to reality.",1600);
+  }
+  // pop quizzes
+  if(quizTimes.length && S.t<=quizTimes[0]){
+    quizTimes.shift(); snd.quiz();
+    if(S.brain>=50){
+      S.fun+=100; S.quizzesAced++; popup("+100 ACED IT","#2ecc71");
+      caption("📝 <b>POP QUIZ!</b> Your brain was charged — you crush it. Even Grimsby nods. (+100)",3200);
+    } else {
+      S.fun=Math.max(0,S.fun-75); popup("-75","#ff4757");
+      caption("📝 <b>POP QUIZ!</b> Your brain is mush. « Le passé... composé? de quoi? » (-75)",3200);
+    }
+  }
+}
+function updateNPCs(dt){
+  const t=performance.now()*0.001;
+  for(const n of npcs){
+    n.g.position.y=Math.sin(t*1.4+n.phase)*0.012;
+    n.head.rotation.y=Math.sin(t*0.5+n.phase)*0.3;
+    if(n.isFriend&&S.action==="talk"){
+      // friend turns to you
+      n.head.rotation.y=0.9+Math.sin(t*5)*0.06;
+    }
+  }
+}
+function fmtTime(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return m+":"+String(ss).padStart(2,"0");}
+function updateUI(){
+  $("brainFill").style.width=S.brain+"%";
+  $("dopaFill").style.width=S.dopa+"%";
+  $("suspFill").style.width=(S.susp*100)+"%";
+  $("fun").childNodes[0].nodeValue=Math.floor(S.fun);
+  $("clock").textContent=fmtTime(S.t);
+  $("strikes").textContent=["⬜⬜⬜","❌⬜⬜","❌❌⬜","❌❌❌"][S.strikes]||"❌❌❌";
+  const st=$("tstate"), tsPanel=$("teacherStatus");
+  let txt,colr;
+  if(teacher.state==="WRITE"&&!teacherCanSee()){txt="✏️ Writing on board — SAFE";colr="#2ecc71";}
+  else if(teacher.state==="WRITE"){txt="↩️ Turning around!";colr="#f1c40f";}
+  else if(teacher.state==="LECTURE"){txt="👀 Scanning the class";colr="#f1c40f";}
+  else if(teacher.state==="STARE"){txt=teacher.stareYou?"👁️ STARING AT YOU":"👁️ Staring someone down";colr=teacher.stareYou?"#ff4757":"#e67e22";}
+  else if(teacher.state==="PATROL"){txt="🚶 WALKING THE AISLES!";colr="#ff4757";}
+  else if(teacher.state==="DRAMA_WAIT"){txt="🫣 He's noticed someone...";colr="#f1c40f";}
+  else if(teacher.state==="DISCIPLINE"){txt="😡 Busy scolding "+(teacher.drama?teacher.drama.name:"someone")+" — GO!";colr="#2ecc71";}
+  else {txt="❗ He heard something!";colr="#ff4757";}
+  st.textContent=txt; st.style.color=colr;
+  const mEl=$("mult");
+  if(S.mult>1){ mEl.style.display="block"; mEl.textContent="🔥 ×"+S.mult; }
+  else mEl.style.display="none";
+  // throw cooldown on button
+  const tb=$("b_throw");
+  if(S.throwCd>0){tb.disabled=true;tb.querySelector(".ico").textContent="⏳";}
+  else if(S.running){tb.disabled=false;tb.querySelector(".ico").textContent="🧻";}
+}
+const RANKS=[
+  [1600,"🏆 BACK ROW LEGEND","Schools will tell stories about you. Quietly."],
+  [1000,"🤡 CLASS CLOWN","Maximum chaos, minimum consequences. Respect."],
+  [600,"🕶️ SMOOTH OPERATOR","Sneaky, balanced, never flashy. The teacher suspects nothing... much."],
+  [250,"🐢 PLAYED IT SAFE","A little fun, a lot of passé composé."],
+  [0,"😇 TEACHER'S PET","You... actually paid attention? Mr. Grimsby is delighted. Your friends are not."]
+];
+function gradeLetter(b){return b>=85?"A":b>=70?"B":b>=55?"C":b>=40?"D":"F";}
+function endGame(reason){
+  if(!S.running) return;
+  S.running=false;
+  $("endReason").textContent=reason;
+  const score=Math.floor(S.fun);
+  $("finalFun").textContent=score;
+  const r=RANKS.find(r=>score>=r[0])||RANKS[RANKS.length-1];
+  $("rank").textContent=r[1];
+  $("endFlavor").textContent=r[2];
+  $("endGrade").textContent=gradeLetter(S.brain);
+  $("endStreak").textContent="×"+S.bestMult;
+  $("endBusts").textContent=S.strikes;
+  $("endQuiz").textContent=S.quizzesAced;
+  $("endScreen").classList.remove("hidden");
+}
+function resetGame(){
+  Object.assign(S,{running:true,paused:false,t:180,fun:0,brain:70,dopa:60,susp:0.12,
+    strikes:0,phoneGone:false,action:"attend",caught:0,zoned:false,freeze:0,
+    throwCd:0,throwVis:0,quizzesAced:0,nearMissArmed:false,
+    streak:0,mult:1,bestMult:1,nextDrama:rnd(16,26)});
+  teacher.drama=null;
+  for(const n of npcs) n.phone.visible=false;
+  quizTimes=[180-rnd(50,70), 180-rnd(115,140)].sort((a,b)=>b-a);
+  $("game").classList.remove("zoned");
+  $("b_phone").disabled=false;
+  $("b_phone").innerHTML='<span class="ico">📱</span>Check phone<span class="key">[4]</span>';
+  document.querySelectorAll(".abtn").forEach(b=>b.classList.remove("active"));
+  $("b_attend").classList.add("active");
+  $("lidTop").style.height="0"; $("lidBottom").style.height="0";
+  phone.visible=false;
+  teacher.pos.copy(teacher.home); teacher.state="WRITE"; teacher.timer=4; 
+  teacher.gaze=Math.PI; teacher.gazeTarget=Math.PI; teacher.half=0.65; teacher.path=null;
+  for(const b of balls) scene.remove(b.m);
+  balls.length=0;
+  lookYaw=0; lookPitch=-0.06;
+  $("endScreen").classList.add("hidden");
+  caption("🔔 3 minutes left of class. Make them count.",2600);
+}
+$("startBtn").addEventListener("click",()=>{ $("startScreen").classList.add("hidden"); resetGame(); snd.tick(); });
+$("againBtn").addEventListener("click",()=>{ resetGame(); });
+
+/* ---------------- main loop ---------------- */
+let last=performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min((now-last)/1000,0.05); last=now;
+  camera.rotation.y=lookYaw; camera.rotation.x=lookPitch;
+  if(S.running&&!S.paused){
+    S.t-=dt;
+    S.freeze=Math.max(0,S.freeze-dt);
+    S.throwCd=Math.max(0,S.throwCd-dt);
+    updateTeacher(dt);
+    updateDetection(dt);
+    updateStats(dt);
+    updateBalls(dt);
+    S.nextDrama-=dt;
+    if(S.nextDrama<=0&&(teacher.state==="WRITE"||teacher.state==="LECTURE"||teacher.state==="STARE")) startDrama();
+    if(S.t<=0){ S.t=0; endGame("🔔 The bell rings!"); }
+  }
+  updateNPCs(dt);
+  updateArc();
+  updateUI();
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
